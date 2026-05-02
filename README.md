@@ -4,6 +4,8 @@
   <img src="banner.png" alt="RVTools Visualiser" width="700">
 </div>
 
+> **Built by a tech veteran with 30+ years of solution design expertise who has never been a professional coder — this app was vibe-crafted using [GitHub Copilot CLI](https://github.com/features/copilot/cli/) and deployed to [Azure Static Web Apps](https://azure.microsoft.com/products/app-service/static). From idea 💡 to production web app, without writing a single line of code manually.**
+>
 > **Drop in your RVTools `.xlsx` export and instantly turn it into a live VMware estate dashboard — executive summary, infrastructure deep-dives, and a migration-readiness view, all in your browser. No server, no upload, no install.**
 
 [![Deploy](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml/badge.svg)](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml)
@@ -16,8 +18,6 @@
 👉 **Try the live app → [rvtoolsviz.djtools.co.nz](https://rvtoolsviz.djtools.co.nz/)**
 
 📂 **Sample file to test with → [`test-samples/rvtools-sample.xlsx`](test-samples/rvtools-sample.xlsx)** — a multi-tab RVTools export
-
-> 🛠️ Built by a tech veteran with 30+ years of solution-design expertise who has never been a professional coder. The whole thing was vibe-crafted with [GitHub Copilot CLI](https://github.com/features/copilot/cli/) and ships to [Azure Static Web Apps](https://azure.microsoft.com/products/app-service/static) — from idea 💡 to production web app, with no hand-written code.
 
 ---
 
