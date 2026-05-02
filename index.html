@@ -329,6 +329,24 @@ footer strong{opacity:1;}
 [data-theme="dark"] .welcome-privacy,body.dark .welcome-privacy{background:rgba(46,160,67,.15);color:#7ed99a;}
 .intro-link{background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:11px;text-decoration:underline;padding:0;margin-left:8px;font-family:inherit;}
 .intro-link:hover{color:var(--brand-primary);}
+/* ── Guided Tips ── */
+.tips-overlay{position:fixed;inset:0;z-index:1050;display:none;}
+.tips-overlay.active{display:block;}
+.tips-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
+.tips-spotlight{position:fixed;z-index:1051;border:3px solid var(--brand-primary);border-radius:var(--radius-md);box-shadow:0 0 0 9999px rgba(0,0,0,.45),0 0 24px rgba(15,108,189,.4);pointer-events:none;transition:all .4s ease;}
+.tips-card{position:fixed;z-index:1052;background:var(--bg-layer1);color:var(--text-primary);border:1px solid var(--border-default);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:18px;width:320px;opacity:0;pointer-events:none;}
+.tips-card.positioned{opacity:1;pointer-events:auto;animation:tipsSlideIn .35s ease;}
+@keyframes tipsSlideIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.tips-step{font-size:11px;color:var(--brand-primary);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.tips-card h4{font-size:15px;font-weight:600;margin-bottom:6px;}
+.tips-card p{font-size:13px;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;}
+.tips-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.tips-dots{display:flex;gap:6px;}
+.tips-dot{width:8px;height:8px;border-radius:50%;background:var(--border-default);transition:all .2s;}
+.tips-dot.active{background:var(--brand-primary);transform:scale(1.3);}
+.tips-dot.done{background:#2da44e;}
+.tips-actions{display:flex;gap:8px;}
+.tips-actions .btn{padding:5px 12px;font-size:12px;}
 </style>
 </head>
 <body>
@@ -428,6 +446,24 @@ footer strong{opacity:1;}
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Guided Tips Overlay -->
+<div class="tips-overlay" id="tipsOverlay">
+  <div class="tips-backdrop" id="tipsBackdrop"></div>
+  <div class="tips-spotlight" id="tipsSpotlight"></div>
+  <div class="tips-card" id="tipsCard" role="dialog" aria-modal="true" aria-labelledby="tipsTitle">
+    <div class="tips-step" id="tipsStepLabel"></div>
+    <h4 id="tipsTitle"></h4>
+    <p id="tipsText"></p>
+    <div class="tips-footer">
+      <div class="tips-dots" id="tipsDots"></div>
+      <div class="tips-actions">
+        <button class="btn btn-outline" onclick="dismissTips()">Skip</button>
+        <button class="btn btn-primary" id="tipsNextBtn" onclick="advanceTip()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="tooltip-box" id="tooltipBox"></div>
 
@@ -800,6 +836,7 @@ footer strong{opacity:1;}
   <span style="font-weight:600;color:var(--text);">DJ Tools</span> powered by <strong style="color:var(--primary);">GitHub Copilot CLI</strong> &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
   <button type="button" class="intro-link" onclick="replayWelcome()">Show intro</button>
+  <button type="button" class="intro-link" onclick="replayTour()">Take the tour</button>
   <div style="margin-top:8px;font-size:11px;color:var(--text-muted);opacity:0.7;">v1.0.0-beta</div>
   <div style="margin-top:10px;font-size:11px;color:var(--text-muted);opacity:0.85;">For planning purposes only. Consult your Azure Architect for final sizing and sequencing confirmation.</div>
 </footer>
@@ -1007,10 +1044,12 @@ function welcomeNext(){ if (_welcomeStep < _welcomeMaxStep){ _welcomeStep++; _re
 function welcomePrev(){ if (_welcomeStep > 1){ _welcomeStep--; _renderWelcomeStep(); } }
 function welcomeGoto(n){ _welcomeStep = Math.max(1, Math.min(_welcomeMaxStep, n)); _renderWelcomeStep(); }
 function welcomeStartDemo(){
+  _suppressTips = true;
   closeWelcome();
   setTimeout(() => { try { loadSampleData('full'); } catch(e){ console.warn(e); } }, 250);
 }
 function welcomeStartImport(){
+  _suppressTips = true;
   closeWelcome();
   setTimeout(() => {
     try { activateTab('import'); } catch(e){}
@@ -1031,8 +1070,13 @@ function replayWelcome(){
 function openShortcutsModal(){ document.getElementById('shortcutsModal').classList.add('active'); }
 function closeShortcutsModal(){ document.getElementById('shortcutsModal').classList.remove('active'); }
 function closeWelcome(){
+  const wasOpen = document.getElementById('welcomeModal').classList.contains('active');
   document.getElementById('welcomeModal').classList.remove('active');
   localStorage.setItem('rvtools_welcomed_v2', 'true');
+  if (wasOpen && !_suppressTips && !localStorage.getItem('rvtools_tips_v1')) {
+    setTimeout(startGuidedTips, 400);
+  }
+  _suppressTips = false;
 }
 function maybeShowWelcome(){
   if (!localStorage.getItem('rvtools_welcomed_v2')) {
@@ -1040,6 +1084,102 @@ function maybeShowWelcome(){
     _renderWelcomeStep();
     document.getElementById('welcomeModal').classList.add('active');
   }
+}
+
+// === GUIDED TIPS ===
+let _suppressTips = false;
+const GUIDED_TIPS = [
+  { target:'#tabStrip', title:'📑 Tabbed dashboard', text:'Switch between Import, Overview, Environment, Resources, Operations, Migration, and Inventory. Press 1–7 on your keyboard to jump between tabs.' },
+  { tab:'import', target:'#dropZone', title:'📂 Drop your RVTools file', text:'Drag-and-drop your .xlsx export here, or click to pick one. Nothing is uploaded — parsing happens entirely in your browser.' },
+  { tab:'import', target:'#sampleToggle', title:'🧪 Or explore demo data', text:'No file handy? Toggle between a vInfo-only sample and a full RVTools export to see how the dashboard behaves with different data depths.' },
+  { tab:'overview', target:'#filtersBar', title:'🔍 Filter the estate', text:'Search by VM/OS or filter by datacenter, OS family, and power state. Filters cascade through every chart and table on this tab.' },
+  { tab:'migration', target:'#waves', title:'🎯 Migration waves', text:'Risk-scored migration readiness waves with per-VM rationale. Sort, filter, and export the wave plan as CSV.' },
+  { target:'#exportHtmlBtn', title:'💾 Save offline copy', text:'Export a self-contained, single-file HTML snapshot of the current dashboard — perfect for sharing read-only with stakeholders.' }
+];
+let _tipIdx = 0;
+let _tipsActive = false;
+
+function startGuidedTips(){
+  _tipIdx = 0;
+  _tipsActive = true;
+  _renderTip();
+}
+
+function _renderTip(){
+  if (_tipIdx >= GUIDED_TIPS.length) { dismissTips(); return; }
+  const tip = GUIDED_TIPS[_tipIdx];
+  const overlay = document.getElementById('tipsOverlay');
+  const spotlight = document.getElementById('tipsSpotlight');
+  const card = document.getElementById('tipsCard');
+  const backdrop = document.getElementById('tipsBackdrop');
+
+  document.getElementById('tipsStepLabel').textContent = `TIP ${_tipIdx + 1} OF ${GUIDED_TIPS.length}`;
+  document.getElementById('tipsTitle').textContent = tip.title;
+  document.getElementById('tipsText').textContent = tip.text;
+  document.getElementById('tipsDots').innerHTML = GUIDED_TIPS.map((_, i) => {
+    const cls = i < _tipIdx ? 'tips-dot done' : i === _tipIdx ? 'tips-dot active' : 'tips-dot';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  document.getElementById('tipsNextBtn').textContent = _tipIdx === GUIDED_TIPS.length - 1 ? 'Got it!' : 'Next →';
+
+  if (tip.tab) { try { activateTab(tip.tab); } catch(_){} }
+  card.classList.remove('positioned');
+  spotlight.style.display = 'none';
+  overlay.classList.add('active');
+
+  const el = document.querySelector(tip.target);
+  if (el) {
+    try { el.scrollIntoView({behavior:'smooth', block:'center'}); } catch(_){}
+    setTimeout(() => {
+      const rect = el.getBoundingClientRect();
+      spotlight.style.top = (rect.top - 6) + 'px';
+      spotlight.style.left = (rect.left - 6) + 'px';
+      spotlight.style.width = (rect.width + 12) + 'px';
+      spotlight.style.height = (rect.height + 12) + 'px';
+      spotlight.style.display = 'block';
+
+      const cardW = 320;
+      const cardH = card.offsetHeight || 200;
+      let top = rect.bottom + 16;
+      let left = rect.left + (rect.width / 2) - (cardW / 2);
+      if (top + cardH > window.innerHeight - 20) top = Math.max(12, rect.top - cardH - 16);
+      if (left < 12) left = 12;
+      if (left + cardW > window.innerWidth - 12) left = window.innerWidth - cardW - 12;
+      card.style.top = top + 'px';
+      card.style.left = left + 'px';
+      card.style.transform = 'none';
+      card.classList.add('positioned');
+    }, 400);
+  } else {
+    spotlight.style.display = 'none';
+    card.style.top = '50%';
+    card.style.left = '50%';
+    card.style.transform = 'translate(-50%, -50%)';
+    card.classList.add('positioned');
+  }
+  backdrop.onclick = dismissTips;
+}
+
+function advanceTip(){
+  _tipIdx++;
+  if (_tipIdx >= GUIDED_TIPS.length) { dismissTips(); return; }
+  const card = document.getElementById('tipsCard');
+  card.classList.remove('positioned');
+  card.style.transform = 'none';
+  _renderTip();
+}
+
+function dismissTips(){
+  _tipsActive = false;
+  document.getElementById('tipsOverlay').classList.remove('active');
+  document.getElementById('tipsSpotlight').style.display = 'none';
+  document.getElementById('tipsCard').classList.remove('positioned');
+  localStorage.setItem('rvtools_tips_v1', 'true');
+}
+
+function replayTour(){
+  localStorage.removeItem('rvtools_tips_v1');
+  startGuidedTips();
 }
 let _persistToastEl = null;
 function showToast(msg, typeOrErr, persist){
@@ -1075,6 +1215,7 @@ document.addEventListener('keydown', (e) => {
   if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
   if (e.key === '?' || (e.shiftKey && e.key === '/')) { e.preventDefault(); openShortcutsModal(); }
   else if (e.key === 'Escape') {
+    if (_tipsActive) { dismissTips(); return; }
     document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
   }
   else if (e.key === 't' || e.key === 'T') { toggleTheme(); }
