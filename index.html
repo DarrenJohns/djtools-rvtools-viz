@@ -447,8 +447,8 @@ footer strong{opacity:1;}
 
 <!-- TAB STRIP — switches between section panes below -->
 <nav class="tab-strip" id="tabStrip" role="tablist" aria-label="Dashboard sections">
-  <button class="tab"        role="tab" data-tab="import"     onclick="activateTab('import')">📥 Import</button>
-  <button class="tab active" role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
+  <button class="tab active" role="tab" data-tab="import"     onclick="activateTab('import')">📥 Import</button>
+  <button class="tab"        role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
   <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
   <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Operations</button>
@@ -457,7 +457,7 @@ footer strong{opacity:1;}
 </nav>
 
 <!-- IMPORT (drop zone + how-to) -->
-<div class="section tab-pane upload-section" id="importPane" data-tab="import">
+<div class="section tab-pane upload-section active" id="importPane" data-tab="import">
   <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;padding:8px 14px;background:rgba(16,124,16,.08);border:1px solid rgba(16,124,16,.25);border-radius:999px;font-size:.8rem;color:#0a6e0a;font-weight:600;width:fit-content;margin-left:auto;margin-right:auto;">
     🔒 Private — your data stays in your browser. Nothing is uploaded to any server.
   </div>
@@ -504,7 +504,7 @@ footer strong{opacity:1;}
 <!-- TAB STRIP DUPLICATE REMOVED -->
 
 <!-- OVERVIEW (Executive Summary + Filters + Analytics combined) -->
-<div class="section tab-pane active" id="overview" data-tab="overview">
+<div class="section tab-pane" id="overview" data-tab="overview">
   <div class="section-title"><span class="icon">📊</span> Overview</div>
   <div class="filters-bar" id="filtersBar" style="margin-bottom:14px;">
     <div class="filter-group" style="flex:1;min-width:200px;"><label>Search VM / OS</label><input type="search" id="fSearch" placeholder="Type to filter…" oninput="applyFilters()"></div>
