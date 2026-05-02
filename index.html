@@ -87,7 +87,9 @@ a{color:var(--primary);text-decoration:none;}
 /* NAV — slim 56px fixed Fluent header */
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:linear-gradient(135deg,#0f6cbd 0%,#0e4a8a 100%);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 body.dark nav,[data-theme="dark"] nav{background:linear-gradient(135deg,#1a1d24 0%,#12151a 100%);}
-.nav-brand{font-size:1.1rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;}
+.nav-brand{font-size:20px;font-weight:600;color:#fff;display:flex;align-items:center;gap:12px;}
+.nav-brand h1{font-size:20px;font-weight:600;margin:0;line-height:1;}
+.nav-brand svg{width:32px;height:32px;flex-shrink:0;}
 .nav-links{display:flex;gap:4px;flex-wrap:wrap;}
 .nav-links a{color:rgba(255,255,255,.85);padding:6px 12px;border-radius:6px;font-size:.82rem;font-weight:500;transition:background .2s;}
 .nav-links a:hover{background:rgba(255,255,255,.15);color:#fff;}
@@ -361,7 +363,10 @@ footer strong{opacity:1;}
 
 <!-- NAV -->
 <nav>
-  <div class="nav-brand">🖥️ RVTools Visualiser</div>
+  <div class="nav-brand">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="rvhg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#5bb8f5"/><stop offset="100%" stop-color="#ffffff"/></linearGradient></defs><rect x="8" y="8" width="84" height="60" rx="8" fill="url(#rvhg)"/><rect x="14" y="14" width="72" height="48" rx="4" fill="#0a3d6b"/><rect x="20" y="22" width="26" height="4" rx="2" fill="#00b7c3"/><rect x="20" y="30" width="18" height="4" rx="2" fill="#00b7c3" opacity="0.7"/><rect x="20" y="38" width="32" height="4" rx="2" fill="#00b7c3" opacity="0.5"/><rect x="20" y="46" width="14" height="4" rx="2" fill="#00b7c3" opacity="0.3"/><circle cx="70" cy="30" r="8" fill="none" stroke="#00b7c3" stroke-width="2"/><path d="M70 24v6h5" fill="none" stroke="#00b7c3" stroke-width="2" stroke-linecap="round"/><rect x="60" y="44" width="18" height="8" rx="2" fill="#00b7c3" opacity="0.4"/><rect x="62" y="46" width="4" height="4" rx="1" fill="#00b7c3"/><rect x="68" y="46" width="4" height="4" rx="1" fill="#00b7c3" opacity="0.7"/><rect x="40" y="68" width="20" height="6" rx="2" fill="rgba(255,255,255,0.4)"/><rect x="30" y="74" width="40" height="8" rx="4" fill="rgba(255,255,255,0.3)"/><rect x="32" y="76" width="8" height="4" rx="1" fill="rgba(255,255,255,0.5)"/><rect x="42" y="76" width="8" height="4" rx="1" fill="rgba(255,255,255,0.5)"/><rect x="52" y="76" width="8" height="4" rx="1" fill="rgba(255,255,255,0.5)"/></svg>
+    <h1>RVTools Visualiser</h1>
+  </div>
   <div class="nav-links"></div>
   <div class="nav-actions">
     <button id="exportHtmlBtn" class="nav-icon-btn" onclick="exportHTML()" aria-label="Save a self-contained offline copy of this dashboard" title="Save offline copy">💾</button>
