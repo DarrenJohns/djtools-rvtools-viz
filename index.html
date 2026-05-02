@@ -298,35 +298,17 @@ footer strong{opacity:1;}
 .toast.success{border-color:#a5d6a7;}
 .toast.error{border-color:#ef9a9a;color:var(--status-danger);}
 .toast.warning{border-color:#ffe0b2;color:var(--status-warning);}
-/* ── Welcome carousel ── */
-.welcome-card{max-width:600px;}
-.welcome-banner{background:linear-gradient(135deg,#0f6cbd 0%,#0e4a8a 60%,#1a8cff 100%);color:#fff;padding:32px 28px 22px;text-align:center;position:relative;overflow:hidden;}
-.welcome-banner::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 30%,rgba(255,255,255,.18) 0,transparent 40%),radial-gradient(circle at 80% 70%,rgba(255,255,255,.14) 0,transparent 35%);pointer-events:none;}
-.welcome-banner > *{position:relative;}
-.welcome-banner h2{font-size:24px;font-weight:600;margin-bottom:8px;}
-.welcome-banner p{font-size:14px;opacity:.92;}
-.welcome-step{display:none;animation:fadeSlide .3s ease;}
-.welcome-step.active{display:block;}
-@keyframes fadeSlide{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-.welcome-feature-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:8px 0 16px;}
-.welcome-feature{padding:14px;border:1px solid var(--border-default);border-radius:var(--radius-md);background:var(--bg-layer2);}
-.welcome-feature .ico{font-size:24px;display:block;margin-bottom:6px;}
-.welcome-feature strong{display:block;font-size:13px;margin-bottom:2px;color:var(--text-primary);}
-.welcome-feature span{font-size:12px;color:var(--text-secondary);line-height:1.4;}
-.welcome-cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px;}
-.welcome-cta{padding:18px 16px;border-radius:var(--radius-md);border:1px solid var(--border-default);background:var(--bg-layer2);cursor:pointer;text-align:left;font-family:inherit;color:var(--text-primary);transition:all var(--transition);}
-.welcome-cta:hover{border-color:var(--brand-primary);background:var(--bg-layer1);box-shadow:var(--shadow-sm);transform:translateY(-1px);}
-.welcome-cta .ico{font-size:22px;display:block;margin-bottom:8px;}
-.welcome-cta strong{display:block;font-size:14px;margin-bottom:4px;}
-.welcome-cta span{font-size:12px;color:var(--text-secondary);line-height:1.4;}
-.welcome-nav{display:flex;align-items:center;justify-content:space-between;margin-top:18px;gap:10px;}
-.welcome-dots{display:flex;gap:6px;}
-.welcome-dots span{width:8px;height:8px;border-radius:50%;background:var(--border-default);transition:background var(--transition),width var(--transition);}
-.welcome-dots span.active{background:var(--brand-primary);width:22px;border-radius:4px;}
-.welcome-skip{background:none;border:none;color:var(--text-tertiary);font-size:12px;cursor:pointer;padding:6px;font-family:inherit;}
-.welcome-skip:hover{color:var(--text-primary);}
-.welcome-privacy{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--status-success-bg,#e6f4ea);color:#1e7c3e;border-radius:var(--radius-sm);font-size:12px;margin-bottom:14px;font-weight:500;}
-[data-theme="dark"] .welcome-privacy,body.dark .welcome-privacy{background:rgba(46,160,67,.15);color:#7ed99a;}
+/* ── Welcome modal ── */
+.welcome-card{max-width:540px;}
+.welcome-banner{background:linear-gradient(135deg,#0f6cbd 0%,#0e4a8a 100%);color:#fff;padding:28px 32px 20px;text-align:center;}
+.welcome-banner h2{font-size:22px;font-weight:600;margin-bottom:6px;}
+.welcome-banner p{font-size:14px;opacity:.85;}
+.welcome-body{padding:24px 32px 28px;}
+.welcome-body ul{list-style:none;margin:0 0 20px;padding:0;}
+.welcome-body li{padding:8px 0;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--text-primary);line-height:1.5;}
+.welcome-body li > span:first-child{font-size:18px;flex-shrink:0;line-height:1.4;}
+.welcome-body li strong{font-weight:600;}
+.welcome-body .btn{width:100%;justify-content:center;font-size:14px;padding:10px;display:flex;}
 .intro-link{background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:11px;text-decoration:underline;padding:0;margin-left:8px;font-family:inherit;}
 .intro-link:hover{color:var(--brand-primary);}
 </style>
@@ -335,75 +317,19 @@ footer strong{opacity:1;}
 <!-- Welcome / onboarding carousel -->
 <div class="modal-overlay" id="welcomeModal" onclick="if(event.target===this)closeWelcome()">
   <div class="modal-card welcome-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
-    <!-- Step 1: hero -->
-    <div class="welcome-step active" data-step="1">
-      <div class="welcome-banner">
-        <div style="font-size:42px;line-height:1;margin-bottom:10px;">📊</div>
-        <h2 id="welcomeTitle">RVTools Visualiser</h2>
-        <p>Turn an RVTools .xlsx export into a live VMware estate dashboard — in seconds, in your browser.</p>
-      </div>
-      <div class="modal-body">
-        <div class="welcome-privacy">🔒 100% private — your data never leaves your browser. No upload, no tracking, no account needed.</div>
-        <p style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:4px;">
-          Built for VMware admins, cloud architects, and migration leads who need fast estate visibility without spinning up tooling. Drop your RVTools file, get instant insights across infrastructure, storage, compute, operations, and migration readiness.
-        </p>
-      </div>
+    <div class="welcome-banner">
+      <h2 id="welcomeTitle">👋 Welcome to RVTools Visualiser</h2>
+      <p>Turn an RVTools .xlsx export into a live VMware estate dashboard</p>
     </div>
-    <!-- Step 2: features -->
-    <div class="welcome-step" data-step="2">
-      <div class="welcome-banner">
-        <h2>What you'll get</h2>
-        <p>Seven grouped views, all driven from one .xlsx</p>
-      </div>
-      <div class="modal-body">
-        <div class="welcome-feature-grid">
-          <div class="welcome-feature"><span class="ico">📊</span><strong>Overview</strong><span>Executive KPIs and estate-wide health summary</span></div>
-          <div class="welcome-feature"><span class="ico">🏗️</span><strong>Environment</strong><span>Clusters, hosts, topology, capacity</span></div>
-          <div class="welcome-feature"><span class="ico">💾</span><strong>Resources</strong><span>Storage, disks, network, vCPU/vRAM</span></div>
-          <div class="welcome-feature"><span class="ico">🩺</span><strong>Operations</strong><span>Snapshot age, host health, hot spots</span></div>
-          <div class="welcome-feature"><span class="ico">🎯</span><strong>Migration</strong><span>Risk scoring and wave planning</span></div>
-          <div class="welcome-feature"><span class="ico">🖥️</span><strong>Inventory</strong><span>Filterable VM table with CSV export</span></div>
-        </div>
-      </div>
-    </div>
-    <!-- Step 3: CTAs -->
-    <div class="welcome-step" data-step="3">
-      <div class="welcome-banner">
-        <h2>Ready when you are</h2>
-        <p>Pick a starting point — you can switch any time</p>
-      </div>
-      <div class="modal-body">
-        <div class="welcome-cta-grid">
-          <button type="button" class="welcome-cta" onclick="welcomeStartDemo()">
-            <span class="ico">🧪</span>
-            <strong>Try with demo data</strong>
-            <span>Explore a synthetic 500-VM estate to see what the app does. No file needed.</span>
-          </button>
-          <button type="button" class="welcome-cta" onclick="welcomeStartImport()">
-            <span class="ico">📂</span>
-            <strong>I have an RVTools file</strong>
-            <span>Skip straight to the drop zone and import your own .xlsx.</span>
-          </button>
-        </div>
-        <p style="font-size:11px;color:var(--text-tertiary);text-align:center;margin-top:14px;">
-          Tip: press <kbd style="padding:1px 5px;border:1px solid var(--border-default);border-radius:3px;background:var(--bg-layer2);font-family:Cascadia Code,Consolas,monospace;">?</kbd> any time for keyboard shortcuts.
-        </p>
-      </div>
-    </div>
-    <!-- Carousel nav -->
-    <div class="modal-body" style="padding-top:0;">
-      <div class="welcome-nav">
-        <button type="button" class="welcome-skip" onclick="closeWelcome()">Skip intro</button>
-        <div class="welcome-dots" id="welcomeDots">
-          <span class="active" onclick="welcomeGoto(1)"></span>
-          <span onclick="welcomeGoto(2)"></span>
-          <span onclick="welcomeGoto(3)"></span>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button type="button" class="btn btn-outline" id="welcomePrev" onclick="welcomePrev()" style="padding:6px 14px;font-size:13px;visibility:hidden;">← Back</button>
-          <button type="button" class="btn btn-primary" id="welcomeNext" onclick="welcomeNext()" style="padding:6px 14px;font-size:13px;">Next →</button>
-        </div>
-      </div>
+    <div class="welcome-body">
+      <ul>
+        <li><span>📂</span> <span><strong>Import</strong> — Drop your RVTools .xlsx; parsing happens 100% in your browser</span></li>
+        <li><span>📊</span> <span><strong>Dashboards</strong> — Explore Environment, Resources, Operations, and Inventory across tabs</span></li>
+        <li><span>🎯</span> <span><strong>Migration</strong> — Risk-scored migration waves with per-VM rationale</span></li>
+        <li><span>🧪</span> <span><strong>Demo data</strong> — Toggle a synthetic 500-VM estate any time from the Import tab</span></li>
+        <li><span>⌨️</span> <span><strong>Shortcuts</strong> — Press <strong>?</strong> anytime for keyboard shortcuts</span></li>
+      </ul>
+      <button class="btn btn-primary" onclick="closeWelcome()">Get Started</button>
     </div>
   </div>
 </div>
@@ -984,50 +910,7 @@ function toggleTheme() {
 }
 
 // ============ MODALS + TOASTS ============
-let _welcomeStep = 1;
-const _welcomeMaxStep = 3;
-function _renderWelcomeStep(){
-  document.querySelectorAll('#welcomeModal .welcome-step').forEach(s => {
-    s.classList.toggle('active', Number(s.dataset.step) === _welcomeStep);
-  });
-  const dots = document.querySelectorAll('#welcomeDots span');
-  dots.forEach((d, i) => d.classList.toggle('active', i + 1 === _welcomeStep));
-  const prev = document.getElementById('welcomePrev');
-  const next = document.getElementById('welcomeNext');
-  if (prev) prev.style.visibility = _welcomeStep === 1 ? 'hidden' : 'visible';
-  if (next) {
-    if (_welcomeStep === _welcomeMaxStep) {
-      next.textContent = 'Done';
-      next.onclick = closeWelcome;
-    } else {
-      next.textContent = 'Next →';
-      next.onclick = welcomeNext;
-    }
-  }
-}
-function welcomeNext(){ if (_welcomeStep < _welcomeMaxStep){ _welcomeStep++; _renderWelcomeStep(); } }
-function welcomePrev(){ if (_welcomeStep > 1){ _welcomeStep--; _renderWelcomeStep(); } }
-function welcomeGoto(n){ _welcomeStep = Math.max(1, Math.min(_welcomeMaxStep, n)); _renderWelcomeStep(); }
-function welcomeStartDemo(){
-  closeWelcome();
-  setTimeout(() => { try { loadSampleData('full'); } catch(e){ console.warn(e); } }, 250);
-}
-function welcomeStartImport(){
-  closeWelcome();
-  setTimeout(() => {
-    try { activateTab('import'); } catch(e){}
-    const dz = document.getElementById('dropZone') || document.querySelector('.drop-zone');
-    if (dz) {
-      dz.style.transition = 'box-shadow .3s';
-      const orig = dz.style.boxShadow;
-      dz.style.boxShadow = '0 0 0 4px rgba(15,108,189,.35)';
-      setTimeout(() => { dz.style.boxShadow = orig; }, 1400);
-    }
-  }, 250);
-}
 function replayWelcome(){
-  _welcomeStep = 1;
-  _renderWelcomeStep();
   document.getElementById('welcomeModal').classList.add('active');
 }
 function openShortcutsModal(){ document.getElementById('shortcutsModal').classList.add('active'); }
@@ -1038,8 +921,6 @@ function closeWelcome(){
 }
 function maybeShowWelcome(){
   if (!localStorage.getItem('rvtools_welcomed_v2')) {
-    _welcomeStep = 1;
-    _renderWelcomeStep();
     document.getElementById('welcomeModal').classList.add('active');
   }
 }
