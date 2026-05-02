@@ -1,7 +1,7 @@
 # 🖥️ RVTools Visualiser
 
 <div align="center">
-  <img src="banner.png" alt="RVTools Visualiser" width="700">
+  <img src="djtools.png" alt="RVTools Visualiser" width="700">
 </div>
 
 > **Built by a tech veteran with 30+ years of solution design expertise who has never been a professional coder — this app was vibe-crafted using [GitHub Copilot CLI](https://github.com/features/copilot/cli/) and deployed to [Azure Static Web Apps](https://azure.microsoft.com/products/app-service/static). From idea 💡 to production web app, without writing a single line of code manually.**
@@ -148,7 +148,7 @@
 ```
 djtools-rvtools-viz/
 ├── index.html                    # The whole app (single file, CDN dependencies only)
-├── banner.png                    # Banner image
+├── djtools.png                   # Banner image
 ├── README.md                     # This file
 ├── LICENSE                       # MIT license
 ├── SECURITY.md                   # Security reporting policy
