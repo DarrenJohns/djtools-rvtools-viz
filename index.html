@@ -1484,7 +1484,7 @@ function renderInvTable(search='') {
       {icon:'🪟', val: winN, label:'Windows VMs', cls:''},
       {icon:'🐧', val: linN, label:'Linux VMs', cls:''},
       {icon:'🏢', val: dcN, label:'Datacenters', cls:''},
-      {icon:'🧩', val: clN, label:'Clusters', cls:''},
+      {icon:'🗄️', val: clN, label:'Clusters', cls:''},
     ];
     invCards.innerHTML = cards.map(c => `<div class="card ${c.cls}"><div class="card-icon">${c.icon}</div><div class="card-value">${c.val}</div><div class="card-label">${c.label}</div></div>`).join('');
   }
@@ -2451,7 +2451,7 @@ function exportHTML() {
     <div class="card"><div class="card-icon">🪟</div><div class="card-value">${winCount}</div><div class="card-label">Windows VMs</div></div>
     <div class="card"><div class="card-icon">🐧</div><div class="card-value">${linCount}</div><div class="card-label">Linux VMs</div></div>
     <div class="card"><div class="card-icon">🏢</div><div class="card-value">${dcCountInv}</div><div class="card-label">Datacenters</div></div>
-    <div class="card"><div class="card-icon">🧩</div><div class="card-value">${clusterCountInv}</div><div class="card-label">Clusters</div></div>
+    <div class="card"><div class="card-icon">🗄️</div><div class="card-value">${clusterCountInv}</div><div class="card-label">Clusters</div></div>
   </div>
   <div class="table-card">
     <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:12px;">Showing all ${vms.length} VMs</p>
