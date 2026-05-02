@@ -288,8 +288,10 @@ footer strong{opacity:1;}
 .shortcut-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);background:var(--bg-layer2);}
 .shortcut-key{min-width:36px;text-align:center;padding:4px 8px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);font-family:'Cascadia Code','Consolas',monospace;font-size:13px;font-weight:600;}
 .shortcut-desc{font-size:13px;color:var(--text-secondary);}
-.kbd-shortcut-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:14px;backdrop-filter:blur(4px);transition:background var(--transition);font-family:inherit;}
-.kbd-shortcut-btn:hover{background:rgba(255,255,255,.25);}
+.kbd-shortcut-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50%;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;font-size:15px;backdrop-filter:blur(4px);transition:background var(--transition),transform var(--transition);font-family:inherit;}
+.kbd-shortcut-btn:hover{background:rgba(255,255,255,.28);transform:translateY(-1px);}
+.nav-icon-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50%;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer;font-size:15px;transition:background var(--transition),transform var(--transition);font-family:inherit;}
+.nav-icon-btn:hover{background:rgba(255,255,255,.28);transform:translateY(-1px);}
 .toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
 .toast{background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:10px 18px;font-size:13px;color:var(--text-primary);box-shadow:var(--shadow-md);transition:transform .3s,opacity .3s;opacity:0;transform:translateY(40px);pointer-events:auto;max-width:480px;}
 .toast.show{opacity:1;transform:translateY(0);}
@@ -434,9 +436,9 @@ footer strong{opacity:1;}
   <div class="nav-brand">🖥️ RVTools Visualiser</div>
   <div class="nav-links"></div>
   <div class="nav-actions">
-    <button id="exportHtmlBtn" onclick="exportHTML()" aria-label="Save a self-contained offline copy of this dashboard" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.82rem;font-weight:600;transition:background .2s;">💾 Save Locally</button>
+    <button id="exportHtmlBtn" class="nav-icon-btn" onclick="exportHTML()" aria-label="Save a self-contained offline copy of this dashboard" title="Save offline copy">💾</button>
     <button class="kbd-shortcut-btn" onclick="openShortcutsModal()" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨️</button>
-    <button id="themeBtn" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙 Dark Mode</button>
+    <button id="themeBtn" class="nav-icon-btn" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
   </div>
 </nav>
 
@@ -932,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Default to dark mode unless the user has explicitly chosen light
   const isDark = savedTheme !== 'light';
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  if (isDark) { document.body.classList.add('dark'); document.getElementById('themeBtn').textContent = '☀️ Light Mode'; }
+  if (isDark) { document.body.classList.add('dark'); document.getElementById('themeBtn').textContent = '☀️'; }
   // First-load welcome modal
   setTimeout(maybeShowWelcome, 200);
   // A11y: decorate chart canvases with role+aria-label from their preceding heading
@@ -970,7 +972,7 @@ function toggleTheme() {
   document.body.classList.toggle('dark');
   const isDark = document.body.classList.contains('dark');
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  document.getElementById('themeBtn').textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
   renderCharts();
   renderRiskQuadrant();
@@ -2605,7 +2607,7 @@ function exportResourceCSV() {
 }
 function exportHTML() {
   const btn = document.getElementById('exportHtmlBtn');
-  btn.textContent = '⏳ Generating...'; btn.disabled = true;
+  btn.textContent = '⏳'; btn.disabled = true;
   try {
     // Force light mode for chart capture
     const wasDark = document.body.classList.contains('dark');
@@ -2814,7 +2816,7 @@ function exportHTML() {
     console.error('Export error:', err);
     showToast('❌ Export failed: ' + err.message, true);
   } finally {
-    btn.textContent = '💾 Save Locally'; btn.disabled = false;
+    btn.textContent = '💾'; btn.disabled = false;
   }
 }
 
