@@ -358,11 +358,11 @@ footer strong{opacity:1;}
       <div class="modal-body">
         <div class="welcome-feature-grid">
           <div class="welcome-feature"><span class="ico">📊</span><strong>Overview</strong><span>Executive KPIs and estate-wide health summary</span></div>
-          <div class="welcome-feature"><span class="ico">🏗️</span><strong>Infrastructure</strong><span>Clusters, hosts, topology, capacity</span></div>
-          <div class="welcome-feature"><span class="ico">💾</span><strong>Storage</strong><span>Datastore usage, disk types, snapshots</span></div>
-          <div class="welcome-feature"><span class="ico">⚡</span><strong>Compute &amp; Network</strong><span>vCPU/vRAM trends, network analysis</span></div>
+          <div class="welcome-feature"><span class="ico">🏗️</span><strong>Environment</strong><span>Clusters, hosts, topology, capacity</span></div>
+          <div class="welcome-feature"><span class="ico">💾</span><strong>Resources</strong><span>Storage, disks, network, vCPU/vRAM</span></div>
           <div class="welcome-feature"><span class="ico">🩺</span><strong>Operations</strong><span>Snapshot age, host health, hot spots</span></div>
           <div class="welcome-feature"><span class="ico">🎯</span><strong>Migration</strong><span>Risk scoring and wave planning</span></div>
+          <div class="welcome-feature"><span class="ico">🖥️</span><strong>Inventory</strong><span>Filterable VM table with CSV export</span></div>
         </div>
       </div>
     </div>
@@ -493,9 +493,8 @@ footer strong{opacity:1;}
 <!-- TAB STRIP — switches between section panes below -->
 <nav class="tab-strip" id="tabStrip" role="tablist" aria-label="Dashboard sections">
   <button class="tab active" role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
-  <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Infrastructure</button>
-  <button class="tab"        role="tab" data-tab="storage"    onclick="activateTab('storage')">💾 Storage</button>
-  <button class="tab"        role="tab" data-tab="compute"    onclick="activateTab('compute')">⚡ Compute &amp; Network</button>
+  <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
+  <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Operations</button>
   <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Migration</button>
   <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
@@ -565,7 +564,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- STORAGE DASHBOARD (enhanced) -->
-<div class="section tab-pane" id="storageSection" data-tab="storage">
+<div class="section tab-pane" id="storageSection" data-tab="resources">
   <div class="section-header" onclick="toggleSection('storage')">
     <span class="section-toggle" id="storageToggle">▶</span>
     <h3>💾 Storage Dashboard</h3>
@@ -585,7 +584,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- DISK ANALYSIS (vDisk) -->
-<div class="section tab-pane" id="diskSection" data-tab="storage">
+<div class="section tab-pane" id="diskSection" data-tab="resources">
   <div class="section-header" onclick="toggleSection('disk')">
     <span class="section-toggle" id="diskToggle">▶</span>
     <h3>💿 Disk Analysis</h3>
@@ -614,7 +613,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- NETWORK TOPOLOGY (vNetwork) -->
-<div class="section tab-pane" id="networkSection" data-tab="compute">
+<div class="section tab-pane" id="networkSection" data-tab="resources">
   <div class="section-header" onclick="toggleSection('network')">
     <span class="section-toggle" id="networkToggle">▶</span>
     <h3>🌐 Network Analysis</h3>
@@ -643,7 +642,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- RESOURCE ALLOCATION (vCPU + vMemory) -->
-<div class="section tab-pane" id="resourceSection" data-tab="compute">
+<div class="section tab-pane" id="resourceSection" data-tab="resources">
   <div class="section-header" onclick="toggleSection('resource')">
     <span class="section-toggle" id="resourceToggle">▶</span>
     <h3>⚡ Resource Allocation</h3>
@@ -1077,7 +1076,7 @@ document.addEventListener('keydown', (e) => {
   }
   else if (e.key === 't' || e.key === 'T') { toggleTheme(); }
   else if (/^[1-7]$/.test(e.key)) {
-    const keys = ['overview','infra','storage','compute','ops','migration','inventory'];
+    const keys = ['overview','infra','resources','ops','migration','inventory'];
     const k = keys[parseInt(e.key,10)-1];
     if (k) activateTab(k);
   }
@@ -1095,7 +1094,7 @@ function toggleSection(key) {
 }
 
 // ============ TAB NAVIGATION ============
-const TAB_KEYS = ['overview','infra','storage','compute','ops','migration','inventory'];
+const TAB_KEYS = ['overview','infra','resources','ops','migration','inventory'];
 function activateTab(key) {
   if (!TAB_KEYS.includes(key)) return;
   document.querySelectorAll('.tab-strip .tab').forEach(b => {
