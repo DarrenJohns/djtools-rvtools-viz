@@ -271,9 +271,74 @@ footer strong{opacity:1;}
   .cards-grid{grid-template-columns:repeat(2,1fr);}
   .charts-grid{grid-template-columns:1fr;}
 }
+/* ── Welcome / Shortcuts modal + Toast (Fluent) ── */
+.modal-overlay{position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.active{opacity:1;pointer-events:auto;}
+.modal-card{background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);max-width:560px;width:90%;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;}
+.modal-banner{background:linear-gradient(135deg,#0f6cbd 0%,#0e4a8a 100%);color:#fff;padding:24px 28px 18px;text-align:center;}
+.modal-banner h2{font-size:22px;font-weight:600;margin-bottom:6px;}
+.modal-banner p{font-size:14px;opacity:.9;}
+.modal-body{padding:20px 28px 24px;overflow-y:auto;}
+.modal-body ul{list-style:none;margin:0 0 18px;padding:0;}
+.modal-body li{padding:8px 0;display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;}
+.modal-body li .icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.modal-body .btn{width:100%;justify-content:center;font-size:14px;padding:10px;}
+.modal-close-row{display:flex;justify-content:flex-end;margin-top:8px;}
+.shortcuts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px;}
+.shortcut-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);background:var(--bg-layer2);}
+.shortcut-key{min-width:36px;text-align:center;padding:4px 8px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);font-family:'Cascadia Code','Consolas',monospace;font-size:13px;font-weight:600;}
+.shortcut-desc{font-size:13px;color:var(--text-secondary);}
+.kbd-shortcut-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:14px;backdrop-filter:blur(4px);transition:background var(--transition);font-family:inherit;}
+.kbd-shortcut-btn:hover{background:rgba(255,255,255,.25);}
+.toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:10px 18px;font-size:13px;color:var(--text-primary);box-shadow:var(--shadow-md);transition:transform .3s,opacity .3s;opacity:0;transform:translateY(40px);pointer-events:auto;max-width:480px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{border-color:#a5d6a7;}
+.toast.error{border-color:#ef9a9a;color:var(--status-danger);}
+.toast.warning{border-color:#ffe0b2;color:var(--status-warning);}
 </style>
 </head>
 <body>
+<!-- Welcome Modal (first-load only) -->
+<div class="modal-overlay" id="welcomeModal" onclick="if(event.target===this)closeWelcome()">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="modal-banner">
+      <h2 id="welcomeTitle">👋 Welcome to RVTools Visualiser</h2>
+      <p>Turn your RVTools .xlsx into a live VMware estate dashboard — all in your browser.</p>
+    </div>
+    <div class="modal-body">
+      <ul>
+        <li><span class="icon">📂</span><span><strong>Drop</strong> — your RVTools .xlsx export. Nothing leaves your browser.</span></li>
+        <li><span class="icon">📊</span><span><strong>Analyse</strong> — executive summary, infrastructure deep-dives, and migration readiness.</span></li>
+        <li><span class="icon">🎯</span><span><strong>Review</strong> — risk, waves, and per-section filters across 7 grouped tabs.</span></li>
+        <li><span class="icon">💾</span><span><strong>Export</strong> — save a self-contained offline HTML copy.</span></li>
+      </ul>
+      <button class="btn btn-primary" onclick="closeWelcome()">Get Started</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shortcuts Modal -->
+<div class="modal-overlay" id="shortcutsModal" onclick="if(event.target===this)closeShortcutsModal()">
+  <div class="modal-card" style="max-width:480px;" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+    <div class="modal-banner">
+      <h2 id="shortcutsTitle">⌨️ Keyboard Shortcuts</h2>
+    </div>
+    <div class="modal-body">
+      <div class="shortcuts-grid">
+        <div class="shortcut-item"><span class="shortcut-key">?</span><span class="shortcut-desc">Show shortcuts</span></div>
+        <div class="shortcut-item"><span class="shortcut-key">T</span><span class="shortcut-desc">Toggle dark mode</span></div>
+        <div class="shortcut-item"><span class="shortcut-key">Esc</span><span class="shortcut-desc">Close modal</span></div>
+        <div class="shortcut-item"><span class="shortcut-key">1-7</span><span class="shortcut-desc">Switch tabs</span></div>
+      </div>
+      <div class="modal-close-row"><button class="btn btn-outline" onclick="closeShortcutsModal()">Close</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
 <div class="tooltip-box" id="tooltipBox"></div>
 
 <!-- NAV -->
@@ -282,6 +347,7 @@ footer strong{opacity:1;}
   <div class="nav-links"></div>
   <div class="nav-actions">
     <button id="exportHtmlBtn" onclick="exportHTML()" aria-label="Save a self-contained offline copy of this dashboard" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.82rem;font-weight:600;transition:background .2s;">💾 Save Locally</button>
+    <button class="kbd-shortcut-btn" onclick="openShortcutsModal()" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨️</button>
     <button id="themeBtn" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙 Dark Mode</button>
   </div>
 </nav>
@@ -778,6 +844,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const isDark = savedTheme !== 'light';
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
   if (isDark) { document.body.classList.add('dark'); document.getElementById('themeBtn').textContent = '☀️ Light Mode'; }
+  // First-load welcome modal
+  setTimeout(maybeShowWelcome, 200);
   // A11y: decorate chart canvases with role+aria-label from their preceding heading
   document.querySelectorAll('canvas').forEach(c => {
     if (!c.getAttribute('aria-label')) {
@@ -819,6 +887,62 @@ function toggleTheme() {
   renderRiskQuadrant();
   updateTabBadges();
 }
+
+// ============ MODALS + TOASTS ============
+function openShortcutsModal(){ document.getElementById('shortcutsModal').classList.add('active'); }
+function closeShortcutsModal(){ document.getElementById('shortcutsModal').classList.remove('active'); }
+function closeWelcome(){
+  document.getElementById('welcomeModal').classList.remove('active');
+  localStorage.setItem('rvtools_welcomed', 'true');
+}
+function maybeShowWelcome(){
+  if (!localStorage.getItem('rvtools_welcomed')) {
+    document.getElementById('welcomeModal').classList.add('active');
+  }
+}
+let _persistToastEl = null;
+function showToast(msg, typeOrErr, persist){
+  const type = typeof typeOrErr === 'string' ? typeOrErr : (typeOrErr === true ? 'error' : '');
+  const c = document.getElementById('toastContainer');
+  if (!c) return;
+  if (persist && _persistToastEl && _persistToastEl.isConnected) {
+    _persistToastEl.className = 'toast show' + (type ? ' ' + type : '');
+    _persistToastEl.textContent = msg;
+    return;
+  }
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  c.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  if (persist) {
+    _persistToastEl = el;
+  } else {
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 350); }, 3500);
+  }
+}
+function hideToast(){
+  if (_persistToastEl) {
+    const el = _persistToastEl;
+    _persistToastEl = null;
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 350);
+  }
+}
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+  if (e.key === '?' || (e.shiftKey && e.key === '/')) { e.preventDefault(); openShortcutsModal(); }
+  else if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+  else if (e.key === 't' || e.key === 'T') { toggleTheme(); }
+  else if (/^[1-7]$/.test(e.key)) {
+    const keys = ['overview','infra','storage','compute','ops','migration','inventory'];
+    const k = keys[parseInt(e.key,10)-1];
+    if (k) activateTab(k);
+  }
+});
 
 // ============ COLLAPSIBLE SECTIONS ============
 function toggleSection(key) {
@@ -2555,27 +2679,6 @@ function exportHTML() {
   } finally {
     btn.textContent = '💾 Save Locally'; btn.disabled = false;
   }
-}
-
-function showToast(msg, isError, persist) {
-  let t = document.getElementById('appToast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'appToast';
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--card-bg);color:var(--text);border:1px solid var(--border);border-left:4px solid var(--primary);box-shadow:0 6px 24px rgba(0,0,0,.25);padding:12px 18px;border-radius:10px;font-size:.88rem;font-weight:600;z-index:9999;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;max-width:340px;';
-    document.body.appendChild(t);
-  }
-  t.style.borderLeftColor = isError ? 'var(--danger)' : 'var(--primary)';
-  t.textContent = msg;
-  requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
-  clearTimeout(t._timer);
-  if (!persist) {
-    t._timer = setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; }, 3500);
-  }
-}
-function hideToast() {
-  const t = document.getElementById('appToast');
-  if (t) { clearTimeout(t._timer); t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; }
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
