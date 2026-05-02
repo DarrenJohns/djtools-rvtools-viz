@@ -445,8 +445,19 @@ footer strong{opacity:1;}
 <!-- HERO removed in Fluent refresh — slim header flows straight to tab strip -->
 <div id="analysisDepthBar" style="display:none;"></div>
 
-<!-- UPLOAD -->
-<div class="upload-section">
+<!-- TAB STRIP — switches between section panes below -->
+<nav class="tab-strip" id="tabStrip" role="tablist" aria-label="Dashboard sections">
+  <button class="tab"        role="tab" data-tab="import"     onclick="activateTab('import')">📥 Import</button>
+  <button class="tab active" role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
+  <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
+  <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
+  <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Operations</button>
+  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Migration</button>
+  <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
+</nav>
+
+<!-- IMPORT (drop zone + how-to) -->
+<div class="section tab-pane upload-section" id="importPane" data-tab="import">
   <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:14px;padding:8px 14px;background:rgba(16,124,16,.08);border:1px solid rgba(16,124,16,.25);border-radius:999px;font-size:.8rem;color:#0a6e0a;font-weight:600;width:fit-content;margin-left:auto;margin-right:auto;">
     🔒 Private — your data stays in your browser. Nothing is uploaded to any server.
   </div>
@@ -490,15 +501,7 @@ footer strong{opacity:1;}
   </div>
 </div>
 
-<!-- TAB STRIP — switches between section panes below -->
-<nav class="tab-strip" id="tabStrip" role="tablist" aria-label="Dashboard sections">
-  <button class="tab active" role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
-  <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
-  <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
-  <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Operations</button>
-  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Migration</button>
-  <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
-</nav>
+<!-- TAB STRIP DUPLICATE REMOVED -->
 
 <!-- OVERVIEW (Executive Summary + Filters + Analytics combined) -->
 <div class="section tab-pane active" id="overview" data-tab="overview">
@@ -1010,9 +1013,9 @@ function welcomeStartDemo(){
 function welcomeStartImport(){
   closeWelcome();
   setTimeout(() => {
+    try { activateTab('import'); } catch(e){}
     const dz = document.getElementById('dropZone') || document.querySelector('.drop-zone');
     if (dz) {
-      dz.scrollIntoView({behavior:'smooth', block:'center'});
       dz.style.transition = 'box-shadow .3s';
       const orig = dz.style.boxShadow;
       dz.style.boxShadow = '0 0 0 4px rgba(15,108,189,.35)';
@@ -1076,7 +1079,7 @@ document.addEventListener('keydown', (e) => {
   }
   else if (e.key === 't' || e.key === 'T') { toggleTheme(); }
   else if (/^[1-7]$/.test(e.key)) {
-    const keys = ['overview','infra','resources','ops','migration','inventory'];
+    const keys = ['import','overview','infra','resources','ops','migration','inventory'];
     const k = keys[parseInt(e.key,10)-1];
     if (k) activateTab(k);
   }
@@ -1094,7 +1097,7 @@ function toggleSection(key) {
 }
 
 // ============ TAB NAVIGATION ============
-const TAB_KEYS = ['overview','infra','resources','ops','migration','inventory'];
+const TAB_KEYS = ['import','overview','infra','resources','ops','migration','inventory'];
 function activateTab(key) {
   if (!TAB_KEYS.includes(key)) return;
   document.querySelectorAll('.tab-strip .tab').forEach(b => {
@@ -1174,7 +1177,7 @@ function clearLoadedData() {
   if (fileInput) fileInput.value = '';
   showDemoIndicators();
   loadSampleData('full');
-  document.querySelector('.upload-section').scrollIntoView({behavior:'smooth',block:'start'});
+  try { activateTab('overview'); } catch(_){}
 }
 
 function handleFile(file) {
@@ -1264,6 +1267,7 @@ function parseLoadedWorkbook(buffer, file) {
       hideToast();
       showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`);
       openAllPaneBodies();
+      try { activateTab('overview'); } catch(_){}
     } catch(err) {
       showFileError('Something went wrong while processing the file.', `Details: ${esc(err.message || String(err))}`);
     }
