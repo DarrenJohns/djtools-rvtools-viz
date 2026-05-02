@@ -1545,15 +1545,61 @@ function renderPagination(id, totalPages, current, cb) {
 const _tablePagState = {};
 function paginateTable(key, tbodyId, rowsHtml) {
   if (rowsHtml !== undefined) {
-    _tablePagState[key] = { page: 1, rows: rowsHtml, tbodyId };
+    // parse cell text for sortable columns once
+    const parser = document.createElement('tbody');
+    const cells = rowsHtml.map(html => {
+      parser.innerHTML = html;
+      const tr = parser.firstElementChild;
+      return tr ? Array.from(tr.cells).map(c => c.textContent.trim()) : [];
+    });
+    const prevSort = _tablePagState[key]?.sort;
+    _tablePagState[key] = { page: 1, rows: rowsHtml, cells, tbodyId, sort: prevSort || { col: -1, dir: 1 } };
+    // wire header click handlers + cursor + base labels (once per re-render is fine)
+    const tb = document.getElementById(tbodyId);
+    const table = tb?.closest('table');
+    if (table) {
+      Array.from(table.querySelectorAll('thead th')).forEach((th, i) => {
+        if (!th.dataset.label) th.dataset.label = th.textContent.replace(/\s*[↕↑↓]$/, '').trim();
+        th.style.cursor = 'pointer';
+        th.style.userSelect = 'none';
+        th.onclick = () => _sortPaginated(key, i);
+      });
+    }
   }
   const st = _tablePagState[key]; if (!st) return;
   const tbody = document.getElementById(st.tbodyId); if (!tbody) return;
-  const total = st.rows.length;
+  // compute display order with optional sort
+  let order = st.rows.map((_, i) => i);
+  if (st.sort.col >= 0) {
+    const c = st.sort.col, d = st.sort.dir;
+    const numeric = st.cells.length > 0 && st.cells.every(r => {
+      const v = (r[c] || '').replace(/[,%\s]/g, '');
+      return v === '' || !isNaN(parseFloat(v));
+    });
+    order.sort((a, b) => {
+      const va = (st.cells[a][c] || ''), vb = (st.cells[b][c] || '');
+      if (numeric) {
+        const na = parseFloat(va.replace(/[,%\s]/g, '')) || 0;
+        const nb = parseFloat(vb.replace(/[,%\s]/g, '')) || 0;
+        return (na - nb) * d;
+      }
+      return va.localeCompare(vb, undefined, { numeric: true, sensitivity: 'base' }) * d;
+    });
+  }
+  const total = order.length;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   st.page = Math.min(Math.max(1, st.page), pages);
-  const slice = st.rows.slice((st.page-1)*PAGE_SIZE, st.page*PAGE_SIZE);
+  const slice = order.slice((st.page-1)*PAGE_SIZE, st.page*PAGE_SIZE).map(i => st.rows[i]);
   tbody.innerHTML = slice.join('');
+  // refresh header arrows
+  const table = tbody.closest('table');
+  if (table) {
+    Array.from(table.querySelectorAll('thead th')).forEach((th, i) => {
+      const base = th.dataset.label || th.textContent;
+      const arrow = (st.sort.col === i) ? (st.sort.dir === 1 ? '↑' : '↓') : '↕';
+      th.textContent = `${base} ${arrow}`;
+    });
+  }
   const card = tbody.closest('.table-card'); if (!card) return;
   let pag = card.querySelector(`#${key}_pag`);
   let info = card.querySelector(`#${key}_info`);
@@ -1561,6 +1607,12 @@ function paginateTable(key, tbodyId, rowsHtml) {
   if (!info) { info = document.createElement('div'); info.className='page-info'; info.id = `${key}_info`; card.appendChild(info); }
   renderPagination(`${key}_pag`, pages, st.page, eval(`(p => _gotoTablePage(${JSON.stringify(key)}, p))`));
   info.textContent = total ? `Showing ${(st.page-1)*PAGE_SIZE+1}–${Math.min(st.page*PAGE_SIZE, total)} of ${total}` : '';
+}
+function _sortPaginated(key, col) {
+  const st = _tablePagState[key]; if (!st) return;
+  if (st.sort.col === col) st.sort.dir *= -1; else { st.sort.col = col; st.sort.dir = 1; }
+  st.page = 1;
+  paginateTable(key);
 }
 function _gotoTablePage(key, p) {
   if (_tablePagState[key]) { _tablePagState[key].page = p; paginateTable(key); }
