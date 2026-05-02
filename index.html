@@ -1211,6 +1211,9 @@ function renderEmptyState(key, tabName, icon, title, description) {
   if (chartsEl) chartsEl.style.display = 'none';
   const tables = bodyEl.querySelectorAll('table');
   tables.forEach(t => t.style.display = 'none');
+  // Hide leftover UI from prior render: filters bar, table cards, pagination, insight panels
+  bodyEl.querySelectorAll('.filters-bar, .table-card, .pagination').forEach(el => el.style.display = 'none');
+  bodyEl.querySelectorAll('[id$="Insight"]').forEach(el => { el.innerHTML = ''; el.style.display = 'none'; });
   if (cardsEl) {
     cardsEl.innerHTML = `
       <div style="grid-column:1/-1;text-align:center;padding:32px 20px;">
@@ -1694,6 +1697,8 @@ function restoreSectionVisibility(key) {
   const chartsEl = document.getElementById(key + 'Charts');
   if (chartsEl) chartsEl.style.display = '';
   body.querySelectorAll('table').forEach(t => t.style.display = '');
+  body.querySelectorAll('.filters-bar, .table-card, .pagination').forEach(el => el.style.display = '');
+  body.querySelectorAll('[id$="Insight"]').forEach(el => el.style.display = '');
 }
 
 function renderStorageDashboard() {
