@@ -321,18 +321,13 @@ footer strong{opacity:1;}
 
 <!-- TAB STRIP — switches between section panes below -->
 <nav class="tab-strip" id="tabStrip" role="tablist" aria-label="Dashboard sections">
-  <button class="tab active" role="tab" data-tab="overview"  onclick="activateTab('overview')">📊 Overview</button>
-  <button class="tab"        role="tab" data-tab="topology"  onclick="activateTab('topology')">🗺️ Topology</button>
-  <button class="tab"        role="tab" data-tab="host"      onclick="activateTab('host')">🏗️ Hosts</button>
-  <button class="tab"        role="tab" data-tab="storage"   onclick="activateTab('storage')">💾 Storage</button>
-  <button class="tab"        role="tab" data-tab="disk"      onclick="activateTab('disk')">💿 Disks</button>
-  <button class="tab"        role="tab" data-tab="network"   onclick="activateTab('network')">🌐 Network</button>
-  <button class="tab"        role="tab" data-tab="resource"  onclick="activateTab('resource')">⚡ Resources</button>
-  <button class="tab"        role="tab" data-tab="snapshot"  onclick="activateTab('snapshot')">📸 Snapshots</button>
-  <button class="tab"        role="tab" data-tab="health"    onclick="activateTab('health')">🏥 Health</button>
-  <button class="tab"        role="tab" data-tab="risk"      onclick="activateTab('risk')">🎯 Risk</button>
-  <button class="tab"        role="tab" data-tab="waves"     onclick="activateTab('waves')">📝 Readiness</button>
-  <button class="tab"        role="tab" data-tab="inventory" onclick="activateTab('inventory')">🖥️ Inventory</button>
+  <button class="tab active" role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
+  <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Infrastructure</button>
+  <button class="tab"        role="tab" data-tab="storage"    onclick="activateTab('storage')">💾 Storage</button>
+  <button class="tab"        role="tab" data-tab="compute"    onclick="activateTab('compute')">⚡ Compute &amp; Network</button>
+  <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Operations</button>
+  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Migration</button>
+  <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
 </nav>
 
 <!-- OVERVIEW (Executive Summary + Filters + Analytics combined) -->
@@ -359,7 +354,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- TOPOLOGY (vInfo always, enriched by vHost) -->
-<div class="section tab-pane" id="topologySection" data-tab="topology">
+<div class="section tab-pane" id="topologySection" data-tab="infra">
   <div class="section-header" onclick="toggleSection('topology')">
     <span class="section-toggle" id="topologyToggle">▶</span>
     <h3>🗺️ Environment Topology</h3>
@@ -379,7 +374,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- HOST CAPACITY (enhanced) -->
-<div class="section tab-pane" id="hostSection" data-tab="host">
+<div class="section tab-pane" id="hostSection" data-tab="infra">
   <div class="section-header" onclick="toggleSection('host')">
     <span class="section-toggle" id="hostToggle">▶</span>
     <h3>🏗️ Host Capacity</h3>
@@ -419,7 +414,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- DISK ANALYSIS (vDisk) -->
-<div class="section tab-pane" id="diskSection" data-tab="disk">
+<div class="section tab-pane" id="diskSection" data-tab="storage">
   <div class="section-header" onclick="toggleSection('disk')">
     <span class="section-toggle" id="diskToggle">▶</span>
     <h3>💿 Disk Analysis</h3>
@@ -448,7 +443,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- NETWORK TOPOLOGY (vNetwork) -->
-<div class="section tab-pane" id="networkSection" data-tab="network">
+<div class="section tab-pane" id="networkSection" data-tab="compute">
   <div class="section-header" onclick="toggleSection('network')">
     <span class="section-toggle" id="networkToggle">▶</span>
     <h3>🌐 Network Analysis</h3>
@@ -477,7 +472,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- RESOURCE ALLOCATION (vCPU + vMemory) -->
-<div class="section tab-pane" id="resourceSection" data-tab="resource">
+<div class="section tab-pane" id="resourceSection" data-tab="compute">
   <div class="section-header" onclick="toggleSection('resource')">
     <span class="section-toggle" id="resourceToggle">▶</span>
     <h3>⚡ Resource Allocation</h3>
@@ -504,7 +499,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- SNAPSHOT HEALTH (enhanced) -->
-<div class="section tab-pane" id="snapshotSection" data-tab="snapshot">
+<div class="section tab-pane" id="snapshotSection" data-tab="ops">
   <div class="section-header" onclick="toggleSection('snapshot')">
     <span class="section-toggle" id="snapshotToggle">▶</span>
     <h3>📸 Snapshot Health</h3>
@@ -520,7 +515,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- HEALTH SCORE (enhanced) -->
-<div class="section tab-pane" id="healthSection" data-tab="health">
+<div class="section tab-pane" id="healthSection" data-tab="ops">
   <div class="section-header" onclick="toggleSection('health')">
     <span class="section-toggle" id="healthToggle">▶</span>
     <h3>🏥 Environment Health</h3>
@@ -536,7 +531,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- RISK QUADRANT -->
-<div class="section tab-pane" id="risk" data-tab="risk">
+<div class="section tab-pane" id="risk" data-tab="migration">
   <div class="section-header"><h3>🎯 Risk Quadrant</h3></div>
   <div class="section-body open" id="riskBody">
   <div style="background:rgba(255,140,0,.08);border:1px solid rgba(255,140,0,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;color:var(--text);">
@@ -557,7 +552,7 @@ footer strong{opacity:1;}
 </div>
 
 <!-- WAVES -->
-<div class="section tab-pane" id="waves" data-tab="waves">
+<div class="section tab-pane" id="waves" data-tab="migration">
   <div class="section-header" onclick="toggleSection('waves')">
     <span class="section-toggle" id="wavesToggle">▶</span>
     <h3>📝 Readiness Groups</h3>
@@ -819,7 +814,7 @@ function toggleSection(key) {
 }
 
 // ============ TAB NAVIGATION ============
-const TAB_KEYS = ['overview','topology','host','storage','disk','network','resource','snapshot','health','risk','waves','inventory'];
+const TAB_KEYS = ['overview','infra','storage','compute','ops','migration','inventory'];
 function activateTab(key) {
   if (!TAB_KEYS.includes(key)) return;
   document.querySelectorAll('.tab-strip .tab').forEach(b => {
