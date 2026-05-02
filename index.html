@@ -895,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWaveTable();
   renderInvTable();
   openAllPaneBodies();
-  activateTabFromHash();
+  activateTab('import');
 });
 
 function toggleTheme() {
@@ -1058,7 +1058,6 @@ function clearLoadedData() {
   if (fileInput) fileInput.value = '';
   showDemoIndicators();
   loadSampleData('full');
-  try { activateTab('overview'); } catch(_){}
 }
 
 function handleFile(file) {
@@ -1148,7 +1147,6 @@ function parseLoadedWorkbook(buffer, file) {
       hideToast();
       showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`);
       openAllPaneBodies();
-      try { activateTab('overview'); } catch(_){}
     } catch(err) {
       showFileError('Something went wrong while processing the file.', `Details: ${esc(err.message || String(err))}`);
     }
