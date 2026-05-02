@@ -917,10 +917,10 @@ function openShortcutsModal(){ document.getElementById('shortcutsModal').classLi
 function closeShortcutsModal(){ document.getElementById('shortcutsModal').classList.remove('active'); }
 function closeWelcome(){
   document.getElementById('welcomeModal').classList.remove('active');
-  localStorage.setItem('rvtools_welcomed_v2', 'true');
+  localStorage.setItem('rvtools_welcomed_v3', 'true');
 }
 function maybeShowWelcome(){
-  if (!localStorage.getItem('rvtools_welcomed_v2')) {
+  if (!localStorage.getItem('rvtools_welcomed_v3')) {
     document.getElementById('welcomeModal').classList.add('active');
   }
 }
