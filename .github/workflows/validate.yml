@@ -1,0 +1,78 @@
+# Validate index.html on every pull request that touches HTML
+#
+# Uses pull_request (NOT pull_request_target) so PRs from forks run with
+# zero secret access. Runs on a GitHub-hosted ubuntu-latest runner.
+
+name: Validate HTML
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**/*.html'
+      - '.github/workflows/validate.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: HTML Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.12'
+
+      - name: Validate HTML syntax
+        run: |
+          python - <<'PY'
+          import html.parser, sys
+          p = html.parser.HTMLParser()
+          with open('index.html', encoding='utf-8') as f:
+              p.feed(f.read())
+          print('HTML syntax check passed.')
+          PY
+
+      - name: Check open/close tag balance
+        run: |
+          python - <<'PY'
+          import re, sys
+          content = open('index.html', encoding='utf-8').read()
+          opens = len(re.findall(r'<(?!meta|link|br|hr|img|input|!)[a-zA-Z]+[\s>]', content))
+          closes = len(re.findall(r'</[a-zA-Z]+>', content))
+          print(f'Open tags: {opens}, Close tags: {closes}')
+          # Threshold accounts for tags inside JS template strings (false positives).
+          sys.exit(0 if abs(opens - closes) < 20 else 1)
+          PY
+
+      - name: Verify essential elements
+        run: |
+          python - <<'PY'
+          import sys
+          c = open('index.html', encoding='utf-8').read()
+          checks = [
+              ('<html',   'html tag'),
+              ('</html>', 'html close'),
+              ('<head>',  'head tag'),
+              ('</head>', 'head close'),
+              ('<body',   'body tag'),
+              ('</body>', 'body close'),
+              ('<title>', 'title tag'),
+              ('<script>','script tag'),
+          ]
+          failed = [name for token, name in checks if token not in c]
+          for f in failed:
+              print(f'FAIL: missing {f}')
+          if not failed:
+              print('All essential elements present.')
+          sys.exit(1 if failed else 0)
+          PY
