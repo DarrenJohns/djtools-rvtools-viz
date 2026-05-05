@@ -2087,6 +2087,7 @@ function _skurStartAutosave() {
   if (_skurAutosaveTimer) return;
   _skurAutosaveTimer = setInterval(_skurAutosaveTick, RVTOOLS_AUTOSAVE_INTERVAL_MS);
   window.addEventListener('beforeunload', _skurAutosaveTick);
+  // Cross-tab via BroadcastChannel (works on http(s); often blocked on file://)
   if (typeof BroadcastChannel !== 'undefined') {
     try {
       _skurBroadcast = new BroadcastChannel('rvtools-viz');
@@ -2102,6 +2103,19 @@ function _skurStartAutosave() {
       try { _skurBroadcast.postMessage({ type: 'hello' }); } catch (_) {}
     } catch (_) { _skurBroadcast = null; }
   }
+  // Fallback: storage event fires in OTHER tabs whenever localStorage is written
+  // (works on file:// in Firefox and most browsers when BroadcastChannel doesn't).
+  window.addEventListener('storage', (ev) => {
+    if (ev.key !== RVTOOLS_AUTOSAVE_KEY || !ev.newValue) return;
+    try {
+      const incoming = JSON.parse(ev.newValue);
+      const ours = _skurAutosaveLast ? JSON.parse(_skurAutosaveLast) : null;
+      if (!ours || (incoming.savedAt && incoming.savedAt > ours.savedAt)) {
+        _skurOtherTabPresent = true;
+        showToast('⏸ Autosave paused — another tab is editing this workspace.', false, true);
+      }
+    } catch (_) {}
+  });
 }
 
 function _skurMaybeResumeAutosave() {
