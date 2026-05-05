@@ -462,6 +462,43 @@ footer strong{opacity:1;}
 .skur-groups-head h4{margin:0;font-size:.95rem;font-weight:700;color:var(--text);}
 .skur-groups-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 10px;}
 .skur-groups-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.skur-groups-2col{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:stretch;margin-top:8px;}
+.skur-group-rail{display:flex;flex-direction:column;gap:4px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:8px;max-height:520px;overflow:auto;background:var(--bg-layer2);}
+.skur-group-rail-item{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid transparent;background:var(--bg-layer1);}
+.skur-group-rail-item:hover{background:var(--bg-layer2);border-color:var(--border-subtle);}
+.skur-group-rail-item.is-active{background:rgba(15,108,189,.14);border-color:rgba(15,108,189,.45);}
+.skur-group-rail-item .ri-top{display:flex;align-items:center;gap:6px;}
+.skur-group-rail-item .ri-name{font-weight:600;font-size:13px;color:var(--text-primary);flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skur-group-rail-item .ri-mode-emoji{font-size:11px;}
+.skur-group-rail-item .ri-meta{font-size:10px;color:var(--text-tertiary);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.skur-group-rail-item .ri-meta .ri-issues{color:#dc3545;font-weight:700;}
+.skur-group-rail-item .ri-meta .ri-warns{color:#f59e0b;font-weight:700;}
+.skur-group-rail-spacer{flex:1 1 auto;min-height:6px;}
+.skur-group-rail-oos{margin-top:6px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1px dashed rgba(220,53,69,.4);background:rgba(220,53,69,.05);font-size:12px;color:#dc3545;font-weight:600;display:flex;align-items:center;gap:6px;}
+.skur-group-rail-oos.is-active{background:rgba(220,53,69,.18);border-style:solid;}
+.skur-group-rail-oos:hover{background:rgba(220,53,69,.12);}
+.skur-group-rail-empty{padding:14px 10px;text-align:center;color:var(--text-tertiary);font-style:italic;font-size:12px;}
+.skur-group-panel{border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 18px;background:var(--bg-layer1);min-height:200px;display:flex;flex-direction:column;gap:10px;}
+.skur-group-panel.is-empty{align-items:center;justify-content:center;color:var(--text-tertiary);font-style:italic;}
+.skur-group-panel .gp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.skur-group-panel .gp-name{font-size:1.15rem;font-weight:700;color:var(--text-primary);}
+.skur-group-panel .gp-mode-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);color:var(--brand-primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.skur-group-panel .gp-count{font-size:12px;color:var(--text-secondary);}
+.skur-group-panel .gp-actions{margin-left:auto;display:flex;gap:6px;}
+.skur-group-panel .gp-actions button{background:transparent;border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:4px 10px;font:inherit;font-size:12px;color:var(--text-secondary);cursor:pointer;}
+.skur-group-panel .gp-actions button:hover{background:var(--bg-layer2);color:var(--text-primary);}
+.skur-group-panel .gp-actions .gp-danger:hover{background:rgba(220,53,69,.1);color:#dc3545;border-color:rgba(220,53,69,.4);}
+.skur-group-panel .gp-row{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);align-items:center;}
+.skur-group-panel .gp-row strong{color:var(--text-primary);}
+.skur-group-panel .gp-row .gp-cost{font-size:1.1rem;font-weight:700;color:var(--text-primary);font-family:var(--font-mono,'Consolas',monospace);}
+.skur-group-panel .gp-row .gp-cost-label{font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;}
+.skur-group-panel .gp-exc-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.skur-group-panel .gp-members{margin-top:4px;font-size:12px;color:var(--text-tertiary);line-height:1.8;}
+.skur-group-panel .gp-members .gpm-vm{display:inline-block;padding:1px 8px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:999px;margin:0 3px 4px 0;font-family:var(--font-mono,'Consolas',monospace);font-size:11px;color:var(--text-primary);cursor:pointer;}
+.skur-group-panel .gp-members .gpm-vm:hover{background:rgba(15,108,189,.12);border-color:rgba(15,108,189,.4);}
+.skur-group-panel .gp-members .gpm-more{font-size:11px;font-style:italic;color:var(--text-tertiary);}
+.skur-group-panel .gp-restore{background:transparent;border:1px solid rgba(220,53,69,.4);color:#dc3545;border-radius:var(--radius-sm);padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;}
+.skur-group-panel .gp-restore:hover{background:rgba(220,53,69,.1);}
 .skur-group-item{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:999px;font-size:12px;}
 .skur-group-item .gi-name{font-weight:600;color:var(--text-primary);}
 .skur-group-item .gi-count{color:var(--text-secondary);font-size:11px;}
@@ -989,7 +1026,10 @@ body.dark .skur-group-chip{color:#b794f4;}
             <button class="btn" onclick="newSkurGroup()">➕ New group</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
-          <div class="skur-groups-list" id="skurGroupsList"></div>
+          <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
+            <div class="skur-group-rail" id="skurGroupRail"></div>
+            <div class="skur-group-panel is-empty" id="skurGroupPanel">Select a group to see details</div>
+          </div>
           <div class="skur-oos-summary" id="skurOosSummary" style="display:none;"></div>
         </div>
       </div>
@@ -2339,10 +2379,41 @@ function skurDupVmKeys() {
   for (const k of Object.keys(counts)) if (counts[k] > 1) dups.add(k);
   return dups;
 }
+// Phase 7: active-group state for rail/panel layout.
+let skurActiveGroupId = null; // group id, or '__oos__' for OOS view, or null
+function skurSetActiveGroup(id) {
+  skurActiveGroupId = id || null;
+  renderSkurGroups();
+}
+function _skurGroupTotalMonthlyCost(g) {
+  if (!g || !Array.isArray(g.members)) return null;
+  const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+  let sum = 0; let any = false;
+  for (const k of g.members) {
+    const v = byKey.get(k); if (!v) continue;
+    if (skurOOSEntry(v)) continue;
+    const rec = skurRecommendForVm(v);
+    if (!rec || rec.state !== 'ok') continue;
+    const m = skurRecCostMonthly(rec);
+    if (typeof m === 'number' && isFinite(m)) { sum += m; any = true; }
+  }
+  return any ? sum : null;
+}
+function _skurFmtConstraintSummary(c) {
+  if (!c) return 'all SKUs';
+  const fams = (c.families && c.families.length) ? c.families.join('/') : 'no families';
+  const proc = c.processor && c.processor !== 'any' ? ` · ${c.processor}` : '';
+  const burst = c.excludeBurstable ? ' · no-burst' : '';
+  const prem = c.requirePremiumIo ? ' · prem-IO' : '';
+  const range = (c.minVcpu || c.maxVcpu) ? ` · ${c.minVcpu||'∗'}–${c.maxVcpu||'∗'} vCPU` : '';
+  return `${fams}${proc}${burst}${prem}${range}`;
+}
 function renderSkurGroups() {
-  const list = document.getElementById('skurGroupsList');
   const empty = document.getElementById('skurGroupsEmpty');
-  if (!list || !empty) return;
+  const twoCol = document.getElementById('skurGroupsTwoCol');
+  const rail = document.getElementById('skurGroupRail');
+  const panel = document.getElementById('skurGroupPanel');
+  if (!empty || !twoCol || !rail || !panel) return;
   // Refresh auto-group dropdown options whenever groups/rules might have changed.
   const sel = document.getElementById('skurAutoGroupSel');
   if (sel) {
@@ -2354,61 +2425,142 @@ function renderSkurGroups() {
     sel.disabled = !keys.length;
     sel.title = keys.length ? 'Create one sizing group per distinct value of the chosen tag key' : 'Add a tag rule first to enable auto-grouping';
   }
-  if (!skurGroups.length) { empty.style.display = ''; list.innerHTML = ''; }
-  else {
+  const escG = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const oosTotal = skurOOSCount();
+  const hasGroups = skurGroups.length > 0;
+  // Empty-state visibility: hide rail/panel when no groups AND no OOS members.
+  if (!hasGroups && !oosTotal) {
+    empty.style.display = '';
+    twoCol.style.display = 'none';
+  } else {
     empty.style.display = 'none';
-    const escG = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-    const dups = skurDupVmKeys();
-    const totalCat = skurCatalogForRegion(skurPlan.region).length;
-    list.innerHTML = skurGroups.map(g => {
+    twoCol.style.display = '';
+  }
+  // Re-validate active id (group could be deleted, OOS could clear).
+  if (skurActiveGroupId === '__oos__' && !oosTotal) skurActiveGroupId = null;
+  if (skurActiveGroupId && skurActiveGroupId !== '__oos__' && !skurGroups.find(g => g.id === skurActiveGroupId)) skurActiveGroupId = null;
+  if (!skurActiveGroupId) {
+    if (hasGroups) skurActiveGroupId = skurGroups[0].id;
+    else if (oosTotal) skurActiveGroupId = '__oos__';
+  }
+  // === Render rail ===
+  const dups = skurDupVmKeys();
+  const totalCat = skurCatalogForRegion(skurPlan.region).length;
+  const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
+  const railItems = skurGroups.map(g => {
+    const isActive = skurActiveGroupId === g.id;
+    const dupCount = dups.size ? g.members.reduce((n,k) => n + (dups.has(k) ? 1 : 0), 0) : 0;
+    const eligibleCount = skurEligibleSkusForGroup(g).length;
+    const exc = skurExceptionCountsForGroup(g);
+    const issues = exc.noMatch + exc.noEligible;
+    const warns = dupCount + exc.noInput;
+    const issuesHtml = issues ? `<span class="ri-issues" title="${issues} issue${issues===1?'':'s'}: too-big or blocked">⚠ ${issues}</span>` : '';
+    const warnsHtml = warns ? `<span class="ri-warns" title="${warns} warning${warns===1?'':'s'}: dup or no-input">! ${warns}</span>` : '';
+    const mode = skurNormaliseMode(g.mode);
+    return `<div class="skur-group-rail-item${isActive?' is-active':''}" onclick="skurSetActiveGroup('${escG(g.id)}')">
+      <div class="ri-top">
+        <span class="ri-mode-emoji" title="Sizing mode: ${escG(mode)}">${modeEmoji(mode)}</span>
+        <span class="ri-name" title="${escG(g.name)}">${escG(g.name)}</span>
+      </div>
+      <div class="ri-meta">
+        <span>${g.members.length} VM${g.members.length===1?'':'s'}</span>
+        <span>· 📦 ${eligibleCount}/${totalCat}</span>
+        ${issuesHtml}${warnsHtml}
+      </div>
+    </div>`;
+  }).join('');
+  const oosRail = oosTotal
+    ? `<div class="skur-group-rail-spacer"></div>
+       <div class="skur-group-rail-oos${skurActiveGroupId==='__oos__'?' is-active':''}" onclick="skurSetActiveGroup('__oos__')" title="View out-of-scope VMs">🚫 Out of scope · ${oosTotal} VM${oosTotal===1?'':'s'}</div>`
+    : '';
+  rail.innerHTML = (hasGroups ? railItems : `<div class="skur-group-rail-empty">No groups yet</div>`) + oosRail;
+
+  // === Render active panel ===
+  if (skurActiveGroupId === '__oos__') {
+    const counts = {};
+    for (const k of Object.keys(skurOutOfScope)) {
+      const r = skurOutOfScope[k].reason || 'other';
+      counts[r] = (counts[r] || 0) + 1;
+    }
+    const reasonChips = Object.keys(SKUR_OOS_REASONS).filter(r => counts[r])
+      .map(r => `<span class="oos-chip" title="${escG(SKUR_OOS_REASONS[r].label)}">${SKUR_OOS_REASONS[r].emoji} ${escG(SKUR_OOS_REASONS[r].label)} ${counts[r]}</span>`).join(' ');
+    const oosKeys = Object.keys(skurOutOfScope);
+    const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+    const memberHtml = oosKeys.slice(0, 24).map(k => {
+      const v = byKey.get(k); const name = v ? v.name : k;
+      return `<span class="gpm-vm" onclick="skurFilters.name='${escG(name).replace(/'/g,"\\'")}';document.querySelector('.skur-filter[data-f=&quot;name&quot;]').value='${escG(name).replace(/'/g,"\\'")}';renderSkurVmGrid();" title="Click to filter the grid to this VM">${escG(name||'(unknown)')}</span>`;
+    }).join('');
+    const more = oosKeys.length > 24 ? `<span class="gpm-more">… +${oosKeys.length - 24} more</span>` : '';
+    panel.classList.remove('is-empty');
+    panel.innerHTML = `
+      <div class="gp-head">
+        <span class="gp-name">🚫 Out of scope</span>
+        <span class="gp-count">${oosTotal} VM${oosTotal===1?'':'s'}</span>
+        <div class="gp-actions">
+          <button class="gp-restore" onclick="skurRestoreAllOos()">↩ Restore all</button>
+        </div>
+      </div>
+      <div class="gp-row">${reasonChips || '<em>No reasons recorded</em>'}</div>
+      <div class="gp-members">${memberHtml}${more}</div>`;
+  } else if (skurActiveGroupId) {
+    const g = skurGroups.find(x => x.id === skurActiveGroupId);
+    if (!g) { panel.classList.add('is-empty'); panel.innerHTML = 'Select a group to see details'; }
+    else {
       const dupCount = dups.size ? g.members.reduce((n,k) => n + (dups.has(k) ? 1 : 0), 0) : 0;
-      const dupChip = dupCount ? ` <span class="gi-dup" title="${dupCount} member${dupCount===1?'':'s'} also in another group">⚠ ${dupCount} dup</span>` : '';
       const eligibleCount = skurEligibleSkusForGroup(g).length;
-      const eligCls = !totalCat || !eligibleCount ? ' is-empty' : (eligibleCount <= 5 ? ' is-low' : '');
-      const eligTitle = totalCat
-        ? `${eligibleCount} of ${totalCat} SKUs eligible for this group's constraints. Click ⚙ to adjust.`
-        : `No catalog data for the selected region — switch Plan to Australia East to see eligibility.`;
-      const eligChip = ` <span class="skur-elig-chip${eligCls}" title="${eligTitle}">📦 ${eligibleCount}/${totalCat}</span>`;
       const exc = skurExceptionCountsForGroup(g);
       const af = skurExceptionFilter;
       const excActive = (kind) => (af && af.groupId === g.id && af.kind === kind) ? ' is-active' : '';
       const excChips = [
-        exc.noMatch   ? `<span class="skur-exc-chip kind-noMatch${excActive('noMatch')}" title="${exc.noMatch} VM${exc.noMatch===1?'':'s'} exceed every eligible SKU — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noMatch')">⚠ ${exc.noMatch} too-big</span>` : '',
-        exc.noEligible? `<span class="skur-exc-chip kind-noEligible${excActive('noEligible')}" title="${exc.noEligible} VM${exc.noEligible===1?'':'s'} blocked by group constraints — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noEligible')">📦 ${exc.noEligible} blocked</span>` : '',
-        exc.noInput   ? `<span class="skur-exc-chip kind-noInput${excActive('noInput')}" title="${exc.noInput} VM${exc.noInput===1?'':'s'} missing vCPU/RAM — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noInput')">❓ ${exc.noInput} no-input</span>` : '',
-        exc.oos       ? `<span class="skur-exc-chip kind-oos${excActive('oos')}" title="${exc.oos} member${exc.oos===1?'':'s'} marked out of scope — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','oos')">🚫 ${exc.oos} OOS</span>` : '',
-      ].filter(Boolean).join(' ');
-      return `<div class="skur-group-item">
-        <span class="gi-name">${escG(g.name)}</span>
-        <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>${dupChip}${eligChip}${excChips ? ' '+excChips : ''}
-        <span class="gi-actions">
-          <button title="Edit constraints" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙</button>
-          <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏</button>
-          <button title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑</button>
-        </span>
-      </div>`;
-    }).join('');
-  }
-  // Out-of-scope summary
-  const oosBox = document.getElementById('skurOosSummary');
-  if (oosBox) {
-    const total = skurOOSCount();
-    if (!total) { oosBox.style.display = 'none'; oosBox.innerHTML = ''; }
-    else {
-      const escS = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-      const counts = {};
-      for (const k of Object.keys(skurOutOfScope)) {
-        const r = skurOutOfScope[k].reason || 'other';
-        counts[r] = (counts[r] || 0) + 1;
-      }
-      const chips = Object.keys(SKUR_OOS_REASONS)
-        .filter(r => counts[r])
-        .map(r => `<span class="oos-chip" title="${escS(SKUR_OOS_REASONS[r].label)}">${SKUR_OOS_REASONS[r].emoji} ${escS(SKUR_OOS_REASONS[r].label)} ${counts[r]}</span>`)
-        .join('');
-      oosBox.innerHTML = `<span class="oos-label">🚫 Out of scope:</span> <strong>${total} VM${total===1?'':'s'}</strong> ${chips} <button class="oos-restore" onclick="skurRestoreAllOos()">Restore all</button>`;
-      oosBox.style.display = '';
+        exc.noMatch   ? `<span class="skur-exc-chip kind-noMatch${excActive('noMatch')}" title="${exc.noMatch} too-big — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noMatch')">⚠ ${exc.noMatch} too-big</span>` : '',
+        exc.noEligible? `<span class="skur-exc-chip kind-noEligible${excActive('noEligible')}" title="${exc.noEligible} blocked — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noEligible')">📦 ${exc.noEligible} blocked</span>` : '',
+        exc.noInput   ? `<span class="skur-exc-chip kind-noInput${excActive('noInput')}" title="${exc.noInput} no-input — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noInput')">❓ ${exc.noInput} no-input</span>` : '',
+        exc.oos       ? `<span class="skur-exc-chip kind-oos${excActive('oos')}" title="${exc.oos} OOS member${exc.oos===1?'':'s'} — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','oos')">🚫 ${exc.oos} OOS</span>` : '',
+      ].filter(Boolean).join('');
+      const dupChip = dupCount ? `<span class="skur-exc-chip kind-noEligible" title="${dupCount} member${dupCount===1?'':'s'} also in another group">⚠ ${dupCount} dup</span>` : '';
+      const constraintsLabel = _skurFmtConstraintSummary(skurGroupConstraints(g));
+      const eligCls = !totalCat || !eligibleCount ? ' is-empty' : (eligibleCount <= 5 ? ' is-low' : '');
+      const totalCost = _skurGroupTotalMonthlyCost(g);
+      const totalCostHtml = (totalCost == null)
+        ? `<span class="gp-cost-label">Est. monthly</span> <span style="color:var(--text-tertiary);">—</span>`
+        : `<span class="gp-cost-label">Est. monthly</span> <span class="gp-cost">${escG(skurFormatMoney(totalCost, skurPlan.currency))}</span>`;
+      const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+      const memberHtml = g.members.slice(0, 24).map(k => {
+        const v = byKey.get(k); const name = v ? v.name : k;
+        const safeName = String(name||'(unknown)').replace(/'/g, "\\'");
+        return `<span class="gpm-vm" onclick="skurFilters.name='${escG(safeName)}';const i=document.querySelector('.skur-filter[data-f=&quot;name&quot;]');if(i){i.value='${escG(safeName)}';}renderSkurVmGrid();" title="Click to filter the grid to this VM">${escG(name||'(unknown)')}</span>`;
+      }).join('');
+      const more = g.members.length > 24 ? `<span class="gpm-more">… +${g.members.length - 24} more</span>` : '';
+      const mode = skurNormaliseMode(g.mode);
+      const modeLabel = { balanced:'⚖ Balanced', cost:'💰 Cost', rightsized:'🎯 Right-sized' }[mode] || mode;
+      panel.classList.remove('is-empty');
+      panel.innerHTML = `
+        <div class="gp-head">
+          <span class="gp-name">${escG(g.name)}</span>
+          <span class="gp-mode-pill">${escG(modeLabel)}</span>
+          <span class="gp-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>
+          <div class="gp-actions">
+            <button title="Edit constraints + sizing mode" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙ Constraints</button>
+            <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏ Rename</button>
+            <button class="gp-danger" title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑 Delete</button>
+          </div>
+        </div>
+        <div class="gp-row">
+          <span><span class="skur-elig-chip${eligCls}" title="${eligibleCount} of ${totalCat} SKUs eligible">📦 ${eligibleCount}/${totalCat} eligible</span></span>
+          <span><strong>Constraints:</strong> ${escG(constraintsLabel)}</span>
+          <span style="margin-left:auto;">${totalCostHtml}</span>
+        </div>
+        ${(excChips || dupChip) ? `<div class="gp-exc-row">${dupChip}${excChips}</div>` : ''}
+        <div class="gp-members">${memberHtml || '<em>No members yet</em>'}${more}</div>`;
     }
+  } else {
+    panel.classList.add('is-empty');
+    panel.innerHTML = 'Select a group to see details';
   }
+
+  // Hide the legacy OOS summary box now that the rail+panel handle it.
+  const oosBox = document.getElementById('skurOosSummary');
+  if (oosBox) { oosBox.style.display = 'none'; oosBox.innerHTML = ''; }
 }
 function skurAutoGroupByTag(key) {
   if (!key) return;
