@@ -1064,6 +1064,7 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="oos">Out-of-scope only</option>
               <option value="everything">Everything (groups + OOS + ungrouped)</option>
             </select>
+            <button class="btn" onclick="skurExportExcel()" title="Multi-sheet workbook: Summary + per-group sheets + OOS + Plan">📊 Excel</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
@@ -3796,6 +3797,109 @@ function skurExportCsv(scope) {
   if (!rows.length) { alert('No rows to export for this scope.'); return; }
   _downloadCSV('rvtools_skur_' + scope, headers, rows);
 }
+// Excel multi-sheet export — Summary + per-group + OOS + Plan
+function skurExportExcel() {
+  if (typeof XLSX === 'undefined') { alert('Excel library not loaded — check internet connection.'); return; }
+  if (!skurGroups.length && !Object.keys(skurOutOfScope).length) {
+    alert('Nothing to export yet. Create a sizing group or mark some VMs out of scope.');
+    return;
+  }
+  const byKey = new Map((typeof allVMs !== 'undefined' && allVMs ? allVMs : []).map(v => [skurVmKey(v), v]));
+  const fmtPct = n => (n == null || !isFinite(n)) ? '' : Number((n * 100).toFixed(1));
+  const currency = (skurPlan && skurPlan.currency) || 'USD';
+  const vmRowHeaders = ['VM','OS','vCPU','RAM_GB','Cluster','Datacentre','Powered','OOS_Reason',
+                        'Recommended_SKU','SKU_Family','SKU_vCPU','SKU_RAM_GB','Monthly_Cost_'+currency,
+                        'CPU_Headroom_Pct','RAM_Headroom_Pct','Confidence','State','Alt_SKUs'];
+  const vmRow = (vm) => {
+    if (!vm) return null;
+    let rec = null; try { rec = skurRecommendForVm(vm); } catch (_) {}
+    const oos = skurOOSEntry(vm);
+    const conf = (typeof skurConfidenceFor === 'function') ? skurConfidenceFor(rec) : { label: '' };
+    const cost = skurRecCostMonthly(rec);
+    const sku = (rec && rec.sku) ? rec.sku : null;
+    const alts = (rec && Array.isArray(rec.alts)) ? rec.alts.map(s => s && s.name).filter(Boolean).join(' | ') : '';
+    return [
+      vm.name || '', vm.os || vm.guestOS || '',
+      vm.cpus != null ? Number(vm.cpus) : '', vm.ram != null ? Number(vm.ram) : '',
+      vm.cluster || '', vm.dc || vm.datacenter || '',
+      vm.powerstate || vm.powered || '',
+      oos ? (oos.reason + (oos.note ? ' — ' + oos.note : '')) : '',
+      sku ? sku.name : (rec ? '[' + rec.state + ']' : ''),
+      sku ? sku.family : '',
+      sku ? Number(sku.vcpu) : '', sku ? Number(sku.ramGb) : '',
+      cost != null ? Number(cost.toFixed(2)) : '',
+      rec && rec.fit ? fmtPct(rec.fit.cpuHeadroom) : '',
+      rec && rec.fit ? fmtPct(rec.fit.ramHeadroom) : '',
+      conf.label || '', rec ? rec.state : '', alts,
+    ];
+  };
+
+  const wb = XLSX.utils.book_new();
+
+  // Sheet: Summary
+  const summaryRows = [['Group','Mode','Members','Eligible_SKUs','Total_Monthly_'+currency,'Pinned']];
+  let grandTotal = 0;
+  skurGroups.forEach(g => {
+    let total = 0;
+    g.members.forEach(k => { const v = byKey.get(k); if (!v) return; const c = skurRecCostMonthly(skurRecommendForVm(v)); if (c != null && isFinite(c)) total += c; });
+    grandTotal += total;
+    let eligibleCount = 0;
+    try { eligibleCount = (skurEligibleSkusForGroup(g, skurPlan.region) || []).length; } catch (_) {}
+    summaryRows.push([g.name, g.mode, g.members.length, eligibleCount, Number(total.toFixed(2)), g.pinned ? 'yes' : '']);
+  });
+  summaryRows.push([]);
+  summaryRows.push(['TOTAL', '', skurGroups.reduce((s,g)=>s+g.members.length,0), '', Number(grandTotal.toFixed(2)), '']);
+  summaryRows.push(['Out-of-scope', '', Object.keys(skurOutOfScope).length, '', '', '']);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Summary');
+
+  // Sheet: All recommendations (combined)
+  const allRows = [['Group','Mode', ...vmRowHeaders]];
+  skurGroups.forEach(g => g.members.forEach(k => {
+    const v = byKey.get(k); const r = vmRow(v); if (r) allRows.push([g.name, g.mode, ...r]);
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allRows), 'All recommendations');
+
+  // Per-group sheets (Excel sheet name max 31 chars; must avoid : \ / ? * [ ])
+  const usedNames = new Set(['Summary','All recommendations']);
+  const sanitiseSheetName = (raw, idx) => {
+    let n = String(raw || ('Group '+(idx+1))).replace(/[:\\\/\?\*\[\]]/g, '_').trim();
+    if (n.length > 28) n = n.slice(0, 28);
+    let candidate = n || ('Group '+(idx+1));
+    let suffix = 1;
+    while (usedNames.has(candidate)) { candidate = (n || 'Group').slice(0,26) + ' (' + (++suffix) + ')'; }
+    usedNames.add(candidate);
+    return candidate;
+  };
+  skurGroups.forEach((g, idx) => {
+    const rows = [vmRowHeaders];
+    g.members.forEach(k => { const v = byKey.get(k); const r = vmRow(v); if (r) rows.push(r); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sanitiseSheetName(g.name, idx));
+  });
+
+  // Sheet: OOS
+  const oosKeys = Object.keys(skurOutOfScope);
+  if (oosKeys.length) {
+    const oosRows = [['VM','OS','vCPU','RAM_GB','Cluster','Datacentre','Reason','Note']];
+    oosKeys.forEach(k => {
+      const v = byKey.get(k); if (!v) return;
+      const e = skurOutOfScope[k] || {};
+      oosRows.push([v.name||'', v.os||'', Number(v.cpus)||'', Number(v.ram)||'', v.cluster||'', v.dc||v.datacenter||'', e.reason||'', e.note||'']);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(oosRows), 'Out of scope');
+  }
+
+  // Sheet: Plan
+  const planRows = [['Setting','Value']];
+  Object.keys(skurPlan || {}).forEach(k => { const v = skurPlan[k]; planRows.push([k, (v == null ? '' : (typeof v === 'object' ? JSON.stringify(v) : v))]); });
+  planRows.push([]);
+  planRows.push(['Exported', new Date().toISOString()]);
+  if (typeof skurLiveCatalogStatus === 'function') planRows.push(['Catalog source', skurLiveCatalogStatus()]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(planRows), 'Plan');
+
+  const stamp = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, 'rvtools_skur_' + stamp + '.xlsx');
+}
+
 // Phase 5 slice 6: confidence rules.
 // High   = full inputs + min headroom ≥ 20% + non-burstable
 // Medium = headroom 10–20% OR recommended SKU is burstable (still fits but not steady-state ideal)
