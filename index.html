@@ -1060,11 +1060,17 @@ body.dark .skur-group-chip{color:#b794f4;}
             <select id="skurExportSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
               <option value="" disabled selected hidden>📥 Export CSV ▾</option>
               <option value="active">Active group only</option>
+              <option value="pinned">Pinned groups only</option>
               <option value="all">All groups (combined)</option>
               <option value="oos">Out-of-scope only</option>
               <option value="everything">Everything (groups + OOS + ungrouped)</option>
             </select>
-            <button class="btn" onclick="skurExportExcel()" title="Multi-sheet workbook: Summary + per-group sheets + OOS + Plan">📊 Excel</button>
+            <select id="skurXlsxSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
+              <option value="" disabled selected hidden>📊 Export Excel ▾</option>
+              <option value="all">All groups</option>
+              <option value="pinned">Pinned groups only</option>
+              <option value="active">Active group only</option>
+            </select>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
@@ -3782,6 +3788,10 @@ function skurExportCsv(scope) {
     }
   } else if (scope === 'oos') {
     Object.keys(skurOutOfScope).forEach(k => addVm(byKey.get(k), '(out of scope)', ''));
+  } else if (scope === 'pinned') {
+    const pinned = skurGroups.filter(g => g.pinned);
+    if (!pinned.length) { alert('No pinned groups. Click 📌 on a group first.'); return; }
+    pinned.forEach(g => g.members.forEach(k => addVm(byKey.get(k), g.name, g.mode)));
   } else { // 'all' or 'everything'
     skurGroups.forEach(g => g.members.forEach(k => addVm(byKey.get(k), g.name, g.mode)));
     if (scope === 'everything') {
@@ -3798,9 +3808,22 @@ function skurExportCsv(scope) {
   _downloadCSV('rvtools_skur_' + scope, headers, rows);
 }
 // Excel multi-sheet export — Summary + per-group + OOS + Plan
-function skurExportExcel() {
+function skurExportExcel(scope) {
+  scope = scope || 'all';
   if (typeof XLSX === 'undefined') { alert('Excel library not loaded — check internet connection.'); return; }
-  if (!skurGroups.length && !Object.keys(skurOutOfScope).length) {
+  let groups;
+  if (scope === 'pinned') {
+    groups = skurGroups.filter(g => g.pinned);
+    if (!groups.length) { alert('No pinned groups. Click 📌 on a group first.'); return; }
+  } else if (scope === 'active') {
+    if (!skurActiveGroupId || skurActiveGroupId === '__oos__') { alert('No active group selected. Click a group in the rail first.'); return; }
+    const g = skurGroups.find(x => x.id === skurActiveGroupId);
+    if (!g) { alert('Active group not found.'); return; }
+    groups = [g];
+  } else {
+    groups = skurGroups.slice();
+  }
+  if (!groups.length && !Object.keys(skurOutOfScope).length) {
     alert('Nothing to export yet. Create a sizing group or mark some VMs out of scope.');
     return;
   }
@@ -3839,7 +3862,7 @@ function skurExportExcel() {
   // Sheet: Summary
   const summaryRows = [['Group','Mode','Members','Eligible_SKUs','Total_Monthly_'+currency,'Pinned']];
   let grandTotal = 0;
-  skurGroups.forEach(g => {
+  groups.forEach(g => {
     let total = 0;
     g.members.forEach(k => { const v = byKey.get(k); if (!v) return; const c = skurRecCostMonthly(skurRecommendForVm(v)); if (c != null && isFinite(c)) total += c; });
     grandTotal += total;
@@ -3848,13 +3871,13 @@ function skurExportExcel() {
     summaryRows.push([g.name, g.mode, g.members.length, eligibleCount, Number(total.toFixed(2)), g.pinned ? 'yes' : '']);
   });
   summaryRows.push([]);
-  summaryRows.push(['TOTAL', '', skurGroups.reduce((s,g)=>s+g.members.length,0), '', Number(grandTotal.toFixed(2)), '']);
+  summaryRows.push(['TOTAL', '', groups.reduce((s,g)=>s+g.members.length,0), '', Number(grandTotal.toFixed(2)), '']);
   summaryRows.push(['Out-of-scope', '', Object.keys(skurOutOfScope).length, '', '', '']);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Summary');
 
   // Sheet: All recommendations (combined)
   const allRows = [['Group','Mode', ...vmRowHeaders]];
-  skurGroups.forEach(g => g.members.forEach(k => {
+  groups.forEach(g => g.members.forEach(k => {
     const v = byKey.get(k); const r = vmRow(v); if (r) allRows.push([g.name, g.mode, ...r]);
   }));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allRows), 'All recommendations');
@@ -3870,7 +3893,7 @@ function skurExportExcel() {
     usedNames.add(candidate);
     return candidate;
   };
-  skurGroups.forEach((g, idx) => {
+  groups.forEach((g, idx) => {
     const rows = [vmRowHeaders];
     g.members.forEach(k => { const v = byKey.get(k); const r = vmRow(v); if (r) rows.push(r); });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sanitiseSheetName(g.name, idx));
@@ -3897,7 +3920,8 @@ function skurExportExcel() {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(planRows), 'Plan');
 
   const stamp = new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb, 'rvtools_skur_' + stamp + '.xlsx');
+  const suffix = (scope === 'all' || !scope) ? '' : ('_' + scope);
+  XLSX.writeFile(wb, 'rvtools_skur_' + stamp + suffix + '.xlsx');
 }
 
 // Phase 5 slice 6: confidence rules.
