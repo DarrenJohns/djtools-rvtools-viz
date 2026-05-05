@@ -1,6 +1,6 @@
 # 🔬 How It Works — RVTools Visualiser Under the Hood
 
-> **A technical deep-dive into how every feature is built — one HTML file, two CDN libraries, pure vanilla JavaScript.**
+> **A technical deep-dive into how every feature is built — one HTML file, three CDN libraries, pure vanilla JavaScript.**
 
 ---
 
@@ -12,11 +12,12 @@ The entire app lives in a single `index.html` file with three embedded sections:
 |---------|---------|
 | `<style>` | CSS using custom properties for light/dark theming, responsive grid, connected-dots SVG background |
 | `<body>` | Semantic HTML — hero, demo bar, drop zone, filters, sections, tables |
-| `<script>` | Vanilla JavaScript — multi-tab parsing, charting, filtering, pagination, export |
+| `<script>` | Vanilla JavaScript — multi-tab parsing, charting, filtering, pagination, export, scenario bundling |
 
-**CDN dependencies:**
+**CDN dependencies (all SRI-pinned):**
 - **[Chart.js](https://www.chartjs.org/)** — every chart, including the Risk Quadrant scatter
-- **[SheetJS](https://sheetjs.com/)** — `.xlsx` parsing
+- **[SheetJS](https://sheetjs.com/)** — `.xlsx` parsing (loaded both in main thread and in the parse worker)
+- **[JSZip](https://stuk.github.io/jszip/)** — `.rvz` scenario bundling (real ZIP read/write in the browser)
 
 **Why single-file?** It deploys to any static host (Azure SWA, S3, GitHub Pages) with zero build step, and you can open `index.html` locally and it just works.
 
@@ -233,6 +234,95 @@ function applyFilters() {
   renderCharts();    // 6 analytics charts
   // Risk Quadrant, Wave table, Inventory table read from allVMs and are unaffected
 }
+```
+
+---
+
+## 💾 Save / Resume / Share Pipeline *(v1.2.0-beta)*
+
+Phase 8 added persistence and round-trip without giving up the single-file privacy-first model. There's no server, no upload — everything lives in the browser's own storage layers.
+
+### Storage layers
+
+| Layer | Purpose | Lifetime |
+|-------|---------|----------|
+| `window.__rvtoolsCurrent` | In-memory handle to current source bytes + fingerprint | Tab |
+| **IndexedDB** (`rvtools-viz` / `sourceBytes`) | SHA-256-keyed source xlsx bytes for cross-session resume | Per-origin, persistent |
+| **localStorage** (`rvtools.autosave.v1`) | Workspace snapshot stamped with dataset fingerprint | Per-origin, persistent |
+| **BroadcastChannel** + **storage event** | Cross-tab "another tab is editing" signal | Tab lifetime |
+
+### File detection
+
+`detectFileKind(buffer)` reads magic bytes (PK zip, OLE compound, JSON `{`/`[` after BOM) — extension is a hint only. For zip buffers, `detectZipKind()` peeks for `manifest.json` to discriminate `.rvz` scenarios from plain `.xlsx`.
+
+### Web Worker xlsx parsing
+
+`_parseSheetsViaWorker()` builds a worker via Blob URL, `importScripts` SheetJS from the CDN, and transfers the `ArrayBuffer` (zero-copy detach). The worker emits progress (`loading-lib`, `parsing`, `extracting <tab>`) via toasts. A sync fallback (`_parseSheetsSync`) covers `file://` CSP / Worker-blocked scenarios. Because postMessage detaches the buffer, callers `slice(0)` a clone *before* dispatch when the bytes are also needed for IDB persistence.
+
+### Stable VM identity
+
+`computeVmIdentity(vm)` stamps `vm.identity = {key, name, vcenter, datacenter, cluster, moRef, instanceUuid, biosUuid}` with key precedence:
+
+```
+iuid:<instanceUuid>   ← strongest, globally unique
+buid:<biosUuid>
+mo:<vcenter>|<moRef>
+nm:<name>|<cluster>|<dc>   ← last resort, name-based
+```
+
+Group memberships and OOS marks reference these keys, so renames and folder moves don't break workspace state across re-exports.
+
+### .rvz scenario format
+
+Real ZIP via JSZip:
+
+```
+manifest.json     {schema, appVersion, label, exportedAt, sourceFilename,
+                   vmCount, byteSha256, workspaceSchema}
+workspace.json    {schema, appVersion, exportedAt,
+                   groups, outOfScope, tagRules, planSettings}
+rvtools.xlsx      verbatim source bytes (NEVER reserialised)
+```
+
+`buildScenarioRvz({xlsxBuffer, sourceFilename, label})` → `{blob, manifest}`.
+`parseScenarioRvz(buffer)` → `{manifest, workspace, xlsxBuffer}` — validates manifest, runs `migrateWorkspace()`, warns on `byteSha256` mismatch.
+
+### Workspace JSON
+
+`exportWorkspaceJson(kind)` produces either a full snapshot or a rules-only template (no VM-derived data). Import goes through `importWorkspaceJson()` → `migrateWorkspace()` → `_reconcileWorkspaceMembers()`:
+
+- Members matching current `allVMs` keys are restored.
+- Unmatched IDs preserved on `workspace.unresolvedVmRefs` (and per-group `_unresolved`) so a re-export round-trips back to the original dataset.
+
+### Schema migration
+
+`WORKSPACE_SCHEMA_VERSION` + `WORKSPACE_MIGRATIONS = {1:..., 2:...}` form a chain walker. Anything older walks forward; anything newer than the current app version is rejected with a clear "created by a newer app version" message.
+
+### Autosave + cross-tab
+
+```
+[every 8s + beforeunload]
+   ↓
+_skurAutosaveTick()
+   ↓ (if not paused, JSON changed, our savedAt newer than existing)
+localStorage['rvtools.autosave.v1'] = { savedAt, dataset:{fingerprint,...}, workspace }
+   ↓
+broadcast { type:'autosave', savedAt, fingerprint }
+   ↓
+[other tabs]
+   ↓ BroadcastChannel onmessage / storage event
+showCrossTabBanner('⏸ Autosave paused — another tab is editing this workspace.')
+_skurOtherTabPresent = true
+```
+
+On next page load, `_skurMaybeResumeAutosave()` compares the saved `dataset.fingerprint` to `window.__rvtoolsCurrent.fingerprint`:
+
+- **Match** → silent restore.
+- **Mismatch** → confirm modal: apply matched + keep unmatched, or discard.
+
+### CSV/Excel injection guard
+
+`_safeCell(value)` prefixes `'` to any string starting with `=`, `+`, `-`, `@`, or tab. Applied to all CSV cells (via the `_downloadCSV` writer) and all Excel rows (via `_safeRow` mapping over every `XLSX.utils.aoa_to_sheet` callsite in `skurExportExcel`). This means a malicious `Annotation` field in RVTools data can't trigger formula execution / DDE when the export is opened in Excel by a downstream consumer.
 ```
 
 ---

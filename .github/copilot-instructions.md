@@ -27,9 +27,11 @@ This is a **single-file HTML web application** (`index.html`). It runs as a stat
 - Minimal code comments — only where clarification is needed
 - CSS uses custom properties (variables) for theming (light/dark mode)
 - JavaScript uses modern ES6+ (const/let, arrow functions, template literals, async/await)
-- Two CDN dependencies are permitted and required:
+- Three CDN dependencies are permitted and required:
   - **Chart.js** (`cdn.jsdelivr.net/npm/chart.js`) — all chart visualisations
   - **SheetJS** (`cdn.sheetjs.com/xlsx`) — client-side Excel (.xlsx) parsing
+  - **JSZip** (`cdnjs.cloudflare.com/ajax/libs/jszip`) — `.rvz` scenario container (real ZIP read/write)
+- All three are pinned with SRI hashes
 - No other external CDN dependencies should be added without good reason
 
 ## Documentation

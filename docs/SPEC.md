@@ -1,21 +1,21 @@
 # 📋 RVTools Visualiser — Specification
 
-> **Version:** v1.0.0-beta
-> **Format:** Single HTML file with CDN dependencies (Chart.js + SheetJS)
+> **Version:** v1.2.0-beta
+> **Format:** Single HTML file with CDN dependencies (Chart.js + SheetJS + JSZip)
 > **Audience:** VMware administrators, migration planners, infrastructure architects
 
 ---
 
 ## 1. Overview
 
-RVTools Visualiser is a browser-based tool that parses RVTools VMware Excel exports and renders an interactive dashboard with executive summaries, infrastructure deep-dives, charts, and migration-readiness analysis. Everything runs client-side — no data ever leaves the browser.
+RVTools Visualiser is a browser-based tool that parses RVTools VMware Excel exports and renders an interactive dashboard with executive summaries, infrastructure deep-dives, charts, migration-readiness analysis, and a per-VM Azure SKU recommender. Everything runs client-side — no data ever leaves the browser.
 
 ### Design Constraints
 
 - **Single file** — all HTML, CSS, and JavaScript live in `index.html`
-- **CDN dependencies only** — Chart.js for charts, SheetJS for `.xlsx` parsing
+- **CDN dependencies only** — Chart.js (charts), SheetJS (`.xlsx` parsing), JSZip (`.rvz` scenario bundling) — all pinned with SRI
 - **Privacy-first** — no server-side processing, no telemetry, no uploads
-- **Offline capable** — exported HTML snapshots run without internet
+- **Offline capable** — exported HTML snapshots run without internet; scenario / workspace files round-trip locally
 - **No build step** — file deploys as-is
 - **Hosting** — Azure Static Web Apps (Free SKU)
 - **CI/CD** — GitHub Actions on `ubuntu-latest` → SWA CLI deploy
@@ -224,6 +224,109 @@ The `getWave()` function assigns each VM to one of four readiness groups.
 ### 6.3 Risk Quadrant
 
 A `scatter` chart with one dataset per readiness group (colour-coded). Hover reveals VM name, OS, vCPU, RAM, and notes.
+
+---
+
+## 7. Save / Resume / Share *(v1.2.0-beta)*
+
+### 7.1 Vocabulary
+
+| Term | Meaning | File extension |
+|------|---------|----------------|
+| **RVTools file** | Raw multi-tab workbook exported from RVTools — one-way *in* | `.xlsx` |
+| **Scenario** | Bundle of source data + workspace customisations — round-trips | `.rvz` |
+| **Workspace** | Just the user customisations (groups, OOS, rules, plan settings) — round-trips | `.json` |
+| **Report** | Output for sharing analysis — one-way *out* | `.csv` / `.xlsx` / `.html` |
+
+### 7.2 Scenario file (`.rvz`)
+
+A real ZIP container produced via JSZip. Layout:
+
+```
+manifest.json     {schema, appVersion, label, exportedAt, sourceFilename,
+                   vmCount, byteSha256, workspaceSchema}
+workspace.json    {schema, appVersion, exportedAt,
+                   groups, outOfScope, tagRules, planSettings}
+rvtools.xlsx      verbatim source bytes (NEVER reserialised)
+```
+
+- The xlsx bytes are stored **verbatim** so all original formatting, formulas, and tabs are preserved on reopen.
+- `byteSha256` mismatch on reopen logs a warning but doesn't reject (the bytes are authoritative).
+- `manifest.schema > RVZ_SCHEMA_VERSION` → rejected with a clear message ("file created by a newer app version").
+- `workspace.schema` walks through `migrateWorkspace()` so older scenarios upgrade transparently.
+
+### 7.3 Workspace JSON
+
+Two flavours, both written via the same `_collectWorkspaceSnapshot()`:
+
+| Flavour | Contents | Use case |
+|---------|----------|----------|
+| **Full workspace** | groups + outOfScope + tagRules + planSettings | Restore the same dataset; share with others who have the same RVTools file |
+| **Rules template** | tagRules + planSettings only | Share standard-issue tagging conventions or plan defaults across customers — contains zero VM-derived data |
+
+### 7.4 Reconciliation
+
+Workspace JSON applied to a different dataset is reconciled non-destructively:
+
+- VM IDs that match the current `allVMs` keys are restored.
+- Unmatched VM IDs are preserved on `workspace.unresolvedVmRefs` (and per-group `_unresolved`) so a re-export round-trips back to the original.
+- A confirm modal surfaces matched / unmatched / group / rule counts before applying.
+
+### 7.5 Stable VM identity
+
+Every VM gets `vm.identity = {key, name, vcenter, datacenter, cluster, moRef, instanceUuid, biosUuid}` with the key chosen by precedence:
+
+1. `iuid:<instanceUuid>` — preferred (globally unique vCenter ID)
+2. `buid:<biosUuid>` — fallback (unique within an org)
+3. `mo:<vcenter>|<moRef>` — fallback (unique per vCenter)
+4. `nm:<name>|<cluster>|<dc>` — last resort
+
+This makes group memberships and OOS marks survive VM renames, cluster moves, and re-exports as long as one of the strong IDs is present.
+
+### 7.6 Source-bytes persistence
+
+After every successful parse, `_persistSourceBytes()`:
+
+1. Computes SHA-256 of the raw bytes via SubtleCrypto → fingerprint.
+2. Stores `{xlsxBuffer, fingerprint, sourceFilename, vmCount}` on `window.__rvtoolsCurrent`.
+3. Writes the bytes to IndexedDB (`rvtools-viz` database, `sourceBytes` store, keyed by fingerprint) for cross-session resume.
+
+This makes the Save scenario button work without re-uploading the original file.
+
+### 7.7 Autosave
+
+| Aspect | Behaviour |
+|--------|-----------|
+| Trigger | `setInterval` every 8s while data is loaded; flushes on `beforeunload` |
+| Storage | `localStorage['rvtools.autosave.v1']` — `{savedAt, dataset:{fingerprint, sourceFilename, vmCount}, workspace}` |
+| Resume | On `_persistSourceBytes` → if same `fingerprint` then silent restore; else reconciliation modal; if user cancels, autosave is discarded |
+| Conflict | Refuses to overwrite an existing autosave with a `savedAt` newer than ours |
+
+### 7.8 Cross-tab coordination
+
+Two tabs open at once must not clobber each other:
+
+| Channel | Works on | Mechanism |
+|---------|----------|-----------|
+| `BroadcastChannel('rvtools-viz')` | http(s) | Tabs `hello` on startup; on `autosave` event from a peer the receiving tab pauses |
+| `storage` event | file:// + http(s) | Listens for `localStorage` writes from other tabs; pauses if peer's `savedAt > ours` |
+
+When a tab pauses, a top-of-page amber banner (`role=alert`, `aria-live=assertive`) is shown with a Dismiss button.
+
+### 7.9 File detection
+
+The drop zone accepts `.xlsx`, `.xls`, `.rvz`, `.json`. Routing is **content-based**, not extension-based:
+
+| Magic bytes | Routed to |
+|-------------|-----------|
+| `PK\x03\x04` (zip) | `detectZipKind()` peeks for `manifest.json`: yes → scenario flow; no → xlsx flow |
+| `D0 CF 11 E0` (OLE compound) | xlsx (legacy `.xls`) |
+| `{` or `[` after BOM/whitespace | workspace JSON flow |
+| anything else | rejected with a clear message |
+
+### 7.10 CSV / Excel export hardening
+
+All exported cells are wrapped via `_safeCell()` which prefixes a single quote to any value starting with `=`, `+`, `-`, `@`, or tab. This neutralises Excel formula injection and DDE attacks if the export is opened in Excel by a downstream consumer.
 
 ---
 

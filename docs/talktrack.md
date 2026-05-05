@@ -122,6 +122,27 @@ The deployment pipeline:
 
 ---
 
+## What's New in v1.2.0-beta
+
+The latest release lands a full **save / resume / share** layer on top of the existing dashboard, without giving up the privacy-first model. Talk-track demo flow:
+
+1. **Drop in a real RVTools file** → web-worker parsing keeps the UI snappy on large estates; magic-byte detection catches mislabelled files politely.
+2. **Build a workspace** — make a couple of sizing groups, mark some VMs out-of-scope, add a tag rule.
+3. **💾 Save scenario (.rvz)** → a real ZIP containing the full RVTools workbook + your customisations. Shows a privacy modal because the file holds your inventory.
+4. **Reload the page** → autosave silently restores the workspace (matched on the SHA-256 fingerprint of the source bytes).
+5. **Drop the .rvz back in** → full data + workspace round-trip from a single file.
+6. **📋 Save workspace (.json)** → two flavours:
+   - **Full workspace** — re-applies on the same dataset.
+   - **Rules template** — just rules + plan settings, safe to share with other customers (no inventory data).
+7. **Apply a workspace JSON to a *different* RVTools file** → reconciliation modal: matched/unmatched/group/rule counts; unmatched IDs are *preserved* on the workspace for round-trip back.
+8. **Open the app in two tabs** → the older tab shows a top-of-page amber banner: *"Autosave paused — another tab is editing this workspace."*
+
+**🎤 Talk track quote:** *"This isn't an upload tool — it's a single HTML file that runs entirely in your browser. Your RVTools data never leaves your machine, but you still get save, resume, and share — backed by IndexedDB, localStorage, and BroadcastChannel. No server, no account, no SaaS subscription."*
+
+---
+
+---
+
 ## Step 8 — 🌐 Live!
 
 > *"The change is live at [rvtoolsviz.djtools.co.nz](https://rvtoolsviz.djtools.co.nz/) — users see it immediately."*

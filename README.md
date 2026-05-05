@@ -10,7 +10,7 @@
 
 [![Deploy](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml/badge.svg)](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml)
 ![Azure](https://img.shields.io/badge/Azure-SWA-0078D4)
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.2.0--beta-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Built with](https://img.shields.io/badge/built_with-Copilot_CLI-8957e5)
 ![Hosted on](https://img.shields.io/badge/hosted_on-Azure_SWA-0078D4)
@@ -24,7 +24,7 @@
 ## ⭐ Why You'll Like It
 
 - **🔒 Private by design** — every byte is parsed in your browser. Nothing is uploaded, nothing leaves your machine. Run it offline if you want.
-- **⚡ Zero install** — single `index.html`, two CDN libraries (Chart.js + SheetJS). Open it locally, host it anywhere.
+- **⚡ Zero install** — single `index.html`, three CDN libraries (Chart.js + SheetJS + JSZip). Open it locally, host it anywhere.
 - **🎯 Useful in 30 seconds** — drag your `.xlsx` in and you'll have charts, dashboards, and migration recommendations before you can grab a coffee.
 - **🧪 Built-in demo mode** — never seen RVTools before? The app boots with a synthetic dataset so you can try every feature without any data of your own.
 - **📤 Take it offline** — export a self-contained HTML snapshot that works anywhere, with all charts baked in as images.
@@ -37,11 +37,26 @@
 
 | Feature | What it does |
 |---------|-------------|
-| **Drag & drop or browse** | Drop a `.xlsx` export onto the upload zone (or click to pick a file) |
+| **Drag & drop or browse** | Drop a `.xlsx`, `.rvz`, or `.json` onto the upload zone (or click to pick a file) |
 | **Multi-tab parsing** | Reads vInfo, vDatastore, vSnapshot, vHost, vDisk, vNetwork, vHealth, vCluster, vCPU, vMemory — every tab unlocks more dashboards |
+| **Web Worker parsing** | Large workbooks parse on a background thread so the UI stays responsive; transparent fallback to main-thread parsing if Workers are unavailable |
+| **Magic-byte file detection** | Authoritative content sniffing (PK zip, OLE compound, JSON) — files renamed / mislabelled give clear errors instead of stack traces |
+| **Stable VM identity** | Each VM gets a composite key with strong-ID precedence (instanceUuid → biosUuid → moRef → name+cluster+DC) so renames and folder moves don't break group memberships |
 | **Legacy + modern columns** | Auto-detects column names across RVTools versions (e.g. `Memory MB` vs `Memory`, `Num CPUs` vs `CPUs`) |
 | **Helpful errors** | If your file isn't an RVTools export, you'll get a friendly message that tells you what's wrong, not a stack trace |
 | **vInfo-only fallback** | Only have a single tab? You still get the core dashboards — extra tabs simply unlock more depth |
+
+### 💾 Save & resume your work *(new in v1.2.0-beta)*
+
+| Feature | What it does |
+|---------|-------------|
+| **Scenario file (`.rvz`)** | One-click *Save scenario* bundles your source RVTools `.xlsx` (verbatim, with formulas/formatting preserved) plus all your customisations into a single ZIP. Drop it back onto the upload zone to resume on this or any other machine. |
+| **Workspace JSON** | *Save workspace* exports just the customisations as JSON (no source data). Two flavours: **Full workspace** (groups + OOS + rules + plan settings) for restoring the same dataset, or **Rules template** (rules + plan settings only) — safe to share with no inventory exposure. |
+| **Non-destructive reconciliation** | Apply a workspace JSON to a different RVTools dataset and matched VMs are restored, unmatched references are preserved (not silently dropped) for round-trip back to the original. |
+| **Dataset-aware autosave** | Every workspace edit autosaves to `localStorage` stamped with a SHA-256 fingerprint of the source bytes. Reload the page on the same dataset → silent resume. Different dataset → reconciliation modal. |
+| **Cross-tab guard** | Open the app in two tabs at once and the older tab pauses autosave with a top-of-page banner so neither tab clobbers the other. Works on `http(s)://` (BroadcastChannel) and `file://` (storage events). |
+| **Schema migration chain** | Workspace files include a schema version. Older files are migrated forward automatically; files from a *newer* version of the app are rejected with a clear message. |
+| **Privacy by default** | The .rvz is a real ZIP containing your full inventory — the Save dialog shows a privacy confirm modal before download. Workspace JSON exports never contain raw inventory. |
 
 ### 🧪 Try before you import
 
@@ -113,8 +128,11 @@ A second-tier "what would this look like in Azure?" layer. Driven by **live Azur
 |---------|-------------|
 | **Overview filters** | Datacenter / OS family / power state / readiness — scoped to the Overview cards + six analytics charts only (Wave Plan, Inventory, Risk Quadrant, and infrastructure sections always show the full estate) |
 | **Sortable, paginated tables** | All 10 data tables paginate at 25 rows/page, with full-text search and click-to-sort columns |
-| **CSV export** | Download readiness recommendations, the full inventory, or SKU recommender outputs (5 scopes) |
-| **Excel export** | Multi-sheet workbook from the SKU Recommender with Summary, per-group sheets, OOS, and Plan |
+| **CSV report** | Download readiness recommendations, the full inventory, or SKU recommender outputs (5 scopes) |
+| **Excel report** | Multi-sheet workbook from the SKU Recommender with Summary, per-group sheets, OOS, and Plan |
+| **Save scenario (`.rvz`)** | One-file resume bundle: source xlsx + workspace customisations |
+| **Save workspace (`.json`)** | Just the customisations — full or rules-only template (shareable) |
+| **CSV injection guard** | Cells starting with `=`, `+`, `-`, `@`, or tab are neutralised on export — opening exports in Excel can't trigger formula injection or DDE |
 | **Offline HTML snapshot** | Self-contained `.html` report with charts baked in as images — works offline, has an amber **OFFLINE SNAPSHOT** banner |
 
 ### 🎨 General
@@ -146,7 +164,7 @@ A second-tier "what would this look like in Azure?" layer. Driven by **live Azur
 |--------|---------|
 | **Type** | Single-file HTML web application |
 | **Frameworks** | None — pure HTML / CSS / vanilla JavaScript |
-| **CDN dependencies** | [Chart.js](https://www.chartjs.org/) for visualisations, [SheetJS](https://sheetjs.com/) for `.xlsx` parsing |
+| **CDN dependencies** | [Chart.js](https://www.chartjs.org/) for visualisations, [SheetJS](https://sheetjs.com/) for `.xlsx` parsing, [JSZip](https://stuk.github.io/jszip/) for `.rvz` scenario bundling — all pinned with SRI hashes |
 | **Build step** | None — `index.html` deploys as-is |
 | **Hosting** | Azure Static Web Apps (Free SKU) |
 | **CI/CD** | GitHub Actions on `ubuntu-latest`, deploys via SWA CLI on every push to `main` |
