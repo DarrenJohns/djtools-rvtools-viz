@@ -348,7 +348,17 @@ footer strong{opacity:1;}
 .sku-rec-statcard .sc-sub{font-size:.78rem;color:var(--text-muted);margin-top:3px;}
 /* SKU Recommender VM grid */
 .skur-section{margin-top:22px;}
-.skur-section-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:.95rem;font-weight:700;color:var(--text);}
+.skur-stat-grid-wrap{}
+.skur-plan-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 14px;margin:14px 0 0;}
+.skur-plan-bar .pb-title{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);margin-right:8px;}
+.skur-plan-bar .pb-field{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.skur-plan-bar .pb-field label{font-size:11px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.skur-plan-bar .pb-field select,.skur-plan-bar .pb-field input[type="date"]{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);color:var(--text-primary);min-width:120px;}
+.skur-plan-bar .pb-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);font-size:13px;color:var(--text-primary);cursor:pointer;user-select:none;}
+.skur-plan-bar .pb-toggle input{margin:0;cursor:pointer;}
+.skur-plan-bar .pb-toggle.is-on{background:rgba(15,108,189,.15);border-color:rgba(15,108,189,.5);color:var(--brand-primary);}
+.skur-plan-bar .pb-spacer{flex:1;}
+.skur-plan-bar .pb-reset{background:transparent;border:none;color:var(--text-secondary);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;}
 .skur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
 .skur-table-wrap{max-height:calc(34px * 25);overflow:auto;border:1px solid var(--border-default);border-radius:var(--radius-md);}
 .skur-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -871,6 +881,44 @@ body.dark .skur-group-chip{color:#b794f4;}
     <!-- Live content when data is loaded -->
     <div id="skuRecContent" style="display:none;">
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
+
+      <div class="skur-plan-bar" id="skurPlanBar">
+        <div class="pb-title">📐 Plan</div>
+        <div class="pb-field">
+          <label for="skurPlanRegion">Region</label>
+          <select id="skurPlanRegion" onchange="skurOnPlanChange('region',this.value)"></select>
+        </div>
+        <div class="pb-field">
+          <label for="skurPlanCurrency">Currency</label>
+          <select id="skurPlanCurrency" onchange="skurOnPlanChange('currency',this.value)">
+            <option value="USD">USD $</option>
+            <option value="AUD">AUD $</option>
+            <option value="NZD">NZD $</option>
+            <option value="EUR">EUR €</option>
+            <option value="GBP">GBP £</option>
+          </select>
+        </div>
+        <div class="pb-field">
+          <label for="skurPlanTerm">Term</label>
+          <select id="skurPlanTerm" onchange="skurOnPlanChange('term',this.value)">
+            <option value="payg">Pay-as-you-go</option>
+            <option value="ri1">1-year reserved</option>
+            <option value="ri3">3-year reserved</option>
+            <option value="sp1">1-year savings plan</option>
+            <option value="sp3">3-year savings plan</option>
+          </select>
+        </div>
+        <div class="pb-field">
+          <label>&nbsp;</label>
+          <label class="pb-toggle" id="skurPlanAhubToggle" title="Apply Azure Hybrid Benefit to eligible Windows VMs"><input type="checkbox" id="skurPlanAhub" onchange="skurOnPlanChange('ahub',this.checked)"> AHUB (Windows)</label>
+        </div>
+        <div class="pb-field">
+          <label for="skurPlanAsOf">As-of date</label>
+          <input type="date" id="skurPlanAsOf" onchange="skurOnPlanChange('asOfDate',this.value)">
+        </div>
+        <div class="pb-spacer"></div>
+        <button class="pb-reset" onclick="skurResetPlan()" title="Restore default plan settings">Reset</button>
+      </div>
 
       <div class="skur-section">
         <div class="skur-tagrules">
@@ -2690,9 +2738,92 @@ function skurSort(key) {
   renderSkurVmGrid();
 }
 
+// === SKU Recommender Plan settings (Phase 3) ===
+// In-memory plan that drives Phase 5 cost math. JSON-serializable for Phase 8 export.
+const SKUR_AZURE_REGIONS = [
+  { id: 'eastus', label: 'East US' },
+  { id: 'eastus2', label: 'East US 2' },
+  { id: 'westus2', label: 'West US 2' },
+  { id: 'westus3', label: 'West US 3' },
+  { id: 'centralus', label: 'Central US' },
+  { id: 'northeurope', label: 'North Europe' },
+  { id: 'westeurope', label: 'West Europe' },
+  { id: 'uksouth', label: 'UK South' },
+  { id: 'ukwest', label: 'UK West' },
+  { id: 'francecentral', label: 'France Central' },
+  { id: 'germanywestcentral', label: 'Germany West Central' },
+  { id: 'swedencentral', label: 'Sweden Central' },
+  { id: 'australiaeast', label: 'Australia East' },
+  { id: 'australiasoutheast', label: 'Australia Southeast' },
+  { id: 'newzealandnorth', label: 'New Zealand North' },
+  { id: 'southeastasia', label: 'Southeast Asia (Singapore)' },
+  { id: 'eastasia', label: 'East Asia (Hong Kong)' },
+  { id: 'japaneast', label: 'Japan East' },
+  { id: 'koreacentral', label: 'Korea Central' },
+  { id: 'centralindia', label: 'Central India' },
+  { id: 'canadacentral', label: 'Canada Central' },
+  { id: 'brazilsouth', label: 'Brazil South' },
+  { id: 'uaenorth', label: 'UAE North' },
+  { id: 'southafricanorth', label: 'South Africa North' },
+];
+const SKUR_PLAN_DEFAULTS = Object.freeze({
+  region: 'australiaeast',
+  currency: 'USD',
+  term: 'payg',
+  ahub: false,
+  asOfDate: new Date().toISOString().slice(0, 10),
+});
+const skurPlan = Object.assign({}, SKUR_PLAN_DEFAULTS);
+let _skurPlanBarInited = false;
+function initSkurPlanBar() {
+  if (_skurPlanBarInited) return;
+  const regionSel = document.getElementById('skurPlanRegion');
+  if (!regionSel) return; // pane not in DOM yet
+  // Populate region dropdown once.
+  regionSel.innerHTML = SKUR_AZURE_REGIONS.map(r => `<option value="${r.id}">${r.label}</option>`).join('');
+  _skurPlanBarInited = true;
+  // Default the As-of date to today on first init only.
+  syncSkurPlanBar();
+}
+function syncSkurPlanBar() {
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el && el.value !== v) el.value = v; };
+  setVal('skurPlanRegion', skurPlan.region);
+  setVal('skurPlanCurrency', skurPlan.currency);
+  setVal('skurPlanTerm', skurPlan.term);
+  setVal('skurPlanAsOf', skurPlan.asOfDate);
+  const ahub = document.getElementById('skurPlanAhub');
+  if (ahub) ahub.checked = !!skurPlan.ahub;
+  const ahubLabel = document.getElementById('skurPlanAhubToggle');
+  if (ahubLabel) ahubLabel.classList.toggle('is-on', !!skurPlan.ahub);
+}
+function skurOnPlanChange(field, value) {
+  if (!(field in SKUR_PLAN_DEFAULTS)) return;
+  // Light validation: ensure region/currency/term are known values; coerce date.
+  if (field === 'region' && !SKUR_AZURE_REGIONS.some(r => r.id === value)) return;
+  if (field === 'asOfDate') {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return;
+    value = d.toISOString().slice(0, 10);
+  }
+  if (field === 'ahub') value = !!value;
+  if (skurPlan[field] === value) return;
+  skurPlan[field] = value;
+  syncSkurPlanBar();
+  // Phase 5 will listen for this and recompute recommendations.
+  try { document.dispatchEvent(new CustomEvent('skurPlanChanged', { detail: { field, value, plan: { ...skurPlan } } })); } catch (_) {}
+}
+function skurResetPlan() {
+  if (!confirm('Reset plan settings to defaults?')) return;
+  Object.assign(skurPlan, SKUR_PLAN_DEFAULTS, { asOfDate: new Date().toISOString().slice(0, 10) });
+  syncSkurPlanBar();
+  try { document.dispatchEvent(new CustomEvent('skurPlanChanged', { detail: { field: '*', plan: { ...skurPlan } } })); } catch (_) {}
+}
+
 function renderSkuRecStatCards() {
   const host = document.getElementById('skuRecStatCards');
   if (!host) return;
+  // Ensure plan bar is initialised whenever the recommender renders.
+  initSkurPlanBar();
   const vms = allVMs || [];
   const poweredOn = vms.filter(v => (v.power || '').toLowerCase() === 'poweredon').length;
   const totalCpu = vms.reduce((a, v) => a + (parseInt(v.cpus) || 0), 0);
