@@ -455,12 +455,16 @@ footer strong{opacity:1;}
 .skur-rd.miss{border-color:rgba(15,108,189,.4);background:rgba(15,108,189,.08);}
 .skur-rd-clear{margin-left:auto;align-self:center;background:transparent;border:none;color:var(--text-secondary);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit;}
 .skur-rd-clear:disabled{opacity:.4;cursor:not-allowed;text-decoration:none;}
-.skur-tagrules{border:1px dashed var(--border-default);border-radius:var(--radius-md);padding:14px 16px;background:var(--bg-layer1);}
-.skur-tagrules-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.skur-tagrules-head h4{margin:0;font-size:.95rem;font-weight:700;color:var(--text);}
-.skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 10px;}
+.skur-tagrules{border:1px solid var(--border-default);border-radius:var(--radius-md);background:var(--bg-layer2);overflow:hidden;}
+.skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--text-primary);}
+.skur-tagrules-summary .skur-tagrules-pill{background:var(--brand-primary);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;}
+.skur-tagrules-summary .skur-tagrules-toggle{margin-left:auto;color:var(--brand-primary);cursor:pointer;font-weight:600;background:none;border:none;padding:0;font-family:inherit;font-size:13px;}
+.skur-tagrules-summary .skur-tagrules-toggle:hover{text-decoration:underline;}
+.skur-tagrules-summary .skur-tagrules-add{margin-left:8px;}
+.skur-tagrules-detail{display:none;padding:10px 14px 14px;border-top:1px solid var(--border-subtle);background:var(--bg-layer1);}
+.skur-tagrules-detail.open{display:block;}
+.skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 0;}
 .skur-tagrules .btn-disabled{opacity:.6;cursor:not-allowed;}
-.skur-tagrules .skur-soon{margin-left:auto;font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
 /* Tag rules list + chips + modal */
 .skur-rules-list{margin:8px 0 10px;display:flex;flex-direction:column;gap:6px;}
 .skur-rule{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-primary);}
@@ -1115,12 +1119,16 @@ body.dark .skur-group-chip{color:#b794f4;}
 
       <div class="skur-section">
         <div class="skur-tagrules">
-          <div class="skur-tagrules-head">
-            <h4>🏷️ Tag rules</h4>
-            <button class="btn" style="margin-left:auto;" onclick="openSkurRuleModal()">➕ Add rule</button>
+          <div class="skur-tagrules-summary">
+            🏷️ <span>Auto tag assignment</span>
+            <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
+            <button class="skur-tagrules-toggle" id="skurTagRulesToggle" onclick="skurToggleTagRules()" type="button">Edit ▾</button>
+            <button class="btn skur-tagrules-add" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
           </div>
-          <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
-          <div class="skur-rules-list" id="skurRulesList"></div>
+          <div class="skur-tagrules-detail" id="skurTagRulesDetail">
+            <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
+            <div class="skur-rules-list" id="skurRulesList"></div>
+          </div>
         </div>
       </div>
 
@@ -3764,6 +3772,8 @@ function skurCountMatches(rule) {
 function renderSkurTagRules() {
   const list = document.getElementById('skurRulesList');
   const empty = document.getElementById('skurRulesEmpty');
+  const pill = document.getElementById('skurTagRulesPill');
+  if (pill) pill.textContent = (skurTagRules || []).length;
   if (!list || !empty) return;
   if (!skurTagRules.length) { empty.style.display = ''; list.innerHTML = ''; return; }
   empty.style.display = 'none';
@@ -5115,6 +5125,15 @@ function skurTogglePlanAdvanced() {
   tog.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   adv.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
   tog.textContent = willOpen ? '⚙ Advanced ▴' : '⚙ Advanced ▾';
+}
+
+function skurToggleTagRules(forceOpen) {
+  const det = document.getElementById('skurTagRulesDetail');
+  const tog = document.getElementById('skurTagRulesToggle');
+  if (!det || !tog) return;
+  const willOpen = (forceOpen === true) ? true : (forceOpen === false ? false : !det.classList.contains('open'));
+  det.classList.toggle('open', willOpen);
+  tog.textContent = willOpen ? 'Hide ▴' : 'Edit ▾';
 }
 
 function hideSampleIndicators() {
