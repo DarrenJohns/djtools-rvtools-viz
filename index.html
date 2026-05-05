@@ -1104,6 +1104,14 @@ body.dark .skur-group-chip{color:#b794f4;}
         <span style="color:var(--text-tertiary);font-size:12px;">(blank = no bound)</span>
       </div>
     </div>
+    <div class="skur-modal-row">
+      <label>Sizing mode</label>
+      <div class="skur-modal-radios" id="skurConstrMode">
+        <label title="Closest match to vCPU/RAM with ~30% headroom"><input type="radio" name="skurConstrModeR" value="balanced" onchange="updateSkurConstraintsPreview()"> ⚖ Balanced</label>
+        <label title="Cheapest SKU that meets minimum requirements"><input type="radio" name="skurConstrModeR" value="cost" onchange="updateSkurConstraintsPreview()"> 💰 Cost</label>
+        <label title="Tightest fit; minimises waste"><input type="radio" name="skurConstrModeR" value="rightsized" onchange="updateSkurConstraintsPreview()"> 🎯 Right-sized</label>
+      </div>
+    </div>
     <div class="skur-modal-preview" id="skurConstraintsPreview">— pick at least one family —</div>
     <div class="skur-modal-actions">
       <button class="btn" onclick="resetSkurConstraintsToDefaults()" style="margin-right:auto;">↺ Defaults</button>
@@ -3027,7 +3035,84 @@ document.addEventListener('skurPlanChanged', updateSkurDataPill);
 // Region change also affects per-group eligibility chips.
 document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
 
-// === Phase 5 slice 2: per-group eligibility filter ===
+// === Phase 5 slice 3: mode scorers (Balanced / Cost / Right-sized) ===
+// All scoring functions return a number where LOWER is better. Infinity = ineligible.
+// Scope: pure functions over (vm, sku, plan) — no DOM, no global state besides skurPlan helpers.
+const SKUR_SIZING_MODES = Object.freeze({
+  balanced:   { id:'balanced',   label:'Balanced',    icon:'⚖', desc:'~30% headroom on vCPU and RAM' },
+  cost:       { id:'cost',       label:'Cost',        icon:'💰', desc:'cheapest with ≥10% headroom' },
+  rightsized: { id:'rightsized', label:'Right-sized', icon:'🎯', desc:'tightest fit; minimises waste' },
+});
+function skurNormaliseMode(mode) { return SKUR_SIZING_MODES[mode] ? mode : 'balanced'; }
+// Headroom thresholds (configurable later via plan settings).
+const SKUR_HEADROOM_MIN = 0.10;          // every mode requires at least 10% headroom on both axes
+const SKUR_BALANCED_TARGET = 0.30;       // balanced mode prefers ~30% headroom
+function skurFitFor(vm, sku) {
+  if (!vm || !sku) return null;
+  const vCpu = parseInt(vm.cpus, 10);
+  const vRam = parseFloat(vm.ram);
+  if (!isFinite(vCpu) || !isFinite(vRam) || vCpu <= 0 || vRam <= 0) return null;
+  if (sku.vcpu < vCpu || sku.ramGb < vRam) return null; // doesn't even fit minimum
+  return {
+    vCpu, vRam,
+    skuCpu: sku.vcpu, skuRam: sku.ramGb,
+    cpuHeadroom: (sku.vcpu - vCpu) / vCpu,
+    ramHeadroom: (sku.ramGb - vRam) / vRam,
+    wastedCpu: sku.vcpu - vCpu,
+    wastedRam: sku.ramGb - vRam,
+  };
+}
+function skurScoreBalanced(fit, sku, plan) {
+  if (fit.cpuHeadroom < SKUR_HEADROOM_MIN || fit.ramHeadroom < SKUR_HEADROOM_MIN) return Infinity;
+  const cpuP = Math.abs(fit.cpuHeadroom - SKUR_BALANCED_TARGET);
+  const ramP = Math.abs(fit.ramHeadroom - SKUR_BALANCED_TARGET);
+  const cost = skurEffectiveHourlyUsd(sku, plan) || 0;
+  // Heavy weight on fit, light tiebreaker on cost.
+  return (cpuP * 1.0) + (ramP * 1.0) + (cost * 0.02);
+}
+function skurScoreCost(fit, sku, plan) {
+  if (fit.cpuHeadroom < SKUR_HEADROOM_MIN || fit.ramHeadroom < SKUR_HEADROOM_MIN) return Infinity;
+  const cost = skurEffectiveHourlyUsd(sku, plan);
+  return cost == null ? Infinity : cost;
+}
+function skurScoreRightsized(fit, sku, plan) {
+  if (fit.cpuHeadroom < SKUR_HEADROOM_MIN || fit.ramHeadroom < SKUR_HEADROOM_MIN) return Infinity;
+  // Penalise wasted resources, normalised to VM size so big and small VMs are comparable.
+  const cpuWasteN = fit.wastedCpu / Math.max(fit.vCpu, 1);
+  const ramWasteN = fit.wastedRam / Math.max(fit.vRam, 1);
+  const cost = (skurEffectiveHourlyUsd(sku, plan) || 0) * 0.01;
+  return cpuWasteN + (ramWasteN * 0.5) + cost;
+}
+function skurScoreSku(mode, vm, sku, plan) {
+  const fit = skurFitFor(vm, sku); if (!fit) return Infinity;
+  switch (skurNormaliseMode(mode)) {
+    case 'cost':       return skurScoreCost(fit, sku, plan);
+    case 'rightsized': return skurScoreRightsized(fit, sku, plan);
+    case 'balanced':
+    default:           return skurScoreBalanced(fit, sku, plan);
+  }
+}
+function skurRankCandidates(vm, eligible, mode, plan) {
+  if (!Array.isArray(eligible) || !eligible.length) return [];
+  return eligible
+    .map(sku => {
+      const fit = skurFitFor(vm, sku);
+      const score = fit ? skurScoreSku(mode, vm, sku, plan) : Infinity;
+      return { sku, fit, score };
+    })
+    .filter(x => isFinite(x.score))
+    .sort((a, b) => a.score - b.score);
+}
+// Expose for debugging from the console.
+try { window.skurDebugScore = function(vmName, mode) {
+  const vm = (allVMs || []).find(v => String(v.name) === String(vmName));
+  if (!vm) return { error: `VM not found: ${vmName}` };
+  const eligible = skurCatalogForRegion(skurPlan.region);
+  const ranked = skurRankCandidates(vm, eligible, mode || 'balanced', skurPlan);
+  return ranked.slice(0, 5).map(r => ({ sku: r.sku.name, vcpu: r.sku.vcpu, ramGb: r.sku.ramGb, hourlyUsd: r.sku.hourlyUsd, score: r.score.toFixed(4) }));
+}; } catch (_) {}
+
+// === Phase 5 slice 2 (resumed): per-group eligibility filter ===
 const SKUR_GROUP_CONSTRAINT_DEFAULTS = Object.freeze({
   families: ['B','D','E','F'],
   excludeBurstable: false,
@@ -3072,6 +3157,9 @@ function openSkurConstraintsModal(groupId) {
   // Processor radio
   const proc = c.processor || 'any';
   document.querySelectorAll('input[name=skurConstrProc]').forEach(r => { r.checked = (r.value === proc); });
+  // Sizing mode radio (lives on the group itself, not on constraints)
+  const mode = skurNormaliseMode(g.mode);
+  document.querySelectorAll('input[name=skurConstrModeR]').forEach(r => { r.checked = (r.value === mode); });
   document.getElementById('skurConstrExcludeBurstable').checked = !!c.excludeBurstable;
   document.getElementById('skurConstrRequirePremiumIo').checked = !!c.requirePremiumIo;
   document.getElementById('skurConstrMinVcpu').value = c.minVcpu == null ? '' : c.minVcpu;
@@ -3128,6 +3216,7 @@ function resetSkurConstraintsToDefaults() {
   const def = skurDefaultConstraints();
   document.querySelectorAll('#skurConstrFamilies input[type=checkbox]').forEach(cb => { cb.checked = def.families.includes(cb.value); });
   document.querySelectorAll('input[name=skurConstrProc]').forEach(r => { r.checked = (r.value === def.processor); });
+  document.querySelectorAll('input[name=skurConstrModeR]').forEach(r => { r.checked = (r.value === 'balanced'); });
   document.getElementById('skurConstrExcludeBurstable').checked = def.excludeBurstable;
   document.getElementById('skurConstrRequirePremiumIo').checked = def.requirePremiumIo;
   document.getElementById('skurConstrMinVcpu').value = '';
@@ -3140,6 +3229,9 @@ function saveSkurConstraints() {
   if (!draft.families.length) return;
   if (draft.minVcpu != null && draft.maxVcpu != null && draft.minVcpu > draft.maxVcpu) return;
   g.constraints = draft;
+  // Sizing mode lives on the group itself.
+  const modeEl = document.querySelector('input[name=skurConstrModeR]:checked');
+  if (modeEl) g.mode = skurNormaliseMode(modeEl.value);
   closeSkurConstraintsModal();
   renderSkurGroups();
 }
