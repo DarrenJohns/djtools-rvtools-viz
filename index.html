@@ -336,6 +336,16 @@ footer strong{opacity:1;}
 .welcome-body .btn{width:100%;justify-content:center;font-size:14px;padding:10px;display:flex;}
 .intro-link{background:none;border:none;color:var(--text-tertiary);cursor:pointer;font-size:11px;text-decoration:underline;padding:0;margin-left:8px;font-family:inherit;}
 .intro-link:hover{color:var(--brand-primary);}
+/* === SKU Recommender (Phase 2 scaffold) === */
+.sku-rec-empty{text-align:center;padding:48px 24px;color:var(--text-muted);}
+.sku-rec-empty-icon{font-size:48px;margin-bottom:12px;}
+.sku-rec-empty h4{font-size:1.1rem;font-weight:700;color:var(--text);margin:6px 0 8px;}
+.sku-rec-empty p{font-size:.92rem;max-width:520px;margin:0 auto 18px;line-height:1.5;}
+.sku-rec-statcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:8px 0 0;}
+.sku-rec-statcard{background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm,var(--shadow));}
+.sku-rec-statcard .sc-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);font-weight:600;margin-bottom:4px;}
+.sku-rec-statcard .sc-value{font-size:1.6rem;font-weight:700;color:var(--text);line-height:1.1;}
+.sku-rec-statcard .sc-sub{font-size:.78rem;color:var(--text-muted);margin-top:3px;}
 </style>
 </head>
 <body>
@@ -411,6 +421,7 @@ footer strong{opacity:1;}
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Health</button>
   <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Risks</button>
   <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
+  <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">🎯 SKU Recommender</button>
 </nav>
 
 <!-- Demo-mode reminder shown on non-Import tabs while sample data is loaded -->
@@ -748,6 +759,32 @@ footer strong{opacity:1;}
   </div>
   </div>
 </div>
+
+<!-- SKU RECOMMENDER (Phase 2 — UI scaffolding; Phase 5 wires the engine) -->
+<div class="section tab-pane" id="skuRecommenderPane" data-tab="sku-recommender">
+  <div class="section-header" onclick="toggleSection('skuRecommender')">
+    <span class="section-toggle" id="skuRecommenderToggle">▶</span>
+    <h3>🎯 Azure SKU Recommender <span class="pill" id="skuRecVmCountPill" style="display:none;"></span></h3>
+  </div>
+  <div class="section-body" id="skuRecommenderBody">
+    <!-- Empty state shown when no RVTools data is loaded -->
+    <div id="skuRecEmpty" class="sku-rec-empty" style="display:none;">
+      <div class="sku-rec-empty-icon">📂</div>
+      <h4>Import an RVTools file first</h4>
+      <p>The SKU Recommender works against your real VM inventory. Drop your RVTools <strong>.xlsx</strong> on the Import tab, then come back here.</p>
+      <button class="btn btn-primary" onclick="activateTab('import')">📥 Go to Import</button>
+    </div>
+    <!-- Live content when data is loaded -->
+    <div id="skuRecContent" style="display:none;">
+      <div class="sku-rec-statcards" id="skuRecStatCards"></div>
+      <p class="sku-rec-coming-soon" style="margin-top:18px;color:var(--text-muted);font-size:.9rem;">
+        🚧 <strong>More coming next:</strong> per-VM Azure SKU recommendations, sizing groups, tag rules, scenario save/resume.
+        Working off your <span id="skuRecDataSource">loaded RVTools data</span>.
+      </p>
+    </div>
+  </div>
+</div>
+
 </div><!-- /.rv-page -->
 
 <footer>
@@ -921,6 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRiskQuadrant();
   renderWaveTable();
   renderInvTable();
+  renderSkuRecommender();
   openAllPaneBodies();
   activateTab('import');
 });
@@ -1005,7 +1043,7 @@ function toggleSection(key) {
 }
 
 // ============ TAB NAVIGATION ============
-const TAB_KEYS = ['import','overview','infra','resources','ops','migration','inventory'];
+const TAB_KEYS = ['import','overview','infra','resources','ops','migration','inventory','sku-recommender'];
 function activateTab(key) {
   if (!TAB_KEYS.includes(key)) return;
   document.querySelectorAll('.tab-strip .tab').forEach(b => {
@@ -1017,6 +1055,8 @@ function activateTab(key) {
   // Demo-data reminder on non-Import tabs
   const dtb = document.getElementById('demoTabBanner');
   if (dtb) dtb.style.display = (window._isDemoMode && key !== 'import') ? 'flex' : 'none';
+  // Render the SKU Recommender lazily on tab activation
+  if (key === 'sku-recommender') { try { renderSkuRecommender(); } catch(e) { console.error(e); } }
   // Resize any Chart.js charts inside the now-visible pane
   requestAnimationFrame(() => {
     const pane = document.querySelector('.tab-pane.active');
@@ -1166,6 +1206,7 @@ function parseLoadedWorkbook(buffer, file) {
       renderRiskQuadrant();
       renderWaveTable();
       renderInvTable();
+      renderSkuRecommender();
       hideToast();
       showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`);
       openAllPaneBodies();
@@ -1821,6 +1862,61 @@ function exportCSV(tbl) {
 }
 
 // ============ ENHANCED TAB RENDERERS ============
+
+// === SKU Recommender (Phase 2 scaffold) ===
+// Reads from the existing `allVMs` global; renders an empty state until a file is loaded.
+// Future phases: tag rules, sizing groups, recommendation engine, scenario save/resume.
+function renderSkuRecommender() {
+  const empty = document.getElementById('skuRecEmpty');
+  const content = document.getElementById('skuRecContent');
+  const pill = document.getElementById('skuRecVmCountPill');
+  if (!empty || !content) return;
+  // Treat sample-mode as "no real data yet" so the recommender doesn't pretend
+  // to recommend SKUs against demo VMs. Easy to flip later if we choose to support sample.
+  const hasRealData = Array.isArray(allVMs) && allVMs.length > 0 && !window._isDemoMode;
+  if (!hasRealData) {
+    empty.style.display = 'block';
+    content.style.display = 'none';
+    if (pill) pill.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  content.style.display = 'block';
+  if (pill) { pill.style.display = ''; pill.textContent = `${allVMs.length} VMs`; }
+  renderSkuRecStatCards();
+}
+
+function renderSkuRecStatCards() {
+  const host = document.getElementById('skuRecStatCards');
+  if (!host) return;
+  const vms = allVMs || [];
+  const poweredOn = vms.filter(v => (v.power || '').toLowerCase() === 'poweredon').length;
+  const totalCpu = vms.reduce((a, v) => a + (parseInt(v.cpus) || 0), 0);
+  const totalRam = vms.reduce((a, v) => a + (parseFloat(v.ram) || 0), 0);
+  const totalDisk = vms.reduce((a, v) => a + (parseFloat(v.disk) || 0), 0);
+  const clusters = new Set(vms.map(v => v.cluster).filter(Boolean));
+  const datacenters = new Set(vms.map(v => v.dc).filter(Boolean));
+  const osFamily = (os) => {
+    const s = String(os || '').toLowerCase();
+    if (s.includes('windows')) return 'Windows';
+    if (s.includes('linux') || s.includes('ubuntu') || s.includes('rhel') || s.includes('red hat') || s.includes('centos') || s.includes('debian') || s.includes('suse')) return 'Linux';
+    return 'Other';
+  };
+  const win = vms.filter(v => osFamily(v.os) === 'Windows').length;
+  const lin = vms.filter(v => osFamily(v.os) === 'Linux').length;
+  const oth = vms.filter(v => osFamily(v.os) === 'Other').length;
+  const card = (label, value, sub) =>
+    `<div class="sku-rec-statcard"><div class="sc-label">${label}</div><div class="sc-value">${value}</div>${sub ? `<div class="sc-sub">${sub}</div>` : ''}</div>`;
+  host.innerHTML = [
+    card('Total VMs', vms.length, `${poweredOn} powered on`),
+    card('vCPUs', totalCpu.toLocaleString(), `${(totalCpu / Math.max(vms.length, 1)).toFixed(1)} avg / VM`),
+    card('Memory', `${Math.round(totalRam).toLocaleString()} GB`, `${(totalRam / Math.max(vms.length, 1)).toFixed(1)} GB avg`),
+    card('Disk', `${Math.round(totalDisk).toLocaleString()} GB`, `${Math.round(totalDisk / 1024)} TB total`),
+    card('Clusters', clusters.size, `${datacenters.size} datacenter${datacenters.size === 1 ? '' : 's'}`),
+    card('OS mix', `${win} W · ${lin} L`, oth ? `${oth} other` : ''),
+  ].join('');
+}
+
 function hideSampleIndicators() {
   window._isDemoMode = false;
   const banner = document.getElementById('sampleBanner');
@@ -1881,6 +1977,7 @@ function loadSampleData(mode) {
   renderRiskQuadrant();
   renderWaveTable();
   renderInvTable();
+  renderSkuRecommender();
   updateTabBadges();
   openAllPaneBodies();
   activateTab('overview');
