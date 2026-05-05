@@ -366,6 +366,20 @@ footer strong{opacity:1;}
 .skur-table thead th.skur-sortable:hover{color:var(--brand-primary);}
 .skur-ungrouped{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 .skur-empty-row{padding:24px;text-align:center;color:var(--text-tertiary);font-style:italic;}
+.skur-readiness{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px;}
+.skur-rd{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;border:1px solid var(--border-default);background:var(--bg-layer1);color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:inherit;transition:transform .1s, box-shadow .15s;}
+.skur-rd:hover:not(:disabled){transform:translateY(-1px);}
+.skur-rd .rd-count{font-weight:700;font-size:13px;color:var(--text-primary);}
+.skur-rd:disabled{opacity:.45;cursor:not-allowed;}
+.skur-rd.active{box-shadow:0 0 0 2px var(--brand-primary);color:var(--text-primary);}
+.skur-rd.ready{border-color:rgba(16,124,16,.4);background:rgba(16,124,16,.08);}
+.skur-rd.prep{border-color:rgba(255,185,0,.4);background:rgba(255,185,0,.10);}
+.skur-rd.mod{border-color:rgba(255,140,0,.4);background:rgba(255,140,0,.10);}
+.skur-rd.rem{border-color:rgba(209,52,56,.4);background:rgba(209,52,56,.10);}
+.skur-rd.off{border-color:rgba(96,96,96,.4);background:rgba(96,96,96,.06);}
+.skur-rd.miss{border-color:rgba(15,108,189,.4);background:rgba(15,108,189,.08);}
+.skur-rd-clear{margin-left:auto;align-self:center;background:transparent;border:none;color:var(--text-secondary);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit;}
+.skur-rd-clear:disabled{opacity:.4;cursor:not-allowed;text-decoration:none;}
 </style>
 </head>
 <body>
@@ -797,6 +811,11 @@ footer strong{opacity:1;}
     <!-- Live content when data is loaded -->
     <div id="skuRecContent" style="display:none;">
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
+
+      <div class="skur-section">
+        <div class="skur-section-h">🩺 Readiness <span class="skur-pill" id="skurReadinessHint" style="font-weight:400;color:var(--text-tertiary);">click a tile to filter the grid below</span></div>
+        <div class="skur-readiness" id="skurReadinessStrip"></div>
+      </div>
 
       <div class="skur-section">
         <div class="skur-section-h">🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span></div>
@@ -1934,6 +1953,60 @@ function renderSkuRecommender() {
   content.style.display = 'block';
   if (pill) { pill.style.display = ''; pill.textContent = `${allVMs.length} VMs`; }
   renderSkuRecStatCards();
+  renderSkurReadinessStrip();
+  renderSkurVmGrid();
+}
+
+// === SKU Recommender Readiness strip (Phase 2) ===
+// Reuses existing getWave() logic; adds two data-quality flags.
+let skurReadinessFilter = null; // null | 'w1' | 'w2' | 'w3' | 'w4' | 'off' | 'missing'
+function skurReadinessFlagsFor(vm) {
+  const flags = {};
+  try {
+    const w = (typeof getWave === 'function') ? getWave(vm) : null;
+    if (w === 1) flags.w1 = true;
+    else if (w === 2) flags.w2 = true;
+    else if (w === 3) flags.w3 = true;
+    else if (w === 4) flags.w4 = true;
+  } catch (_) { /* no-op */ }
+  if (!String(vm.power || '').toLowerCase().includes('on')) flags.off = true;
+  if (vm.cpus == null || vm.cpus === '' || vm.ram == null || vm.ram === '' || !vm.os) flags.missing = true;
+  return flags;
+}
+function skurReadinessSummary() {
+  const c = { w1:0, w2:0, w3:0, w4:0, off:0, missing:0 };
+  (allVMs || []).forEach(v => { const f = skurReadinessFlagsFor(v); for (const k in f) if (f[k]) c[k]++; });
+  return c;
+}
+function renderSkurReadinessStrip() {
+  const host = document.getElementById('skurReadinessStrip');
+  if (!host) return;
+  const c = skurReadinessSummary();
+  const tile = (key, klass, label, count) => {
+    const active = skurReadinessFilter === key ? ' active' : '';
+    const dis = count === 0 ? ' disabled' : '';
+    return `<button class="skur-rd ${klass}${active}" onclick="toggleSkurReadiness('${key}')"${dis}><span>${label}</span><span class="rd-count">${count}</span></button>`;
+  };
+  const clearDis = skurReadinessFilter ? '' : ' disabled';
+  host.innerHTML = [
+    tile('w1','ready','🟢 Ready Now', c.w1),
+    tile('w2','prep','🟡 Light Prep', c.w2),
+    tile('w3','mod','🟠 Modernise', c.w3),
+    tile('w4','rem','🔴 Remediate', c.w4),
+    tile('off','off','⏸ Powered off', c.off),
+    tile('missing','miss','📋 Missing data', c.missing),
+    `<button class="skur-rd-clear" onclick="clearSkurReadiness()"${clearDis}>Clear readiness filter</button>`,
+  ].join('');
+}
+function toggleSkurReadiness(key) {
+  skurReadinessFilter = (skurReadinessFilter === key) ? null : key;
+  renderSkurReadinessStrip();
+  renderSkurVmGrid();
+}
+function clearSkurReadiness() {
+  if (!skurReadinessFilter) return;
+  skurReadinessFilter = null;
+  renderSkurReadinessStrip();
   renderSkurVmGrid();
 }
 
@@ -1945,12 +2018,14 @@ function skurFilteredVms() {
   const f = skurFilters;
   const nameQ = f.name.toLowerCase();
   const sizeQ = f.size.toLowerCase().replace(/\s/g,'');
+  const rdKey = skurReadinessFilter;
   return vms.filter(v => {
     if (nameQ && !String(v.name||'').toLowerCase().includes(nameQ)) return false;
     if (sizeQ) { const s = `${v.cpus??'?'}/${v.ram??'?'}`.toLowerCase(); if (!s.includes(sizeQ)) return false; }
     if (f.os && String(v.os||'') !== f.os) return false;
     if (f.dc && String(v.dc||'') !== f.dc) return false;
     if (f.cluster && String(v.cluster||'') !== f.cluster) return false;
+    if (rdKey) { const flags = skurReadinessFlagsFor(v); if (!flags[rdKey]) return false; }
     return true;
   });
 }
