@@ -654,8 +654,11 @@ body.dark .skur-group-chip{color:#b794f4;}
   <div class="drop-zone" id="dropZone">
     <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz,.json" onchange="handleFile(this.files[0])"/>
     <div class="drop-icon">📂</div>
-    <h3>Drop your RVTools .xlsx file here</h3>
+    <h3>Drop a file here</h3>
     <p style="margin:0;font-size:.9rem;color:var(--text-muted);font-weight:500;">or click to browse</p>
+    <p style="margin:8px 0 0;font-size:.78rem;color:var(--text-muted);">
+      Accepts <strong>.xlsx</strong> RVTools export · <strong>.rvz</strong> saved scenario · <strong>.json</strong> saved workspace
+    </p>
     <p style="margin:10px 0 0;font-size:.78rem;color:var(--text-muted);">🔒 Parses 100% in your browser — nothing is uploaded</p>
   </div>
   <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
@@ -1058,23 +1061,23 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
             </select>
             <button class="btn" onclick="newSkurGroup()">➕ New group</button>
-            <select id="skurExportSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📥 Export CSV ▾</option>
+            <select id="skurExportSel" title="Download a CSV report of the recommendations" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
+              <option value="" disabled selected hidden>📥 CSV report ▾</option>
               <option value="active">Active group only</option>
               <option value="pinned">Pinned groups only</option>
               <option value="all">All groups (combined)</option>
               <option value="oos">Out-of-scope only</option>
               <option value="everything">Everything (groups + OOS + ungrouped)</option>
             </select>
-            <select id="skurXlsxSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📊 Export Excel ▾</option>
+            <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
+              <option value="" disabled selected hidden>📊 Excel report ▾</option>
               <option value="all">All groups</option>
               <option value="pinned">Pinned groups only</option>
               <option value="active">Active group only</option>
             </select>
-            <button type="button" onclick="exportScenarioBundle()" title="Save data + workspace (groups, OOS, tag rules, plan settings) as a single .rvz scenario file" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">💾 Save scenario</button>
-            <select onchange="if(this.value){exportWorkspaceJson(this.value);this.value='';}" title="Save just the workspace customisations as JSON (no source data). Useful for sharing rules without the inventory." style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">
-              <option value="" disabled selected hidden>📋 Export workspace ▾</option>
+            <button type="button" onclick="exportScenarioBundle()" title="Save scenario (.rvz): the source RVTools data + your full workspace customisations in one file. Resume on this or another machine via the same upload field." style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">💾 Save scenario (.rvz)</button>
+            <select onchange="if(this.value){exportWorkspaceJson(this.value);this.value='';}" title="Save just your customisations as JSON (no source data). Re-apply via the same upload field, with reconciliation to whichever dataset is loaded." style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">
+              <option value="" disabled selected hidden>📋 Save workspace (.json) ▾</option>
               <option value="full">Full workspace (groups + OOS + rules + settings)</option>
               <option value="rules">Rules template only (rules + plan settings)</option>
             </select>
@@ -1264,7 +1267,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
-  <div style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.0-beta</div>
+  <div style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.2.0-beta</div>
 </footer>
 
 <script>
@@ -1623,7 +1626,7 @@ function handleFile(file) {
 // The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
 // at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
 // .rvz scenarios or workspace.json files.
-const APP_VERSION = '1.1.0-beta';
+const APP_VERSION = '1.2.0-beta';
 const WORKSPACE_SCHEMA_VERSION = 1;
 const WORKSPACE_MIGRATIONS = {
   // Example for when v2 lands:
