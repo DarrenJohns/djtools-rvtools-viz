@@ -347,11 +347,15 @@ footer strong{opacity:1;}
 .sku-rec-empty-icon{font-size:48px;margin-bottom:12px;}
 .sku-rec-empty h4{font-size:1.1rem;font-weight:700;color:var(--text);margin:6px 0 8px;}
 .sku-rec-empty p{font-size:.92rem;max-width:520px;margin:0 auto 18px;line-height:1.5;}
-.sku-rec-statcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:8px 0 0;}
-.sku-rec-statcard{background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm,var(--shadow));min-width:0;}
-.sku-rec-statcard .sc-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sku-rec-statcard .sc-value{font-size:clamp(1.1rem,2.2vw,1.6rem);font-weight:700;color:var(--text);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sku-rec-statcard .sc-sub{font-size:.78rem;color:var(--text-muted);margin-top:3px;}
+.sku-rec-statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:8px 0 0;}
+.sku-rec-statcard{background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:var(--radius-md,10px);padding:14px 18px;box-shadow:var(--shadow-sm,var(--shadow));display:flex;align-items:center;gap:14px;min-width:0;}
+.sku-rec-statcard .sc-ico{font-size:26px;line-height:1;flex-shrink:0;}
+.sku-rec-statcard .sc-body{display:flex;flex-direction:column;min-width:0;}
+.sku-rec-statcard .sc-num{font-size:24px;font-weight:700;color:var(--brand-primary);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sku-rec-statcard .sc-num.is-money{font-size:22px;}
+.sku-rec-statcard .sc-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary);font-weight:600;margin-top:3px;}
+.sku-rec-statcard .sc-sub{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+@media (max-width:900px){.sku-rec-statcards{grid-template-columns:repeat(2,1fr);}}
 /* SKU Recommender VM grid */
 .skur-section{margin-top:22px;}
 .skur-stat-grid-wrap{}
@@ -369,6 +373,25 @@ footer strong{opacity:1;}
 .skur-data-pill.is-warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b;}
 .skur-data-pill .dp-count{font-weight:700;color:var(--text-primary);}
 .skur-data-pill.is-warn .dp-count{color:#f59e0b;}
+/* Stage 1: freshness pill (matches SPEC's "Updated May 2026" green badge) */
+.skur-freshness-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 11px;border-radius:12px;background:#e6f4ea;color:#137333;border:1px solid #a8dab5;cursor:pointer;white-space:nowrap;user-select:none;}
+.skur-freshness-pill:hover{filter:brightness(.96);}
+.skur-freshness-pill.is-warn{background:rgba(245,158,11,.14);color:#92510b;border-color:rgba(245,158,11,.5);}
+.skur-freshness-pill .fp-dot{font-size:10px;}
+/* Stage 1: advanced plan-bar disclosure */
+.skur-plan-bar .pb-advanced-toggle{font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--border-default);background:var(--bg-layer2);color:var(--text-secondary);border-radius:var(--radius-sm);cursor:pointer;margin-left:6px;}
+.skur-plan-bar .pb-advanced-toggle:hover{background:var(--bg-layer1);color:var(--text-primary);}
+.skur-plan-bar .pb-advanced-toggle.is-open{background:rgba(15,108,189,.10);border-color:rgba(15,108,189,.5);color:var(--brand-primary);}
+.skur-plan-advanced{display:none;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 14px;margin:8px 0 0;}
+.skur-plan-advanced.is-open{display:flex;}
+.skur-plan-advanced .pb-field{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.skur-plan-advanced .pb-field label{font-size:11px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.skur-plan-advanced .pb-field select,
+.skur-plan-advanced .pb-field input[type="date"]{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);min-width:120px;}
+.skur-plan-advanced .pb-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);font-size:13px;color:var(--text-primary);cursor:pointer;user-select:none;}
+.skur-plan-advanced .pb-toggle input{margin:0;cursor:pointer;}
+.skur-plan-advanced .pb-spacer{flex:1;}
+.skur-plan-advanced .pb-reset{background:transparent;border:none;color:var(--text-secondary);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;}
 .skur-elig-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);border-radius:999px;color:var(--brand-primary);font-size:10px;font-weight:700;cursor:help;}
 .skur-rec-cell{font-family:var(--font-mono,'Consolas',monospace);font-size:12px;line-height:1.3;}
 .skur-rec-cell .rc-name{font-weight:700;color:var(--text-primary);}
@@ -1061,6 +1084,12 @@ body.dark .skur-group-chip{color:#b794f4;}
             <option value="GBP">GBP £</option>
           </select>
         </div>
+        <button type="button" class="pb-advanced-toggle" id="skurPlanAdvancedToggle" onclick="skurTogglePlanAdvanced()" aria-expanded="false" aria-controls="skurPlanAdvanced" title="Show term, AHUB and as-of-date controls">⚙ Advanced ▾</button>
+        <div class="pb-spacer"></div>
+        <span class="skur-freshness-pill" id="skurFreshnessPill" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
+      </div>
+
+      <div class="skur-plan-advanced" id="skurPlanAdvanced" aria-hidden="true">
         <div class="pb-field">
           <label for="skurPlanTerm">Term</label>
           <select id="skurPlanTerm" onchange="skurOnPlanChange('term',this.value)">
@@ -1206,6 +1235,25 @@ body.dark .skur-group-chip{color:#b794f4;}
         🚧 <strong>More coming next:</strong> per-VM Azure SKU recommendations, sizing groups, tag rules, scenario save/resume.
         Working off your <span id="skuRecDataSource">loaded RVTools data</span>.
       </p>
+    </div>
+  </div>
+</div>
+
+<!-- SKU Recommender: Data Refresh Summary modal (Stage 1, v1.3 rebuild) -->
+<div class="modal-overlay" id="skurFreshnessModal" onclick="if(event.target===this)skurCloseFreshnessModal()" role="dialog" aria-modal="true" aria-labelledby="skurFreshnessModalTitle">
+  <div class="modal-card is-md">
+    <div class="modal-banner"><h2 id="skurFreshnessModalTitle">📋 Data Refresh Summary</h2></div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">Last refreshed: <strong id="skurFreshnessLastRefreshed">—</strong></div>
+      <table style="width:100%;font-size:13px;border-collapse:collapse;">
+        <tr><td style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);">🖥️ VM SKU Data</td><td id="skurFreshnessSkuCount" style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);text-align:right;">—</td></tr>
+        <tr><td style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);">💿 Disk SKU Data</td><td id="skurFreshnessDiskCount" style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);text-align:right;">—</td></tr>
+        <tr><td style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);">💰 Pricing Data</td><td id="skurFreshnessPricing" style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);text-align:right;">—</td></tr>
+        <tr><td style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);">⚠️ Retirement Alerts</td><td style="padding:9px 4px;border-bottom:1px solid var(--border-subtle);text-align:right;">Included</td></tr>
+        <tr><td style="padding:9px 4px;">🌏 Region List</td><td id="skurFreshnessRegions" style="padding:9px 4px;text-align:right;">—</td></tr>
+      </table>
+      <div style="margin-top:14px;font-size:12px;color:var(--text-tertiary);line-height:1.5;">All data is refreshed monthly via GitHub Actions workflow or manual trigger. Pricing sourced from the Azure Retail Prices API (no auth required). Disk data sourced from the Azure Resource SKU API.</div>
+      <div class="modal-close-row center"><button class="btn-outline" onclick="skurCloseFreshnessModal()">Close</button></div>
     </div>
   </div>
 </div>
@@ -4408,8 +4456,8 @@ function updateSkurDataPill() {
     label.textContent = `SKUs · ${regionLabel} · ${tag}`;
     if (status === 'live') {
       const m = skurLiveData && skurLiveData.metadata;
-      const asOf = m && m.lastUpdatedDisplay ? m.lastUpdatedDisplay : (m && m.lastUpdated) || 'recently';
-      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nCatalog as of: ${asOf}\nBasis: Linux PAYG list price (live USD)\n\nClick for details.`;
+      const asOf = (m && m.lastUpdated && skurFormatRefreshDate(m.lastUpdated)) || (m && m.lastUpdatedDisplay) || (m && m.lastUpdated) || 'recently';
+      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nLast refreshed: ${asOf}\nBasis: Linux PAYG list price (live USD)\n\nClick for details.`;
     } else {
       pill.title = `${cat.length} VM SKUs available for ${regionLabel}.\n\nSource: ${SKUR_CATALOG_META.source} · as of ${SKUR_CATALOG_META.asOfDate}\nBasis: ${SKUR_CATALOG_META.basis}\n\nClick for details.`;
     }
@@ -4438,7 +4486,7 @@ function skurShowDataPillInfo() {
       `📦 SKU catalog (live data)`,
       ``,
       `Source: refresh-azure-data.yml pipeline (Azure CLI + retail prices API)`,
-      `Catalog as of: ${m && m.lastUpdatedDisplay ? m.lastUpdatedDisplay : 'unknown'}`,
+      `Last refreshed: ${(m && m.lastUpdated && skurFormatRefreshDate(m.lastUpdated)) || (m && m.lastUpdatedDisplay) || 'unknown'}`,
       `Last refreshed: ${m && m.lastUpdated ? m.lastUpdated : 'unknown'}`,
       `Regions with data: ${m && m.regionsWithData ? m.regionsWithData : '?'} of ${m && m.physicalRegionCount ? m.physicalRegionCount : '?'} physical`,
       ``,
@@ -4957,32 +5005,116 @@ function renderSkuRecStatCards() {
   // Ensure plan bar is initialised whenever the recommender renders.
   initSkurPlanBar();
   updateSkurDataPill();
+  skurUpdateFreshnessPill();
   const vms = allVMs || [];
-  const poweredOn = vms.filter(v => (v.power || '').toLowerCase() === 'poweredon').length;
-  const totalCpu = vms.reduce((a, v) => a + (parseInt(v.cpus) || 0), 0);
-  const totalRam = vms.reduce((a, v) => a + (parseFloat(v.ram) || 0), 0);
-  const totalDisk = vms.reduce((a, v) => a + (parseFloat(v.disk) || 0), 0);
-  const clusters = new Set(vms.map(v => v.cluster).filter(Boolean));
-  const datacenters = new Set(vms.map(v => v.dc).filter(Boolean));
-  const osFamily = (os) => {
-    const s = String(os || '').toLowerCase();
-    if (s.includes('windows')) return 'Windows';
-    if (s.includes('linux') || s.includes('ubuntu') || s.includes('rhel') || s.includes('red hat') || s.includes('centos') || s.includes('debian') || s.includes('suse')) return 'Linux';
-    return 'Other';
+  // 1) Tag assignments — count of (VM, tag) pairs across rule-derived + manual tags.
+  let tagAssignments = 0;
+  let taggedVms = 0;
+  vms.forEach(v => {
+    const tags = (typeof skurTagsForVm === 'function') ? (skurTagsForVm(v) || []) : [];
+    if (tags.length) { taggedVms += 1; tagAssignments += tags.length; }
+  });
+  // 2) VMs grouped — union of all sizing-group members.
+  const groupedSet = new Set();
+  const groups = (typeof skurGroups !== 'undefined' && Array.isArray(skurGroups)) ? skurGroups : [];
+  groups.forEach(g => (g.members || []).forEach(k => groupedSet.add(k)));
+  // 3) Groups + pinned.
+  const pinnedCount = groups.filter(g => g && g.pinned).length;
+  // 4) Estimated compute / mo — sum of group totals (compute only).
+  let totalCost = 0;
+  if (typeof _skurGroupTotalMonthlyCost === 'function') {
+    groups.forEach(g => { try { const c = _skurGroupTotalMonthlyCost(g); if (isFinite(c)) totalCost += c; } catch (_) {} });
+  }
+  const fmtMoney = (n) => {
+    if (!isFinite(n) || n === 0) return '$0';
+    if (typeof skurFormatMoney === 'function') {
+      try { return skurFormatMoney(n, (typeof skurPlan !== 'undefined' && skurPlan && skurPlan.currency) || 'USD'); } catch (_) {}
+    }
+    return '$' + Math.round(n).toLocaleString();
   };
-  const win = vms.filter(v => osFamily(v.os) === 'Windows').length;
-  const lin = vms.filter(v => osFamily(v.os) === 'Linux').length;
-  const oth = vms.filter(v => osFamily(v.os) === 'Other').length;
-  const card = (label, value, sub) =>
-    `<div class="sku-rec-statcard"><div class="sc-label">${label}</div><div class="sc-value">${value}</div>${sub ? `<div class="sc-sub">${sub}</div>` : ''}</div>`;
+  const card = (ico, num, lbl, sub, cls) =>
+    `<div class="sku-rec-statcard"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div></div>`;
+  const ungrouped = Math.max(0, vms.length - groupedSet.size);
   host.innerHTML = [
-    card('Total VMs', vms.length, `${poweredOn} powered on`),
-    card('vCPUs', totalCpu.toLocaleString(), `${(totalCpu / Math.max(vms.length, 1)).toFixed(1)} avg / VM`),
-    card('Memory', `${Math.round(totalRam).toLocaleString()} GB`, `${(totalRam / Math.max(vms.length, 1)).toFixed(1)} GB avg`),
-    card('Disk', `${Math.round(totalDisk).toLocaleString()} GB`, `${Math.round(totalDisk / 1024)} TB total`),
-    card('Clusters', clusters.size, `${datacenters.size} datacenter${datacenters.size === 1 ? '' : 's'}`),
-    card('OS mix', `${win} W · ${lin} L`, oth ? `${oth} other` : ''),
+    card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
+    card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
+    card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
+    card('💰', fmtMoney(totalCost), 'Est. compute / mo', '+ storage / licensing — see Excel', 'is-money'),
   ].join('');
+}
+
+// ---- Stage 1: freshness pill + Data Refresh Summary modal ----
+function skurFormatRefreshDate(input) {
+  if (!input) return null;
+  let d;
+  if (input instanceof Date) d = input;
+  else {
+    const s = String(input).trim();
+    if (!s) return null;
+    d = new Date(s);
+    if (isNaN(d.getTime())) {
+      // Some metadata.json files publish "May 2026" already — pass through unchanged.
+      if (/^[A-Za-z]+\s+\d{4}$/.test(s)) return s;
+      return null;
+    }
+  }
+  try { return d.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }); }
+  catch (_) { return null; }
+}
+function skurUpdateFreshnessPill() {
+  const pill = document.getElementById('skurFreshnessPill');
+  const lbl  = document.getElementById('skurFreshnessLabel');
+  if (!pill || !lbl) return;
+  const m = (typeof skurLiveData !== 'undefined' && skurLiveData && skurLiveData.metadata) ? skurLiveData.metadata : null;
+  const status = (typeof skurLiveCatalogStatus === 'function') ? skurLiveCatalogStatus() : 'unknown';
+  let label = null;
+  if (m && m.lastUpdated) label = skurFormatRefreshDate(m.lastUpdated);
+  if (!label && m && m.lastUpdatedDisplay) label = skurFormatRefreshDate(m.lastUpdatedDisplay) || m.lastUpdatedDisplay;
+  if (!label) label = 'seed data';
+  lbl.textContent = label;
+  pill.classList.toggle('is-warn', status !== 'live');
+}
+function skurOpenFreshnessModal() {
+  skurUpdateFreshnessPill();
+  const m = (typeof skurLiveData !== 'undefined' && skurLiveData && skurLiveData.metadata) ? skurLiveData.metadata : null;
+  const status = (typeof skurLiveCatalogStatus === 'function') ? skurLiveCatalogStatus() : 'unknown';
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  if (m && (m.lastUpdated || m.lastUpdatedDisplay)) {
+    set('skurFreshnessLastRefreshed', skurFormatRefreshDate(m.lastUpdated) || m.lastUpdatedDisplay || '—');
+  } else {
+    set('skurFreshnessLastRefreshed', status === 'unavailable' ? 'No live data published yet' : 'Seed data only');
+  }
+  // Counts pulled from live metadata when present; SEED defaults otherwise.
+  const skuCount  = (m && (m.totalVmSkus || m.skuCount)) || (typeof SKUR_VM_CATALOG !== 'undefined' && SKUR_VM_CATALOG ? SKUR_VM_CATALOG.length : null);
+  const diskCount = (m && (m.totalDiskSkus || m.diskCount)) || null;
+  const pricing   = (m && m.pricingNote) || (status === 'live' ? 'Live retail prices' : 'Seed pricing');
+  const regions   = (m && (m.regionsWithData || m.regionCount)) || (typeof SKUR_AZURE_REGIONS !== 'undefined' ? SKUR_AZURE_REGIONS.length : null);
+  set('skurFreshnessSkuCount',  skuCount  != null ? `${skuCount} SKUs` : '—');
+  set('skurFreshnessDiskCount', diskCount != null ? `${diskCount} disks` : '—');
+  set('skurFreshnessPricing',   pricing);
+  set('skurFreshnessRegions',   regions != null ? `${regions} regions` : '—');
+  const overlay = document.getElementById('skurFreshnessModal');
+  if (overlay) overlay.classList.add('show');
+  document.addEventListener('keydown', skurFreshnessKeyHandler);
+}
+function skurCloseFreshnessModal() {
+  const overlay = document.getElementById('skurFreshnessModal');
+  if (overlay) overlay.classList.remove('show');
+  document.removeEventListener('keydown', skurFreshnessKeyHandler);
+}
+function skurFreshnessKeyHandler(e) { if (e.key === 'Escape') skurCloseFreshnessModal(); }
+
+// ---- Stage 1: advanced plan-bar disclosure ----
+function skurTogglePlanAdvanced() {
+  const adv = document.getElementById('skurPlanAdvanced');
+  const tog = document.getElementById('skurPlanAdvancedToggle');
+  if (!adv || !tog) return;
+  const willOpen = !adv.classList.contains('is-open');
+  adv.classList.toggle('is-open', willOpen);
+  tog.classList.toggle('is-open', willOpen);
+  tog.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  adv.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+  tog.textContent = willOpen ? '⚙ Advanced ▴' : '⚙ Advanced ▾';
 }
 
 function hideSampleIndicators() {
