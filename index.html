@@ -3383,8 +3383,104 @@ const SKUR_FX_RATES_USD = Object.freeze({ USD:1.00, AUD:1.50, NZD:1.66, EUR:0.92
 const SKUR_TERM_DISCOUNTS = Object.freeze({ payg:1.00, ri1:0.62, ri3:0.42, sp1:0.78, sp3:0.58 });
 const SKUR_TERM_LABELS = Object.freeze({ payg:'PAYG', ri1:'1y RI', ri3:'3y RI', sp1:'1y SP', sp3:'3y SP' });
 const SKUR_HOURS_PER_MONTH = 730; // Azure billing convention
+
+// === Phase 1: Live data loader (consumes data/*.json from refresh-azure-data.yml pipeline) ===
+// Falls back to seed catalog when files are absent (e.g. file:// preview, or before pipeline first run).
+let skurLiveData = null; // { metadata, regions: [...], byRegion: { <name>: { available, normalized, lastUpdated, displayName } } }
+async function _skurFetchJson(url) {
+  try {
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (_) { return null; }
+}
+function _skurDeriveProcessor(name) {
+  const m = String(name).match(/^Standard_[A-Za-z]+\d+([a-z]*)/);
+  const letters = m ? m[1] : '';
+  if (letters.includes('a')) return 'amd';
+  if (letters.includes('p')) return 'arm';
+  return 'intel';
+}
+function _skurDeriveFamily(name) {
+  const m = String(name).match(/^Standard_([A-Z])/);
+  return m ? m[1] : 'X';
+}
+function _skurNormaliseLiveSkus(skus, prices) {
+  if (!Array.isArray(skus) || !prices) return [];
+  const out = [];
+  for (const s of skus) {
+    if (!s || !s.name) continue;
+    const fam = _skurDeriveFamily(s.name);
+    if (!['B','D','E','F'].includes(fam)) continue; // limit to GP/burst/memory/compute (matches seed scope)
+    const sizeKey = String(s.name).replace(/^Standard_/, '');
+    const p = prices[sizeKey];
+    if (!p || typeof p.linux !== 'number' || !isFinite(p.linux) || p.linux <= 0) continue;
+    if (Array.isArray(s.restrictions) && s.restrictions.length) continue; // skip region/zone-restricted
+    out.push({
+      name: s.name,
+      family: fam,
+      vcpu: Number(s.vCPUs) || 0,
+      ramGb: Number(s.memoryGB) || 0,
+      processor: _skurDeriveProcessor(s.name),
+      premiumIo: !!s.premiumIO,
+      burstable: fam === 'B',
+      hourlyUsd: p.linux,
+    });
+  }
+  return out;
+}
+async function _skurLoadRegionData(regionName) {
+  if (!skurLiveData || !regionName) return null;
+  const cached = skurLiveData.byRegion[regionName];
+  if (cached) return cached;
+  const [vmJson, pricingJson] = await Promise.all([
+    _skurFetchJson(`data/${regionName}.json`),
+    _skurFetchJson(`data/${regionName}-pricing.json`),
+  ]);
+  if (!vmJson || !pricingJson) {
+    skurLiveData.byRegion[regionName] = { available: false };
+    return skurLiveData.byRegion[regionName];
+  }
+  const normalized = _skurNormaliseLiveSkus(vmJson.skus, pricingJson.prices);
+  const entry = {
+    available: normalized.length > 0,
+    normalized,
+    lastUpdated: vmJson.lastUpdated,
+    displayName: vmJson.regionDisplayName,
+    rawCount: Array.isArray(vmJson.skus) ? vmJson.skus.length : 0,
+  };
+  skurLiveData.byRegion[regionName] = entry;
+  return entry;
+}
+async function skurInitLiveData() {
+  if (typeof location !== 'undefined' && location.protocol === 'file:') return; // file:// blocks fetch
+  if (typeof fetch !== 'function') return;
+  const [metadata, regions] = await Promise.all([
+    _skurFetchJson('data/metadata.json'),
+    _skurFetchJson('data/regions.json'),
+  ]);
+  if (!metadata) return; // pipeline hasn't published yet — stay on seed
+  skurLiveData = { metadata, regions: Array.isArray(regions) ? regions : [], byRegion: {} };
+  await _skurLoadRegionData(skurPlan.region);
+  // Re-render UI now that live catalog might be richer
+  try { updateSkurDataPill(); } catch (_) {}
+  try { renderSkurGroups(); } catch (_) {}
+  try { renderSkurVmGrid(); } catch (_) {}
+}
+function skurLiveCatalogStatus() {
+  // Returns one of 'seed' | 'live' | 'live-pending' | 'unavailable'
+  if (!skurLiveData) return 'seed';
+  const entry = skurLiveData.byRegion[skurPlan.region];
+  if (!entry) return 'live-pending';
+  return entry.available ? 'live' : 'unavailable';
+}
+
 function skurCatalogForRegion(region) {
-  // Seed: only Australia East has data right now. Other regions surface a warning in the data pill.
+  // Prefer live data if the pipeline has populated it for this region.
+  if (skurLiveData && skurLiveData.byRegion[region] && skurLiveData.byRegion[region].available) {
+    return skurLiveData.byRegion[region].normalized;
+  }
+  // Seed fallback (Australia East only).
   if (region === 'australiaeast') return SKUR_SKU_CATALOG_AUE;
   return [];
 }
@@ -3417,22 +3513,57 @@ function updateSkurDataPill() {
   const cat = skurCatalogForRegion(skurPlan.region);
   const region = SKUR_AZURE_REGIONS.find(r => r.id === skurPlan.region);
   const regionLabel = region ? region.label : skurPlan.region;
+  const status = skurLiveCatalogStatus();
   if (cat.length) {
     pill.classList.remove('is-warn');
     count.textContent = cat.length;
-    label.textContent = `SKUs · ${regionLabel} · seed`;
-    pill.title = `${cat.length} VM SKUs available for ${regionLabel}.\n\nSource: ${SKUR_CATALOG_META.source} · as of ${SKUR_CATALOG_META.asOfDate}\nBasis: ${SKUR_CATALOG_META.basis}\n\nClick for details.`;
+    const tag = status === 'live' ? 'live' : 'seed';
+    label.textContent = `SKUs · ${regionLabel} · ${tag}`;
+    if (status === 'live') {
+      const m = skurLiveData && skurLiveData.metadata;
+      const asOf = m && m.lastUpdatedDisplay ? m.lastUpdatedDisplay : (m && m.lastUpdated) || 'recently';
+      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nCatalog as of: ${asOf}\nBasis: Linux PAYG list price (live USD)\n\nClick for details.`;
+    } else {
+      pill.title = `${cat.length} VM SKUs available for ${regionLabel}.\n\nSource: ${SKUR_CATALOG_META.source} · as of ${SKUR_CATALOG_META.asOfDate}\nBasis: ${SKUR_CATALOG_META.basis}\n\nClick for details.`;
+    }
   } else {
     pill.classList.add('is-warn');
     count.textContent = '0';
-    label.textContent = `SKUs · ${regionLabel} (no seed data)`;
-    pill.title = `No catalog data for ${regionLabel} in this build.\nOnly ${SKUR_AZURE_REGIONS.find(r=>r.id===SKUR_CATALOG_META.baseRegion)?.label||SKUR_CATALOG_META.baseRegion} ships seed data; other regions arrive with the Phase 1 data pipeline.\n\nClick for details.`;
+    label.textContent = `SKUs · ${regionLabel} (no data yet)`;
+    if (status === 'live-pending') {
+      pill.title = `Loading ${regionLabel} from data pipeline…\n\nClick for details.`;
+    } else if (status === 'unavailable') {
+      pill.title = `No catalog data published for ${regionLabel} yet.\nThe monthly pipeline only fetches regions listed in config.json.\n\nClick for details.`;
+    } else {
+      pill.title = `No catalog data for ${regionLabel} in this build.\nOnly ${SKUR_AZURE_REGIONS.find(r=>r.id===SKUR_CATALOG_META.baseRegion)?.label||SKUR_CATALOG_META.baseRegion} ships seed data; other regions arrive with the Phase 1 data pipeline.\n\nClick for details.`;
+    }
   }
 }
 function skurShowDataPillInfo() {
   const cat = skurCatalogForRegion(skurPlan.region);
   const region = SKUR_AZURE_REGIONS.find(r => r.id === skurPlan.region);
   const regionLabel = region ? region.label : skurPlan.region;
+  const status = skurLiveCatalogStatus();
+  if (status === 'live') {
+    const m = skurLiveData && skurLiveData.metadata;
+    const entry = skurLiveData && skurLiveData.byRegion[skurPlan.region];
+    const lines = [
+      `📦 SKU catalog (live data)`,
+      ``,
+      `Source: refresh-azure-data.yml pipeline (Azure CLI + retail prices API)`,
+      `Catalog as of: ${m && m.lastUpdatedDisplay ? m.lastUpdatedDisplay : 'unknown'}`,
+      `Last refreshed: ${m && m.lastUpdated ? m.lastUpdated : 'unknown'}`,
+      `Regions with data: ${m && m.regionsWithData ? m.regionsWithData : '?'} of ${m && m.physicalRegionCount ? m.physicalRegionCount : '?'} physical`,
+      ``,
+      `Selected region: ${regionLabel} → ${cat.length} of ${entry ? entry.rawCount : '?'} raw SKUs after eligibility filter`,
+      `Filter: B-series (burstable), Dxx (general), Exx (memory), Fxx (compute) · region-restricted SKUs excluded`,
+      ``,
+      `⚠ Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
+      `AHUB pricing is decorative until Windows pricing flows through the pipeline.`,
+    ];
+    alert(lines.join('\n'));
+    return;
+  }
   const baseRegionLabel = SKUR_AZURE_REGIONS.find(r => r.id === SKUR_CATALOG_META.baseRegion)?.label || SKUR_CATALOG_META.baseRegion;
   const lines = [
     `📦 SKU catalog (seed data)`,
@@ -3457,6 +3588,18 @@ document.addEventListener('skurPlanChanged', updateSkurDataPill);
 // Region change also affects per-group eligibility chips.
 document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
 document.addEventListener('skurPlanChanged', () => { try { renderSkurVmGrid(); } catch (_) {} });
+// On region change, lazily load that region's live data if available, then re-render.
+document.addEventListener('skurPlanChanged', (ev) => {
+  if (!skurLiveData) return;
+  if (ev && ev.detail && ev.detail.field !== 'region' && ev.detail.field !== '*') return;
+  _skurLoadRegionData(skurPlan.region).then(() => {
+    try { updateSkurDataPill(); } catch (_) {}
+    try { renderSkurGroups(); } catch (_) {}
+    try { renderSkurVmGrid(); } catch (_) {}
+  }).catch(() => {});
+});
+// Kick off live-data init once the DOM is ready (idempotent; no-op on file://).
+document.addEventListener('DOMContentLoaded', () => { skurInitLiveData(); });
 
 // === Phase 5 slice 3: mode scorers (Balanced / Cost / Right-sized) ===
 // All scoring functions return a number where LOWER is better. Infinity = ineligible.
