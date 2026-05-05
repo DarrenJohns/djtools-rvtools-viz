@@ -491,7 +491,7 @@ footer strong{opacity:1;}
    ==================================================================== */
 @keyframes modalFadeInUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 .modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;}
-.modal-overlay.show{display:flex;}
+.modal-overlay.show,.modal-overlay.active{display:flex;}
 .modal-card{background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-md);box-shadow:0 12px 32px rgba(0,0,0,.25);max-width:520px;width:92%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;animation:modalFadeInUp .2s ease;}
 .modal-card.is-sm{max-width:400px;}
 .modal-card.is-md{max-width:520px;}
@@ -516,18 +516,16 @@ footer strong{opacity:1;}
 .modal-card .modal-input-row select:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(15,108,189,.18);}
 .modal-card .modal-error{color:var(--status-danger);font-size:11px;margin-top:6px;min-height:14px;}
 
-/* Legacy skur-modal-* below — retire in Stage 5 */
-.skur-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;}
-.skur-modal-overlay.show{display:flex;}
-.skur-modal-card{background:var(--bg-layer1);color:var(--text-primary);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:20px 22px;width:520px;max-width:92vw;box-shadow:0 16px 48px rgba(0,0,0,.4);}
-.skur-modal-card h4{margin:0 0 14px;font-size:1rem;font-weight:700;}
+/* Legacy skur-modal-* removed in Stage 5 — markup now uses shared
+   .modal-overlay / .modal-card / .modal-banner / .modal-body / .modal-close-row.
+   Inner content classes (.skur-modal-row, .skur-modal-preview, etc.)
+   are kept for content layout. */
 .skur-modal-row{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;margin-bottom:10px;}
 .skur-modal-row label{font-size:12px;color:var(--text-secondary);font-weight:600;}
 .skur-modal-row select,.skur-modal-row input{width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
 .skur-modal-row select:focus,.skur-modal-row input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(0,120,212,.12);}
 .skur-modal-preview{margin:6px 0 14px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
 .skur-modal-preview.err{color:#d13438;background:rgba(209,52,56,.06);border-color:rgba(209,52,56,.3);}
-.skur-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px;}
 /* Sizing groups */
 .skur-groups-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 16px;background:var(--bg-layer1);}
 .skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
@@ -1276,9 +1274,10 @@ body.dark .skur-group-chip{color:#b794f4;}
 </div>
 
 <!-- SKU Recommender: Tag rule add/edit modal -->
-<div class="skur-modal-overlay" id="skurRuleModal" onclick="if(event.target===this)closeSkurRuleModal()">
-  <div class="skur-modal-card" role="dialog" aria-modal="true" aria-labelledby="skurRuleModalTitle">
-    <h4 id="skurRuleModalTitle">➕ Add tag rule</h4>
+<div class="modal-overlay" id="skurRuleModal" onclick="if(event.target===this)closeSkurRuleModal()">
+  <div class="modal-card is-md" role="dialog" aria-modal="true" aria-labelledby="skurRuleModalTitle">
+    <div class="modal-banner"><h2 id="skurRuleModalTitle">➕ Add tag rule</h2></div>
+    <div class="modal-body">
     <div class="skur-modal-row">
       <label>If</label>
       <select id="skurRuleField">
@@ -1310,16 +1309,18 @@ body.dark .skur-group-chip{color:#b794f4;}
       <input type="text" id="skurRuleTagValue" placeholder="value e.g. prod">
     </div>
     <div class="skur-modal-preview" id="skurRulePreview">— start typing —</div>
-    <div class="skur-modal-actions">
-      <button class="btn" onclick="closeSkurRuleModal()">Cancel</button>
-      <button class="btn btn-primary" id="skurRuleSaveBtn" onclick="saveSkurRule()">Save</button>
+    <div class="modal-close-row">
+      <button class="btn-outline" onclick="closeSkurRuleModal()">Cancel</button>
+      <button class="btn-primary" id="skurRuleSaveBtn" onclick="saveSkurRule()">Save</button>
+    </div>
     </div>
   </div>
 </div>
 
-<div class="skur-modal-overlay" id="skurConstraintsModal" onclick="if(event.target===this)closeSkurConstraintsModal()">
-  <div class="skur-modal-card" role="dialog" aria-modal="true" aria-labelledby="skurConstraintsModalTitle">
-    <h4 id="skurConstraintsModalTitle">⚙ Group constraints</h4>
+<div class="modal-overlay" id="skurConstraintsModal" onclick="if(event.target===this)closeSkurConstraintsModal()">
+  <div class="modal-card is-md" role="dialog" aria-modal="true" aria-labelledby="skurConstraintsModalTitle">
+    <div class="modal-banner"><h2 id="skurConstraintsModalTitle">⚙ Group constraints</h2></div>
+    <div class="modal-body">
     <div class="skur-modal-row">
       <label>Family allowlist</label>
       <div class="skur-modal-fieldgrid" id="skurConstrFamilies">
@@ -1363,10 +1364,11 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
     </div>
     <div class="skur-modal-preview" id="skurConstraintsPreview">— pick at least one family —</div>
-    <div class="skur-modal-actions">
-      <button class="btn" onclick="resetSkurConstraintsToDefaults()" style="margin-right:auto;">↺ Defaults</button>
-      <button class="btn" onclick="closeSkurConstraintsModal()">Cancel</button>
-      <button class="btn btn-primary" id="skurConstraintsSaveBtn" onclick="saveSkurConstraints()">Save</button>
+    <div class="modal-close-row">
+      <button class="btn-outline" style="margin-right:auto;" onclick="resetSkurConstraintsToDefaults()">↺ Defaults</button>
+      <button class="btn-outline" onclick="closeSkurConstraintsModal()">Cancel</button>
+      <button class="btn-primary" id="skurConstraintsSaveBtn" onclick="saveSkurConstraints()">Save</button>
+    </div>
     </div>
   </div>
 </div>
