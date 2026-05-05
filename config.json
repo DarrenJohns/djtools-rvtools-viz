@@ -1,0 +1,8 @@
+{
+  "targetRegions": [
+    { "name": "australiaeast", "displayName": "Australia East" },
+    { "name": "newzealandnorth", "displayName": "New Zealand North" }
+  ],
+  "defaultRegion": "newzealandnorth",
+  "refreshNote": "Initial dev seed: 2 regions (australiaeast, newzealandnorth). Expand before merging to main. The monthly GitHub Actions workflow (refresh-azure-data.yml) reads this file to determine which regions to fetch SKU + pricing + disk data for. Uses --all flag to show all SKUs regardless of quota. Regions returning 0 SKUs are excluded from availableRegions."
+}

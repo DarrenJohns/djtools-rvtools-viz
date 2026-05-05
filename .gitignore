@@ -15,3 +15,8 @@ desktop.ini
 # Temporary
 tmp/
 temp/
+
+# Pipeline transient
+data/*-raw.json
+deploy-staging/
+

@@ -1,0 +1,251 @@
+# Refresh Azure Data (regions, VM SKUs, disk SKUs, pricing, retirements)
+#
+# Monthly pull from Azure used by the SKU recommender. Mirrors the pattern
+# proven in djtools-azure-vm-sku-locator-PUBLIC, embedded here so RVTools has
+# zero runtime dependency on the VM SKU app. See docs/data-pipeline.md.
+#
+# Schedule: 1st of each month at 00:00 UTC (after VM SKU app's own refresh,
+# in case schemas need to stay aligned).
+# Manual:   workflow_dispatch.
+#
+# Outputs (committed back to repo + deployed to SWA when run on main):
+#   data/regions.json
+#   data/metadata.json
+#   data/retirements.json
+#   data/<region>.json            (VM SKUs, normalized)
+#   data/<region>-pricing.json    (PAYG pricing)
+#   data/<region>-disks.json      (Disk SKUs, normalized)
+#   data/history/<region>-YYYY-MM.json  (previous-month archive)
+
+name: Refresh Azure Data
+
+on:
+  schedule:
+    - cron: '0 1 1 * *'    # Monthly on the 1st at 01:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: true
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Get all Azure regions and target regions from config
+        run: |
+          $config = Get-Content "config.json" | ConvertFrom-Json
+          $allRegions = az account list-locations --query "[?metadata.regionType=='Physical'].{name:name, displayName:displayName, geographyGroup:metadata.geographyGroup, latitude:metadata.latitude, longitude:metadata.longitude}" -o json | ConvertFrom-Json -AsHashtable
+          $allRegions | ConvertTo-Json -Depth 3 | Set-Content "data/regions.json" -Encoding UTF8
+          Write-Host "[OK] Found $($allRegions.Count) physical regions"
+          $targetRegions = $config.targetRegions
+          Write-Host "[OK] Target regions: $($targetRegions.Count) ($($targetRegions.name -join ', '))"
+        shell: pwsh
+
+      - name: Fetch SKU data for target regions
+        id: fetch
+        run: |
+          $config = Get-Content "config.json" | ConvertFrom-Json
+          $regions = $config.targetRegions
+          $allRegions = Get-Content "data/regions.json" | ConvertFrom-Json -AsHashtable
+          $dataDir = "data"
+          $successCount = 0
+          $failCount = 0
+          $availableRegions = @()
+          $failedRegions = @()
+          $maxRetries = 3
+
+          foreach ($region in $regions) {
+            $name = $region.name
+            $display = $region.displayName
+            Write-Host "Fetching SKUs for $display ($name)..."
+            $success = $false
+            for ($attempt = 1; $attempt -le $maxRetries; $attempt++) {
+              try {
+                $subId = "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+                $subArgs = if ($subId) { @("--subscription", $subId) } else { @() }
+                $raw = az vm list-skus --location $name --resource-type virtualMachines --all @subArgs -o json 2>$null
+                if (-not $raw -or $raw -eq "[]") {
+                  Write-Host "  [WARN] No VM SKUs for $name - removing stale data if present"
+                  foreach ($f in @("$dataDir/$name.json","$dataDir/$name-disks.json","$dataDir/$name-pricing.json")) {
+                    if (Test-Path $f) { Remove-Item $f; Write-Host "  [CLEAN] Removed $f" }
+                  }
+                  break
+                }
+                # Archive existing data before overwriting
+                $existingFile = "$dataDir/$name.json"
+                if (Test-Path $existingFile) {
+                  try {
+                    $existingData = Get-Content $existingFile | ConvertFrom-Json
+                    $lastUpdated = $existingData.lastUpdated
+                    $archiveDate = if ($lastUpdated) { ([DateTime]$lastUpdated).ToString("yyyy-MM") } else { (Get-Date).AddMonths(-1).ToString("yyyy-MM") }
+                    $historyDir = "$dataDir/history"
+                    if (-not (Test-Path $historyDir)) { New-Item -ItemType Directory -Path $historyDir -Force | Out-Null }
+                    $archivePath = "$historyDir/$name-$archiveDate.json"
+                    if (-not (Test-Path $archivePath)) {
+                      Copy-Item $existingFile $archivePath
+                      Write-Host "  [OK] Archived previous data to $archivePath"
+                    }
+                  } catch {
+                    Write-Host "  [WARN] Could not archive previous data: $_"
+                  }
+                }
+                $raw | Set-Content "$dataDir/$name-raw.json" -Encoding UTF8
+                python scripts/normalize-skus.py "$dataDir/$name-raw.json" "$dataDir/$name.json" "$display"
+                Remove-Item "$dataDir/$name-raw.json" -ErrorAction SilentlyContinue
+                $successCount++
+                $availableRegions += $name
+                $success = $true
+                break
+              } catch {
+                Write-Host "  [WARN] Attempt $attempt/$maxRetries failed for $name`: $_"
+                Remove-Item "$dataDir/$name-raw.json" -ErrorAction SilentlyContinue
+                if ($attempt -lt $maxRetries) {
+                  $backoff = $attempt * 10
+                  Write-Host "  Retrying in ${backoff}s..."
+                  Start-Sleep -Seconds $backoff
+                }
+              }
+            }
+            if (-not $success) {
+              Write-Host "  [FAIL] Failed for $name after $maxRetries attempts"
+              $failCount++
+              $failedRegions += $name
+            }
+          }
+
+          Write-Host "`n[OK] Refreshed $successCount regions, $failCount failed/skipped"
+          "success_count=$successCount" >> $env:GITHUB_OUTPUT
+          "fail_count=$failCount" >> $env:GITHUB_OUTPUT
+          "available=$($availableRegions -join ',')" >> $env:GITHUB_OUTPUT
+          "failed=$($failedRegions -join ',')" >> $env:GITHUB_OUTPUT
+
+          $month = (Get-Date).ToString("MMMM yyyy")
+          $metadata = @{
+            lastUpdated = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+            lastUpdatedDisplay = $month
+            availableRegions = $availableRegions
+            physicalRegionCount = $allRegions.Count
+            regionsWithData = $successCount
+            failedRegions = $failedRegions
+          } | ConvertTo-Json
+          $metadata | Set-Content "$dataDir/metadata.json" -Encoding UTF8
+          Write-Host "[OK] Metadata updated: $month ($successCount regions with data, $failCount failed)"
+        shell: pwsh
+
+      - name: Refresh retirement data
+        run: |
+          pip install requests beautifulsoup4 -q
+          python scripts/update-retirements.py
+          Write-Host "[OK] Retirement data refresh complete"
+        shell: pwsh
+
+      - name: Fetch pricing data
+        run: |
+          $config = Get-Content "config.json" | ConvertFrom-Json
+          foreach ($region in $config.targetRegions) {
+            $name = $region.name
+            $dataFile = "data/$name.json"
+            $pricingFile = "data/$name-pricing.json"
+            if (Test-Path $dataFile) {
+              Write-Host "Fetching pricing for $name..."
+              python scripts/fetch-pricing.py $dataFile $pricingFile
+            }
+          }
+          Write-Host "[OK] Pricing data refresh complete"
+        shell: pwsh
+
+      - name: Fetch disk SKU data
+        run: |
+          $config = Get-Content "config.json" | ConvertFrom-Json
+          $subId = "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
+          $subArgs = if ($subId) { @("--subscription", $subId) } else { @() }
+          foreach ($region in $config.targetRegions) {
+            $name = $region.name
+            $display = $region.displayName
+            Write-Host "Fetching disk SKUs for $display ($name)..."
+            $raw = az vm list-skus --location $name --resource-type disks --all @subArgs -o json 2>$null
+            if ($raw -and $raw -ne "[]") {
+              $rawFile = "data/$name-disks-raw.json"
+              $raw | Set-Content $rawFile -Encoding UTF8
+              python scripts/normalize-disks.py $rawFile "data/$name-disks.json" "$display"
+              Remove-Item $rawFile -ErrorAction SilentlyContinue
+              Write-Host "  [OK] Disk data saved for $name"
+            } else {
+              Write-Host "  [WARN] No disk SKUs for $name"
+            }
+          }
+          Write-Host "[OK] Disk SKU data refresh complete"
+        shell: pwsh
+
+      - name: Deploy to Azure Static Web Apps
+        if: github.ref == 'refs/heads/main'
+        run: |
+          $staging = "deploy-staging"
+          if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
+          New-Item -ItemType Directory -Path $staging -Force | Out-Null
+          Copy-Item "index.html" "$staging/"
+          Copy-Item "config.json" "$staging/"
+          Copy-Item -Recurse "data" "$staging/data"
+          npx --yes @azure/static-web-apps-cli@latest deploy ./deploy-staging `
+            --deployment-token ${{ secrets.SWA_DEPLOYMENT_TOKEN }} `
+            --env production
+          Remove-Item $staging -Recurse -Force
+          Write-Host "[OK] Deployed to Azure Static Web Apps"
+        shell: pwsh
+
+      - name: Commit updated data to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git add data/
+          $changes = git diff --cached --name-only
+          if ($changes) {
+            git commit -m "chore: monthly Azure data refresh - $(Get-Date -Format 'MMMM yyyy')"
+            git -c gc.auto=0 push origin HEAD:${{ github.ref_name }}
+            Write-Host "[OK] Data committed and pushed to ${{ github.ref_name }}"
+          } else {
+            Write-Host "[INFO] No data changes to commit"
+          }
+        shell: pwsh
+
+      - name: Post workflow summary
+        if: always()
+        run: |
+          $date = Get-Date -Format "dd MMMM yyyy HH:mm UTC"
+          $success = "${{ steps.fetch.outputs.success_count }}"
+          $fail = "${{ steps.fetch.outputs.fail_count }}"
+          $available = "${{ steps.fetch.outputs.available }}"
+          $failed = "${{ steps.fetch.outputs.failed }}"
+          $branch = "${{ github.ref_name }}"
+
+          $summary = @"
+          ## Azure Data Refresh Report
+          **Date:** $date
+          **Branch:** ``$branch``
+
+          | Metric | Value |
+          |--------|-------|
+          | Regions updated | $success |
+          | Regions failed  | $fail |
+
+          ### Regions Updated
+          "@
+          if ($available) { foreach ($r in $available.Split(',')) { $summary += "`n- ``$r``" } } else { $summary += "`n- _None_" }
+          $summary += "`n`n### Regions Failed"
+          if ($failed) { foreach ($r in $failed.Split(',')) { $summary += "`n- ``$r``" } } else { $summary += "`n- _None_" }
+          $summary += "`n`n---`n_To add/remove regions, edit ``config.json``._"
+          $summary | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+        shell: pwsh
