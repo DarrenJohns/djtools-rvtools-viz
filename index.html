@@ -473,6 +473,17 @@ footer strong{opacity:1;}
 .skur-table tr.oos-row td:first-child,.skur-table tr.oos-row td:nth-child(2){opacity:1;}
 .skur-dup-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:999px;color:#f59e0b;font-weight:700;font-size:11px;margin-right:4px;}
 .skur-group-item .gi-dup{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);border-radius:999px;color:#f59e0b;font-size:10px;font-weight:700;}
+.skur-exc-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid transparent;user-select:none;}
+.skur-exc-chip:hover{filter:brightness(1.1);}
+.skur-exc-chip.kind-noMatch{background:rgba(220,53,69,.15);border-color:rgba(220,53,69,.4);color:#dc3545;}
+.skur-exc-chip.kind-noInput{background:rgba(100,116,139,.15);border-color:rgba(100,116,139,.4);color:#64748b;}
+.skur-exc-chip.kind-noEligible{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#f59e0b;}
+.skur-exc-chip.kind-oos{background:rgba(220,53,69,.1);border-color:rgba(220,53,69,.3);color:#dc3545;}
+.skur-exc-chip.is-active{box-shadow:0 0 0 2px rgba(15,108,189,.45);}
+.skur-exc-banner{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0;padding:6px 10px;background:rgba(15,108,189,.08);border:1px solid rgba(15,108,189,.25);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
+.skur-exc-banner.hidden{display:none;}
+.skur-exc-banner .eb-label{font-weight:700;color:var(--brand-primary);}
+.skur-exc-banner .eb-clear{background:transparent;border:none;color:var(--text-secondary);text-decoration:underline;cursor:pointer;font:inherit;font-size:11px;padding:0;margin-left:auto;}
 .skur-group-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:rgba(120,80,200,.12);color:#7d4ed6;font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(120,80,200,.25);}
 body.dark .skur-group-chip{color:#b794f4;}
 /* Bulk bar */
@@ -1004,6 +1015,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <option value="__restore__">↩ Restore to in-scope</option>
           </select>
         </div>
+        <div class="skur-exc-banner hidden" id="skurExcBanner"></div>
         <div class="skur-table-wrap">
           <table class="skur-table" id="skurTable">
             <thead>
@@ -2353,9 +2365,18 @@ function renderSkurGroups() {
         ? `${eligibleCount} of ${totalCat} SKUs eligible for this group's constraints. Click ⚙ to adjust.`
         : `No catalog data for the selected region — switch Plan to Australia East to see eligibility.`;
       const eligChip = ` <span class="skur-elig-chip${eligCls}" title="${eligTitle}">📦 ${eligibleCount}/${totalCat}</span>`;
+      const exc = skurExceptionCountsForGroup(g);
+      const af = skurExceptionFilter;
+      const excActive = (kind) => (af && af.groupId === g.id && af.kind === kind) ? ' is-active' : '';
+      const excChips = [
+        exc.noMatch   ? `<span class="skur-exc-chip kind-noMatch${excActive('noMatch')}" title="${exc.noMatch} VM${exc.noMatch===1?'':'s'} exceed every eligible SKU — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noMatch')">⚠ ${exc.noMatch} too-big</span>` : '',
+        exc.noEligible? `<span class="skur-exc-chip kind-noEligible${excActive('noEligible')}" title="${exc.noEligible} VM${exc.noEligible===1?'':'s'} blocked by group constraints — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noEligible')">📦 ${exc.noEligible} blocked</span>` : '',
+        exc.noInput   ? `<span class="skur-exc-chip kind-noInput${excActive('noInput')}" title="${exc.noInput} VM${exc.noInput===1?'':'s'} missing vCPU/RAM — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noInput')">❓ ${exc.noInput} no-input</span>` : '',
+        exc.oos       ? `<span class="skur-exc-chip kind-oos${excActive('oos')}" title="${exc.oos} member${exc.oos===1?'':'s'} marked out of scope — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','oos')">🚫 ${exc.oos} OOS</span>` : '',
+      ].filter(Boolean).join(' ');
       return `<div class="skur-group-item">
         <span class="gi-name">${escG(g.name)}</span>
-        <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>${dupChip}${eligChip}
+        <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>${dupChip}${eligChip}${excChips ? ' '+excChips : ''}
         <span class="gi-actions">
           <button title="Edit constraints" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙</button>
           <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏</button>
@@ -2451,7 +2472,9 @@ function deleteSkurGroup(id) {
   const g = skurGroups.find(x => x.id === id); if (!g) return;
   if (!confirm(`Delete group "${g.name}" (${g.members.length} VM${g.members.length===1?'':'s'})? VMs go back to ungrouped.`)) return;
   const idx = skurGroups.indexOf(g); if (idx >= 0) skurGroups.splice(idx, 1);
+  if (skurExceptionFilter && skurExceptionFilter.groupId === id) skurExceptionFilter = null;
   renderSkurGroups();
+  renderSkurExceptionBanner();
   renderSkurVmGrid();
 }
 function skurBulkAddToGroup(target) {
@@ -2697,6 +2720,57 @@ function clearSkurReadiness() {
 // === SKU Recommender VM grid (Phase 2) ===
 const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'', group:'', tags:'' };
 const skurSortState = { key:'name', dir:1 };
+// Exception filter (Phase 5 slice 5): when set, restrict grid to VMs matching a specific
+// recommendation exception kind. Optionally scoped to a single sizing group.
+//   { groupId: string|null, kind: 'noMatch'|'noEligible'|'noInput'|'oos' }
+let skurExceptionFilter = null;
+function _skurMemberKeysOf(groupId) {
+  const g = (skurGroups || []).find(x => x.id === groupId);
+  return g ? new Set(g.members) : null;
+}
+function skurExceptionCountsForGroup(g) {
+  const counts = { noMatch: 0, noEligible: 0, noInput: 0, oos: 0 };
+  if (!g || !Array.isArray(g.members)) return counts;
+  const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+  for (const k of g.members) {
+    const v = byKey.get(k); if (!v) continue;
+    if (skurOOSEntry(v)) { counts.oos++; continue; }
+    const rec = skurRecommendForVm(v);
+    if (!rec) continue;
+    if (rec.state === 'no-match') counts.noMatch++;
+    else if (rec.state === 'no-eligible') counts.noEligible++;
+    else if (rec.state === 'no-input') counts.noInput++;
+  }
+  return counts;
+}
+function skurToggleExceptionFilter(groupId, kind) {
+  if (skurExceptionFilter && skurExceptionFilter.groupId === groupId && skurExceptionFilter.kind === kind) {
+    skurExceptionFilter = null;
+  } else {
+    skurExceptionFilter = { groupId: groupId || null, kind };
+  }
+  renderSkurGroups();
+  renderSkurExceptionBanner();
+  renderSkurVmGrid();
+}
+function skurClearExceptionFilter() {
+  if (!skurExceptionFilter) return;
+  skurExceptionFilter = null;
+  renderSkurGroups();
+  renderSkurExceptionBanner();
+  renderSkurVmGrid();
+}
+function renderSkurExceptionBanner() {
+  const box = document.getElementById('skurExcBanner');
+  if (!box) return;
+  if (!skurExceptionFilter) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const labels = { noMatch:'⚠ VM too large (no SKU fits)', noEligible:'📦 No eligible SKU (group constraints)', noInput:'❓ Missing vCPU/RAM input', oos:'🚫 Out of scope' };
+  const groupName = skurExceptionFilter.groupId ? (skurGroups.find(g => g.id === skurExceptionFilter.groupId)?.name || 'group') : null;
+  const scope = groupName ? ` in <strong>${esc(groupName)}</strong>` : '';
+  box.innerHTML = `<span class="eb-label">Exception filter:</span> ${esc(labels[skurExceptionFilter.kind] || skurExceptionFilter.kind)}${scope} <button class="eb-clear" onclick="skurClearExceptionFilter()">Clear</button>`;
+  box.classList.remove('hidden');
+}
 function skurFilteredVms() {
   const vms = Array.isArray(allVMs) ? allVMs : [];
   const f = skurFilters;
@@ -2704,6 +2778,8 @@ function skurFilteredVms() {
   const sizeQ = f.size.toLowerCase().replace(/\s/g,'');
   const tagsQ = f.tags.toLowerCase();
   const rdKey = skurReadinessFilter;
+  const exc = skurExceptionFilter;
+  const excGroupKeys = exc && exc.groupId ? _skurMemberKeysOf(exc.groupId) : null;
   return vms.filter(v => {
     if (nameQ && !String(v.name||'').toLowerCase().includes(nameQ)) return false;
     if (sizeQ) { const s = `${v.cpus??'?'}/${v.ram??'?'}`.toLowerCase(); if (!s.includes(sizeQ)) return false; }
@@ -2723,6 +2799,17 @@ function skurFilteredVms() {
     if (tagsQ) {
       const tags = skurTagsForVm(v).map(t => `${t.key}:${t.value}`.toLowerCase()).join(' ');
       if (!tags.includes(tagsQ)) return false;
+    }
+    if (exc) {
+      if (excGroupKeys && !excGroupKeys.has(skurVmKey(v))) return false;
+      if (exc.kind === 'oos') {
+        if (!skurOOSEntry(v)) return false;
+      } else {
+        if (skurOOSEntry(v)) return false;
+        const rec = skurRecommendForVm(v);
+        const stateMap = { noMatch:'no-match', noEligible:'no-eligible', noInput:'no-input' };
+        if (!rec || rec.state !== stateMap[exc.kind]) return false;
+      }
     }
     return true;
   });
