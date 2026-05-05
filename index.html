@@ -1654,6 +1654,87 @@ function migrateWorkspace(snapshot) {
   return s;
 }
 
+// Source-bytes persistence (IndexedDB).
+// localStorage's 5-10 MB quota is too small for RVTools .xlsx files (often 10-100 MB).
+// IDB has multi-GB quotas. We key source bytes by a sha256 fingerprint so the same file
+// loaded into multiple tabs/sessions reuses one record. Used by:
+//   - Scenario resume: re-open .rvz without asking the user to reselect the .xlsx
+//   - Autosave: detect dataset switch by fingerprint
+const RVTOOLS_IDB_NAME = 'rvtools-viz';
+const RVTOOLS_IDB_VERSION = 1;
+const RVTOOLS_IDB_STORE_SRC = 'sourceBytes';
+
+function _idbOpen() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in self)) return reject(new Error('IndexedDB unavailable'));
+    const req = indexedDB.open(RVTOOLS_IDB_NAME, RVTOOLS_IDB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(RVTOOLS_IDB_STORE_SRC)) {
+        db.createObjectStore(RVTOOLS_IDB_STORE_SRC, { keyPath: 'fingerprint' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('IDB open failed'));
+    req.onblocked = () => reject(new Error('IDB blocked by another connection'));
+  });
+}
+
+function _idbTx(db, storeName, mode) {
+  const tx = db.transaction(storeName, mode);
+  const store = tx.objectStore(storeName);
+  return { tx, store, done: new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onabort = tx.onerror = () => rej(tx.error || new Error('IDB tx error')); }) };
+}
+
+// Compute sha256 hex of an ArrayBuffer using the SubtleCrypto API. Browser-only.
+async function computeBufferFingerprint(buffer) {
+  if (!self.crypto || !self.crypto.subtle) throw new Error('SubtleCrypto unavailable');
+  const hash = await crypto.subtle.digest('SHA-256', buffer);
+  const bytes = new Uint8Array(hash);
+  let hex = '';
+  for (let i = 0; i < bytes.length; i++) hex += bytes[i].toString(16).padStart(2, '0');
+  return hex;
+}
+
+async function idbPutSourceBytes(fingerprint, buffer, meta) {
+  const db = await _idbOpen();
+  try {
+    const { store, done } = _idbTx(db, RVTOOLS_IDB_STORE_SRC, 'readwrite');
+    store.put({ fingerprint, buffer, meta: meta || {}, savedAt: new Date().toISOString() });
+    await done;
+  } finally { db.close(); }
+}
+
+async function idbGetSourceBytes(fingerprint) {
+  const db = await _idbOpen();
+  try {
+    const { store, done } = _idbTx(db, RVTOOLS_IDB_STORE_SRC, 'readonly');
+    const req = store.get(fingerprint);
+    await done;
+    return req.result || null;
+  } finally { db.close(); }
+}
+
+async function idbDeleteSourceBytes(fingerprint) {
+  const db = await _idbOpen();
+  try {
+    const { store, done } = _idbTx(db, RVTOOLS_IDB_STORE_SRC, 'readwrite');
+    store.delete(fingerprint);
+    await done;
+  } finally { db.close(); }
+}
+
+async function idbListDatasets() {
+  const db = await _idbOpen();
+  try {
+    const { store, done } = _idbTx(db, RVTOOLS_IDB_STORE_SRC, 'readonly');
+    const req = store.getAll();
+    await done;
+    return (req.result || []).map(r => ({ fingerprint: r.fingerprint, meta: r.meta || {}, savedAt: r.savedAt, byteLength: r.buffer ? r.buffer.byteLength : 0 }));
+  } finally { db.close(); }
+}
+
+
 // Magic-byte detection. Extension and MIME are hints only; this is authoritative.
 //   PK\x03\x04           → 'zip' (xlsx, rvz, or any other zip)
 //   {  (after BOM/ws)    → 'json'
