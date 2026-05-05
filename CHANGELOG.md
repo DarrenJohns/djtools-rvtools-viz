@@ -3,7 +3,7 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased] — SKU Recommender beta
+## [1.1.0-beta] — SKU Recommender beta
 
 A new "what would this look like in Azure?" tier on top of the existing readiness work.
 
