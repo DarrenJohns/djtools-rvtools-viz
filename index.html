@@ -2345,7 +2345,8 @@ function exportCSV(tbl) {
     : ['name','power','os','cpus','ram','disk','dc','cluster','hw','fw','wave'];
   const csv = [headers.join(','), ...data.map(r => keys.map(k => {
     const v = k === 'wave' ? getReadinessLabel(r.wave) : (r[k]||'');
-    return `"${String(v).replace(/"/g,'""')}"`;
+    const safe = (typeof _safeCell === 'function') ? _safeCell(v) : v;
+    return `"${String(safe).replace(/"/g,'""')}"`;
   }).join(','))].join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -3946,14 +3947,14 @@ function skurExportExcel(scope) {
     summaryRows.push(['⚠ Duplicate VMs collapsed', d.droppedCount, '(of ' + d.rawCount + ' raw rows; kept first by UUID then name+cluster+DC)', '', '', '']);
     if (d.samples && d.samples.length) summaryRows.push(['Sample dropped names', d.samples.join(', '), '', '', '', '']);
   }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Summary');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows.map(_safeRow)), 'Summary');
 
   // Sheet: All recommendations (combined)
   const allRows = [['Group','Mode', ...vmRowHeaders]];
   groups.forEach(g => g.members.forEach(k => {
     const v = byKey.get(k); const r = vmRow(v); if (r) allRows.push([g.name, g.mode, ...r]);
   }));
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allRows), 'All recommendations');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allRows.map(_safeRow)), 'All recommendations');
 
   // Per-group sheets (Excel sheet name max 31 chars; must avoid : \ / ? * [ ])
   const usedNames = new Set(['Summary','All recommendations']);
@@ -3969,7 +3970,7 @@ function skurExportExcel(scope) {
   groups.forEach((g, idx) => {
     const rows = [vmRowHeaders];
     g.members.forEach(k => { const v = byKey.get(k); const r = vmRow(v); if (r) rows.push(r); });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), sanitiseSheetName(g.name, idx));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows.map(_safeRow)), sanitiseSheetName(g.name, idx));
   });
 
   // Sheet: OOS
@@ -3981,7 +3982,7 @@ function skurExportExcel(scope) {
       const e = skurOutOfScope[k] || {};
       oosRows.push([v.name||'', v.os||'', Number(v.cpus)||'', Number(v.ram)||'', v.cluster||'', v.dc||v.datacenter||'', e.reason||'', e.note||'']);
     });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(oosRows), 'Out of scope');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(oosRows.map(_safeRow)), 'Out of scope');
   }
 
   // Sheet: Plan
@@ -3990,7 +3991,7 @@ function skurExportExcel(scope) {
   planRows.push([]);
   planRows.push(['Exported', new Date().toISOString()]);
   if (typeof skurLiveCatalogStatus === 'function') planRows.push(['Catalog source', skurLiveCatalogStatus()]);
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(planRows), 'Plan');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(planRows.map(_safeRow)), 'Plan');
 
   const stamp = new Date().toISOString().slice(0,10);
   const suffix = (scope === 'all' || !scope) ? '' : ('_' + scope);
@@ -4644,10 +4645,21 @@ function resetDiskFilters() {
   _applyDiskFilters();
 }
 
+// Formula-injection guard: any string starting with = + - @ \t \r could be
+// interpreted as a formula by Excel/Sheets when the CSV or XLSX is opened.
+// Prefix with a single quote — Excel hides it; CSV consumers treat as text.
+function _safeCell(v) {
+  if (v == null) return '';
+  if (typeof v !== 'string') return v;
+  return /^[=+\-@\t\r]/.test(v) ? "'" + v : v;
+}
+function _safeRow(arr) { return arr.map(_safeCell); }
+
 function _downloadCSV(prefix, headers, rows) {
-  const csv = [headers, ...rows].map(r => r.map(v =>
-    `"${String(v).replace(/"/g,'""')}"`
-  ).join(',')).join('\n');
+  const csv = [headers, ...rows].map(r => r.map(v => {
+    const safe = _safeCell(v);
+    return `"${String(safe).replace(/"/g,'""')}"`;
+  }).join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `${prefix}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
