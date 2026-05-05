@@ -1660,9 +1660,13 @@ function parseLoadedWorkbook(buffer, file) {
       }
       const isFullExport = detectedTabs.length > 1;
       fi.className = 'file-info';
+      const dupInfo = window.rvtoolsDupInfo;
+      const dupNote = (dupInfo && dupInfo.droppedCount)
+        ? `<br/><span style="color:var(--warn,#c97700);font-weight:600;">⚠ ${dupInfo.droppedCount} duplicate VM row${dupInfo.droppedCount===1?'':'s'} collapsed (kept first by UUID, then name+cluster+DC)</span>`
+        : '';
       fi.innerHTML = `✅ Loaded: ${esc(file.name)} — ${allVMs.length} VMs from "${esc(sheetName)}"` +
         (isFullExport ? `<br/><span style="color:var(--success);font-weight:600;">📊 Full export detected — ${detectedTabs.length} tabs: ${detectedTabs.join(', ')}</span>` :
-        `<br/><span style="color:var(--text-muted);">ℹ️ vInfo only — upload a full RVTools export for enhanced analysis</span>`);
+        `<br/><span style="color:var(--text-muted);">ℹ️ vInfo only — upload a full RVTools export for enhanced analysis</span>`) + dupNote;
       document.getElementById('resetBtnWrap').style.display = 'block';
       updateTabBadges();
       hideSampleIndicators();
@@ -1683,7 +1687,7 @@ function parseLoadedWorkbook(buffer, file) {
 function parseRVToolsData(rows) {
   const find = (row, ...keys) => { for (const k of keys) { const kl = k.toLowerCase(); for (const rk of Object.keys(row)) { if (rk.toLowerCase() === kl) return row[rk]; } } return ''; };
   const toBool = (v) => { const s = String(v || '').trim().toLowerCase(); return s === 'true' || s === '1' || s === 'yes'; };
-  return rows.map(row => {
+  const mapped = rows.map(row => {
     if (toBool(find(row,'Template'))) return null;
     const os = String(find(row,'OS according to the VMware Tools','OS according to the configuration file','OS','Guest OS') || '').trim();
     const diskMiB = parseFloat(find(row,'Total disk capacity MiB','Disk capacity MiB','Disk','Storage MiB') || 0);
@@ -1711,6 +1715,28 @@ function parseRVToolsData(rows) {
       cbt: toBool(find(row,'CBT')),
     };
   }).filter(v => v && v.name && v.name !== 'Unknown');
+  // Deduplicate: prefer UUID, fall back to name|cluster|dc composite. Keep first occurrence.
+  const seen = new Map();
+  const dups = [];
+  const out = [];
+  for (const v of mapped) {
+    const key = v.uuid && v.uuid.trim() ? ('uuid:' + v.uuid.trim().toLowerCase())
+              : ('nm:' + v.name.toLowerCase() + '|' + (v.cluster||'').toLowerCase() + '|' + (v.dc||'').toLowerCase());
+    if (seen.has(key)) {
+      dups.push({ name: v.name, key, kept: seen.get(key).name });
+    } else {
+      seen.set(key, v);
+      out.push(v);
+    }
+  }
+  window.rvtoolsDupInfo = {
+    droppedCount: dups.length,
+    rawCount: mapped.length,
+    keptCount: out.length,
+    samples: dups.slice(0, 10).map(d => d.name),
+  };
+  if (dups.length) console.info(`[rvtools] Collapsed ${dups.length} duplicate VM row${dups.length===1?'':'s'} (kept first occurrence by UUID, then name+cluster+DC).`);
+  return out;
 }
 
 // ============ TAB PARSERS ============
@@ -3914,6 +3940,12 @@ function skurExportExcel(scope) {
   summaryRows.push([]);
   summaryRows.push(['TOTAL', '', groups.reduce((s,g)=>s+g.members.length,0), '', Number(grandTotal.toFixed(2)), '']);
   summaryRows.push(['Out-of-scope', '', Object.keys(skurOutOfScope).length, '', '', '']);
+  if (typeof window !== 'undefined' && window.rvtoolsDupInfo && window.rvtoolsDupInfo.droppedCount) {
+    const d = window.rvtoolsDupInfo;
+    summaryRows.push([]);
+    summaryRows.push(['⚠ Duplicate VMs collapsed', d.droppedCount, '(of ' + d.rawCount + ' raw rows; kept first by UUID then name+cluster+DC)', '', '', '']);
+    if (d.samples && d.samples.length) summaryRows.push(['Sample dropped names', d.samples.join(', '), '', '', '', '']);
+  }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), 'Summary');
 
   // Sheet: All recommendations (combined)
