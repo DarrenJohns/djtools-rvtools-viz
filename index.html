@@ -450,7 +450,44 @@ footer strong{opacity:1;}
 .skur-rule .skur-rule-actions button:hover{background:var(--bg-layer1);border-color:var(--border-default);color:var(--text-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
-/* Modal */
+
+/* ====================================================================
+   Shared modal classes (v1.3 rebuild — adopted from sku-recommender-SPEC.html)
+   Pattern: .modal-overlay > .modal-card > .modal-banner + .modal-body
+   Footers use .modal-close-row with .btn-primary / .btn-outline.
+   Variants: .modal-card.is-sm | .is-md | .is-lg control max-width.
+   .modal-banner.danger swaps the brand bar for the danger colour.
+   New modals built in Stages 1–5 use these classes; legacy .skur-modal-* stays
+   alive until the Stage 5 modal sweep retires it.
+   ==================================================================== */
+@keyframes modalFadeInUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-card{background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-md);box-shadow:0 12px 32px rgba(0,0,0,.25);max-width:520px;width:92%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;animation:modalFadeInUp .2s ease;}
+.modal-card.is-sm{max-width:400px;}
+.modal-card.is-md{max-width:520px;}
+.modal-card.is-lg{max-width:700px;}
+.modal-banner{background:var(--brand-primary);color:#fff;padding:16px 24px;text-align:center;flex-shrink:0;}
+.modal-banner h2{font-size:17px;margin:0;font-weight:600;}
+.modal-banner.danger{background:var(--status-danger);}
+.modal-body{padding:18px 24px 20px;display:flex;flex-direction:column;min-height:0;flex:1;overflow-y:auto;}
+.modal-body .modal-lead{font-size:13px;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;}
+.modal-close-row{margin-top:14px;display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;}
+.modal-close-row.center{justify-content:center;}
+.modal-card .btn-primary{font:inherit;font-size:13px;padding:8px 22px;border:1px solid var(--brand-primary);background:var(--brand-primary);color:#fff;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;}
+.modal-card .btn-primary:hover{background:var(--brand-pressed,#005a9e);}
+.modal-card .btn-primary:disabled{opacity:.55;cursor:not-allowed;}
+.modal-card .btn-outline{font:inherit;font-size:13px;padding:8px 22px;border:1px solid var(--border-default);background:var(--bg-layer2);color:var(--text-primary);border-radius:var(--radius-sm);cursor:pointer;}
+.modal-card .btn-outline:hover{background:var(--bg-layer1);}
+.modal-card .modal-input-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:rgba(15,108,189,.04);}
+.modal-card .modal-input-row label{font-size:12px;font-weight:600;color:var(--brand-primary);white-space:nowrap;cursor:pointer;}
+.modal-card .modal-input-row input,
+.modal-card .modal-input-row select{flex:1;font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);}
+.modal-card .modal-input-row input:focus,
+.modal-card .modal-input-row select:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(15,108,189,.18);}
+.modal-card .modal-error{color:var(--status-danger);font-size:11px;margin-top:6px;min-height:14px;}
+
+/* Legacy skur-modal-* below — retire in Stage 5 */
 .skur-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;}
 .skur-modal-overlay.show{display:flex;}
 .skur-modal-card{background:var(--bg-layer1);color:var(--text-primary);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:20px 22px;width:520px;max-width:92vw;box-shadow:0 16px 48px rgba(0,0,0,.4);}
