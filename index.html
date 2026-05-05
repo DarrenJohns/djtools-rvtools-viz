@@ -363,6 +363,16 @@ footer strong{opacity:1;}
 .skur-data-pill.is-warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b;}
 .skur-data-pill .dp-count{font-weight:700;color:var(--text-primary);}
 .skur-data-pill.is-warn .dp-count{color:#f59e0b;}
+.skur-elig-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);border-radius:999px;color:var(--brand-primary);font-size:10px;font-weight:700;cursor:help;}
+.skur-elig-chip.is-low{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#f59e0b;}
+.skur-elig-chip.is-empty{background:rgba(220,53,69,.15);border-color:rgba(220,53,69,.4);color:#dc3545;}
+.skur-modal-fieldgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;margin:4px 0 2px;}
+.skur-modal-fieldgrid label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer;}
+.skur-modal-fieldgrid input{margin:0;cursor:pointer;}
+.skur-modal-radios{display:flex;gap:14px;align-items:center;}
+.skur-modal-radios label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer;}
+.skur-modal-vcpu{display:flex;gap:8px;align-items:center;}
+.skur-modal-vcpu input{width:80px;padding:5px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);color:var(--text-primary);font:inherit;font-size:13px;}
 .skur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
 .skur-table-wrap{max-height:calc(34px * 25);overflow:auto;border:1px solid var(--border-default);border-radius:var(--radius-md);}
 .skur-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -1053,6 +1063,52 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="skur-modal-actions">
       <button class="btn" onclick="closeSkurRuleModal()">Cancel</button>
       <button class="btn btn-primary" id="skurRuleSaveBtn" onclick="saveSkurRule()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="skur-modal-overlay" id="skurConstraintsModal" onclick="if(event.target===this)closeSkurConstraintsModal()">
+  <div class="skur-modal-card" role="dialog" aria-modal="true" aria-labelledby="skurConstraintsModalTitle">
+    <h4 id="skurConstraintsModalTitle">⚙ Group constraints</h4>
+    <div class="skur-modal-row">
+      <label>Family allowlist</label>
+      <div class="skur-modal-fieldgrid" id="skurConstrFamilies">
+        <label><input type="checkbox" value="B" onchange="updateSkurConstraintsPreview()"> B (burstable)</label>
+        <label><input type="checkbox" value="D" onchange="updateSkurConstraintsPreview()"> D (general)</label>
+        <label><input type="checkbox" value="E" onchange="updateSkurConstraintsPreview()"> E (memory)</label>
+        <label><input type="checkbox" value="F" onchange="updateSkurConstraintsPreview()"> F (compute)</label>
+      </div>
+    </div>
+    <div class="skur-modal-row">
+      <label>Processor</label>
+      <div class="skur-modal-radios" id="skurConstrProcessor">
+        <label><input type="radio" name="skurConstrProc" value="any" onchange="updateSkurConstraintsPreview()"> Any</label>
+        <label><input type="radio" name="skurConstrProc" value="intel" onchange="updateSkurConstraintsPreview()"> Intel only</label>
+        <label><input type="radio" name="skurConstrProc" value="amd" onchange="updateSkurConstraintsPreview()"> AMD only</label>
+      </div>
+    </div>
+    <div class="skur-modal-row">
+      <label>Burstable</label>
+      <label class="skur-modal-radios"><input type="checkbox" id="skurConstrExcludeBurstable" onchange="updateSkurConstraintsPreview()"> Exclude burstable (B-series) — recommended for steady-state production</label>
+    </div>
+    <div class="skur-modal-row">
+      <label>Premium IO</label>
+      <label class="skur-modal-radios"><input type="checkbox" id="skurConstrRequirePremiumIo" onchange="updateSkurConstraintsPreview()"> Require premium IO support (s-suffix SKUs)</label>
+    </div>
+    <div class="skur-modal-row">
+      <label>vCPU range</label>
+      <div class="skur-modal-vcpu">
+        <input type="number" id="skurConstrMinVcpu" placeholder="min" min="1" oninput="updateSkurConstraintsPreview()">
+        <span style="color:var(--text-tertiary);">to</span>
+        <input type="number" id="skurConstrMaxVcpu" placeholder="max" min="1" oninput="updateSkurConstraintsPreview()">
+        <span style="color:var(--text-tertiary);font-size:12px;">(blank = no bound)</span>
+      </div>
+    </div>
+    <div class="skur-modal-preview" id="skurConstraintsPreview">— pick at least one family —</div>
+    <div class="skur-modal-actions">
+      <button class="btn" onclick="resetSkurConstraintsToDefaults()" style="margin-right:auto;">↺ Defaults</button>
+      <button class="btn" onclick="closeSkurConstraintsModal()">Cancel</button>
+      <button class="btn btn-primary" id="skurConstraintsSaveBtn" onclick="saveSkurConstraints()">Save</button>
     </div>
   </div>
 </div>
@@ -2255,13 +2311,21 @@ function renderSkurGroups() {
     empty.style.display = 'none';
     const escG = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     const dups = skurDupVmKeys();
+    const totalCat = skurCatalogForRegion(skurPlan.region).length;
     list.innerHTML = skurGroups.map(g => {
       const dupCount = dups.size ? g.members.reduce((n,k) => n + (dups.has(k) ? 1 : 0), 0) : 0;
       const dupChip = dupCount ? ` <span class="gi-dup" title="${dupCount} member${dupCount===1?'':'s'} also in another group">⚠ ${dupCount} dup</span>` : '';
+      const eligibleCount = skurEligibleSkusForGroup(g).length;
+      const eligCls = !totalCat || !eligibleCount ? ' is-empty' : (eligibleCount <= 5 ? ' is-low' : '');
+      const eligTitle = totalCat
+        ? `${eligibleCount} of ${totalCat} SKUs eligible for this group's constraints. Click ⚙ to adjust.`
+        : `No catalog data for the selected region — switch Plan to Australia East to see eligibility.`;
+      const eligChip = ` <span class="skur-elig-chip${eligCls}" title="${eligTitle}">📦 ${eligibleCount}/${totalCat}</span>`;
       return `<div class="skur-group-item">
         <span class="gi-name">${escG(g.name)}</span>
-        <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>${dupChip}
+        <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>${dupChip}${eligChip}
         <span class="gi-actions">
+          <button title="Edit constraints" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙</button>
           <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏</button>
           <button title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑</button>
         </span>
@@ -2960,6 +3024,125 @@ function skurShowDataPillInfo() {
 }
 // Refresh the data pill whenever the plan changes (esp. region).
 document.addEventListener('skurPlanChanged', updateSkurDataPill);
+// Region change also affects per-group eligibility chips.
+document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
+
+// === Phase 5 slice 2: per-group eligibility filter ===
+const SKUR_GROUP_CONSTRAINT_DEFAULTS = Object.freeze({
+  families: ['B','D','E','F'],
+  excludeBurstable: false,
+  requirePremiumIo: false,
+  processor: 'any',
+  minVcpu: null,
+  maxVcpu: null,
+});
+function skurDefaultConstraints() {
+  return { ...SKUR_GROUP_CONSTRAINT_DEFAULTS, families: [...SKUR_GROUP_CONSTRAINT_DEFAULTS.families] };
+}
+function skurGroupConstraints(g) {
+  if (!g) return null;
+  if (!g.constraints) g.constraints = skurDefaultConstraints();
+  return g.constraints;
+}
+function skurEligibleSkus(constraints, region) {
+  const cat = skurCatalogForRegion(region || skurPlan.region);
+  if (!constraints) return cat.slice();
+  const c = constraints;
+  return cat.filter(sku => {
+    if (Array.isArray(c.families) && c.families.length && !c.families.includes(sku.family)) return false;
+    if (c.excludeBurstable && sku.burstable) return false;
+    if (c.requirePremiumIo && !sku.premiumIo) return false;
+    if (c.processor && c.processor !== 'any' && sku.processor !== c.processor) return false;
+    if (c.minVcpu != null && sku.vcpu < c.minVcpu) return false;
+    if (c.maxVcpu != null && sku.vcpu > c.maxVcpu) return false;
+    return true;
+  });
+}
+function skurEligibleSkusForGroup(g, region) {
+  return skurEligibleSkus(skurGroupConstraints(g), region);
+}
+let _skurConstraintsEditingId = null;
+function openSkurConstraintsModal(groupId) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  _skurConstraintsEditingId = groupId;
+  const c = skurGroupConstraints(g);
+  document.getElementById('skurConstraintsModalTitle').textContent = `⚙ Constraints — ${g.name}`;
+  // Family checkboxes
+  document.querySelectorAll('#skurConstrFamilies input[type=checkbox]').forEach(cb => { cb.checked = c.families.includes(cb.value); });
+  // Processor radio
+  const proc = c.processor || 'any';
+  document.querySelectorAll('input[name=skurConstrProc]').forEach(r => { r.checked = (r.value === proc); });
+  document.getElementById('skurConstrExcludeBurstable').checked = !!c.excludeBurstable;
+  document.getElementById('skurConstrRequirePremiumIo').checked = !!c.requirePremiumIo;
+  document.getElementById('skurConstrMinVcpu').value = c.minVcpu == null ? '' : c.minVcpu;
+  document.getElementById('skurConstrMaxVcpu').value = c.maxVcpu == null ? '' : c.maxVcpu;
+  document.getElementById('skurConstraintsModal').classList.add('show');
+  updateSkurConstraintsPreview();
+}
+function closeSkurConstraintsModal() {
+  document.getElementById('skurConstraintsModal').classList.remove('show');
+  _skurConstraintsEditingId = null;
+}
+function _readSkurConstraintsDraft() {
+  const families = [...document.querySelectorAll('#skurConstrFamilies input[type=checkbox]:checked')].map(cb => cb.value);
+  const procEl = document.querySelector('input[name=skurConstrProc]:checked');
+  const procVal = procEl ? procEl.value : 'any';
+  const minRaw = document.getElementById('skurConstrMinVcpu').value;
+  const maxRaw = document.getElementById('skurConstrMaxVcpu').value;
+  const min = minRaw === '' ? null : Math.max(1, parseInt(minRaw, 10) || 1);
+  const max = maxRaw === '' ? null : Math.max(1, parseInt(maxRaw, 10) || 1);
+  return {
+    families,
+    processor: procVal,
+    excludeBurstable: document.getElementById('skurConstrExcludeBurstable').checked,
+    requirePremiumIo: document.getElementById('skurConstrRequirePremiumIo').checked,
+    minVcpu: min,
+    maxVcpu: max,
+  };
+}
+function updateSkurConstraintsPreview() {
+  const preview = document.getElementById('skurConstraintsPreview');
+  const saveBtn = document.getElementById('skurConstraintsSaveBtn');
+  if (!preview) return;
+  const draft = _readSkurConstraintsDraft();
+  const total = skurCatalogForRegion(skurPlan.region).length;
+  if (!draft.families.length) {
+    preview.textContent = '⚠ No families selected → 0 SKUs eligible';
+    if (saveBtn) saveBtn.disabled = true;
+    return;
+  }
+  if (draft.minVcpu != null && draft.maxVcpu != null && draft.minVcpu > draft.maxVcpu) {
+    preview.textContent = `⚠ min vCPU (${draft.minVcpu}) > max vCPU (${draft.maxVcpu})`;
+    if (saveBtn) saveBtn.disabled = true;
+    return;
+  }
+  const eligible = skurEligibleSkus(draft, skurPlan.region);
+  if (saveBtn) saveBtn.disabled = false;
+  if (!total) {
+    preview.textContent = `⚠ No catalog data for ${skurPlan.region} — switch the Plan region to Australia East to see eligibility.`;
+  } else {
+    preview.textContent = `${eligible.length} of ${total} SKUs eligible · ${eligible.slice(0, 5).map(s => s.name.replace('Standard_','')).join(', ')}${eligible.length > 5 ? '…' : ''}`;
+  }
+}
+function resetSkurConstraintsToDefaults() {
+  const def = skurDefaultConstraints();
+  document.querySelectorAll('#skurConstrFamilies input[type=checkbox]').forEach(cb => { cb.checked = def.families.includes(cb.value); });
+  document.querySelectorAll('input[name=skurConstrProc]').forEach(r => { r.checked = (r.value === def.processor); });
+  document.getElementById('skurConstrExcludeBurstable').checked = def.excludeBurstable;
+  document.getElementById('skurConstrRequirePremiumIo').checked = def.requirePremiumIo;
+  document.getElementById('skurConstrMinVcpu').value = '';
+  document.getElementById('skurConstrMaxVcpu').value = '';
+  updateSkurConstraintsPreview();
+}
+function saveSkurConstraints() {
+  const g = skurGroups.find(x => x.id === _skurConstraintsEditingId); if (!g) { closeSkurConstraintsModal(); return; }
+  const draft = _readSkurConstraintsDraft();
+  if (!draft.families.length) return;
+  if (draft.minVcpu != null && draft.maxVcpu != null && draft.minVcpu > draft.maxVcpu) return;
+  g.constraints = draft;
+  closeSkurConstraintsModal();
+  renderSkurGroups();
+}
 
 function renderSkuRecStatCards() {
   const host = document.getElementById('skuRecStatCards');
