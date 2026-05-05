@@ -1593,7 +1593,7 @@ function handleFile(file) {
   fi.className = 'file-info';
   fi.style.display = 'block';
   fi.textContent = `📂 Loading: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)...`;
-  // Quick extension sanity check
+  // Quick extension sanity check (extension is a hint; magic bytes are authoritative)
   const ext = (file.name.split('.').pop() || '').toLowerCase();
   if (ext !== 'xlsx' && ext !== 'xls') {
     showFileError(`"${esc(file.name)}" doesn't look like an Excel file.`, 'Make sure you exported from RVTools as <strong>.xlsx</strong> via <strong>File → Export all to Excel</strong>.');
@@ -1609,8 +1609,43 @@ function handleFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
+// Magic-byte detection. Extension and MIME are hints only; this is authoritative.
+//   PK\x03\x04           → 'zip' (xlsx, rvz, or any other zip)
+//   {  (after BOM/ws)    → 'json'
+//   anything else        → 'unknown'
+// When .rvz lands, callers peek inside the zip for manifest.json to disambiguate xlsx vs rvz.
+function detectFileKind(buffer) {
+  if (!buffer || buffer.byteLength < 2) return 'unknown';
+  const bytes = new Uint8Array(buffer, 0, Math.min(buffer.byteLength, 16));
+  // ZIP (PKZip local file header) — xlsx, rvz, any other zip
+  if (bytes[0] === 0x50 && bytes[1] === 0x4B && (bytes[2] === 0x03 || bytes[2] === 0x05 || bytes[2] === 0x07) && (bytes[3] === 0x04 || bytes[3] === 0x06 || bytes[3] === 0x08)) {
+    return 'zip';
+  }
+  // CFB compound document — legacy .xls (also .doc/.ppt). XLSX.read handles it.
+  if (bytes[0] === 0xD0 && bytes[1] === 0xCF && bytes[2] === 0x11 && bytes[3] === 0xE0) {
+    return 'cfb';
+  }
+  // JSON: skip UTF-8 BOM + whitespace, then look for { or [
+  let i = 0;
+  if (bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) i = 3;
+  while (i < bytes.length && (bytes[i] === 0x20 || bytes[i] === 0x09 || bytes[i] === 0x0A || bytes[i] === 0x0D)) i++;
+  if (i < bytes.length && (bytes[i] === 0x7B /* { */ || bytes[i] === 0x5B /* [ */)) return 'json';
+  return 'unknown';
+}
+
 function parseLoadedWorkbook(buffer, file) {
   const fi = document.getElementById('fileInfo');
+    // Magic-byte check — catches files renamed to .xlsx (e.g. workspace.json) before XLSX gets confused
+    const kind = detectFileKind(buffer);
+    if (kind === 'json') {
+      showFileError(`"${esc(file.name)}" looks like JSON, not an Excel workbook.`, 'This appears to be a workspace or scenario file, not an RVTools <strong>.xlsx</strong> export. Make sure you exported from RVTools via <strong>File → Export all to Excel</strong>.');
+      return;
+    }
+    if (kind === 'unknown') {
+      showFileError(`"${esc(file.name)}" doesn't look like an Excel workbook.`, 'The file content does not match the <strong>.xlsx</strong> format (no ZIP signature). It may be corrupt, encrypted, or a different file type renamed to .xlsx. Re-export from RVTools.');
+      return;
+    }
+    // kind === 'zip' (xlsx) or 'cfb' (legacy xls) — proceed; XLSX.read will validate the inner structure
     let wb;
     try {
       wb = XLSX.read(buffer, {type:'array'});
