@@ -359,6 +359,10 @@ footer strong{opacity:1;}
 .skur-plan-bar .pb-toggle.is-on{background:rgba(15,108,189,.15);border-color:rgba(15,108,189,.5);color:var(--brand-primary);}
 .skur-plan-bar .pb-spacer{flex:1;}
 .skur-plan-bar .pb-reset{background:transparent;border:none;color:var(--text-secondary);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;}
+.skur-data-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--bg-layer2);border:1px solid var(--border-default);font-size:12px;color:var(--text-secondary);cursor:help;}
+.skur-data-pill.is-warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b;}
+.skur-data-pill .dp-count{font-weight:700;color:var(--text-primary);}
+.skur-data-pill.is-warn .dp-count{color:#f59e0b;}
 .skur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
 .skur-table-wrap{max-height:calc(34px * 25);overflow:auto;border:1px solid var(--border-default);border-radius:var(--radius-md);}
 .skur-table{width:100%;border-collapse:collapse;font-size:12px;}
@@ -917,6 +921,7 @@ body.dark .skur-group-chip{color:#b794f4;}
           <input type="date" id="skurPlanAsOf" onchange="skurOnPlanChange('asOfDate',this.value)">
         </div>
         <div class="pb-spacer"></div>
+        <span id="skurDataPill" class="skur-data-pill" title="Click for catalog details" onclick="skurShowDataPillInfo()"><span>📦</span> <span class="dp-count" id="skurDataPillCount">…</span> <span id="skurDataPillLabel">SKUs</span></span>
         <button class="pb-reset" onclick="skurResetPlan()" title="Restore default plan settings">Reset</button>
       </div>
 
@@ -2816,14 +2821,152 @@ function skurResetPlan() {
   if (!confirm('Reset plan settings to defaults?')) return;
   Object.assign(skurPlan, SKUR_PLAN_DEFAULTS, { asOfDate: new Date().toISOString().slice(0, 10) });
   syncSkurPlanBar();
+  updateSkurDataPill();
   try { document.dispatchEvent(new CustomEvent('skurPlanChanged', { detail: { field: '*', plan: { ...skurPlan } } })); } catch (_) {}
 }
+
+// === SKU Recommender Phase 5 slice 1: static SKU catalog + pricing helpers ===
+// IMPORTANT: this is SEED data for the recommender to function ahead of the Phase 1 data pipeline.
+// All prices are illustrative public-list approximations for Australia East (Linux PAYG, USD/hour).
+// Once data/<region>.json + data/<region>-pricing.json land from the pipeline, swap skurCatalogForRegion().
+const SKUR_SKU_CATALOG_AUE = Object.freeze([
+  // B-series (burstable, Intel)
+  { name:'Standard_B1ls',  family:'B', vcpu:1,  ramGb:0.5, processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.0052 },
+  { name:'Standard_B1s',   family:'B', vcpu:1,  ramGb:1,   processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.0104 },
+  { name:'Standard_B1ms',  family:'B', vcpu:1,  ramGb:2,   processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.0207 },
+  { name:'Standard_B2s',   family:'B', vcpu:2,  ramGb:4,   processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.0416 },
+  { name:'Standard_B2ms',  family:'B', vcpu:2,  ramGb:8,   processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.0832 },
+  { name:'Standard_B4ms',  family:'B', vcpu:4,  ramGb:16,  processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.166  },
+  { name:'Standard_B8ms',  family:'B', vcpu:8,  ramGb:32,  processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.333  },
+  { name:'Standard_B12ms', family:'B', vcpu:12, ramGb:48,  processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.499  },
+  { name:'Standard_B16ms', family:'B', vcpu:16, ramGb:64,  processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.666  },
+  { name:'Standard_B20ms', family:'B', vcpu:20, ramGb:80,  processor:'intel', premiumIo:false, burstable:true,  hourlyUsd:0.832  },
+  // Dsv5 (general purpose, Intel, premium SSD)
+  { name:'Standard_D2s_v5',  family:'D', vcpu:2,  ramGb:8,   processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.114 },
+  { name:'Standard_D4s_v5',  family:'D', vcpu:4,  ramGb:16,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.228 },
+  { name:'Standard_D8s_v5',  family:'D', vcpu:8,  ramGb:32,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.456 },
+  { name:'Standard_D16s_v5', family:'D', vcpu:16, ramGb:64,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.912 },
+  { name:'Standard_D32s_v5', family:'D', vcpu:32, ramGb:128, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:1.824 },
+  { name:'Standard_D48s_v5', family:'D', vcpu:48, ramGb:192, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:2.736 },
+  { name:'Standard_D64s_v5', family:'D', vcpu:64, ramGb:256, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:3.648 },
+  { name:'Standard_D96s_v5', family:'D', vcpu:96, ramGb:384, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:5.472 },
+  // Dasv5 (general purpose, AMD, ~10% cheaper)
+  { name:'Standard_D2as_v5',  family:'D', vcpu:2,  ramGb:8,   processor:'amd',   premiumIo:true,  burstable:false, hourlyUsd:0.103 },
+  { name:'Standard_D4as_v5',  family:'D', vcpu:4,  ramGb:16,  processor:'amd',   premiumIo:true,  burstable:false, hourlyUsd:0.205 },
+  { name:'Standard_D8as_v5',  family:'D', vcpu:8,  ramGb:32,  processor:'amd',   premiumIo:true,  burstable:false, hourlyUsd:0.410 },
+  { name:'Standard_D16as_v5', family:'D', vcpu:16, ramGb:64,  processor:'amd',   premiumIo:true,  burstable:false, hourlyUsd:0.819 },
+  { name:'Standard_D32as_v5', family:'D', vcpu:32, ramGb:128, processor:'amd',   premiumIo:true,  burstable:false, hourlyUsd:1.638 },
+  { name:'Standard_D64as_v5', family:'D', vcpu:64, ramGb:256, processor:'amd',   premiumIo:true,  burstable:false, hourlyUsd:3.277 },
+  // Esv5 (memory optimized, Intel, premium SSD)
+  { name:'Standard_E2s_v5',  family:'E', vcpu:2,  ramGb:16,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.144 },
+  { name:'Standard_E4s_v5',  family:'E', vcpu:4,  ramGb:32,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.288 },
+  { name:'Standard_E8s_v5',  family:'E', vcpu:8,  ramGb:64,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.576 },
+  { name:'Standard_E16s_v5', family:'E', vcpu:16, ramGb:128, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:1.152 },
+  { name:'Standard_E32s_v5', family:'E', vcpu:32, ramGb:256, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:2.304 },
+  { name:'Standard_E48s_v5', family:'E', vcpu:48, ramGb:384, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:3.456 },
+  { name:'Standard_E64s_v5', family:'E', vcpu:64, ramGb:512, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:4.608 },
+  { name:'Standard_E96s_v5', family:'E', vcpu:96, ramGb:672, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:6.912 },
+  // Fsv2 (compute optimized, Intel, premium SSD)
+  { name:'Standard_F2s_v2',  family:'F', vcpu:2,  ramGb:4,   processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.099 },
+  { name:'Standard_F4s_v2',  family:'F', vcpu:4,  ramGb:8,   processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.199 },
+  { name:'Standard_F8s_v2',  family:'F', vcpu:8,  ramGb:16,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.398 },
+  { name:'Standard_F16s_v2', family:'F', vcpu:16, ramGb:32,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:0.796 },
+  { name:'Standard_F32s_v2', family:'F', vcpu:32, ramGb:64,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:1.591 },
+  { name:'Standard_F48s_v2', family:'F', vcpu:48, ramGb:96,  processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:2.387 },
+  { name:'Standard_F64s_v2', family:'F', vcpu:64, ramGb:128, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:3.182 },
+  { name:'Standard_F72s_v2', family:'F', vcpu:72, ramGb:144, processor:'intel', premiumIo:true,  burstable:false, hourlyUsd:3.580 },
+]);
+const SKUR_CATALOG_META = Object.freeze({
+  source: 'seed',
+  asOfDate: '2025-06-01',
+  baseRegion: 'australiaeast',
+  baseCurrency: 'USD',
+  basis: 'Linux PAYG list price · approximate · public published rates',
+});
+// FX rates relative to USD (illustrative; real rates come from a future FX feed).
+const SKUR_FX_RATES_USD = Object.freeze({ USD:1.00, AUD:1.50, NZD:1.66, EUR:0.92, GBP:0.78 });
+// Term price multipliers vs PAYG (rough industry averages; real values come from Azure pricing API).
+const SKUR_TERM_DISCOUNTS = Object.freeze({ payg:1.00, ri1:0.62, ri3:0.42, sp1:0.78, sp3:0.58 });
+const SKUR_TERM_LABELS = Object.freeze({ payg:'PAYG', ri1:'1y RI', ri3:'3y RI', sp1:'1y SP', sp3:'3y SP' });
+const SKUR_HOURS_PER_MONTH = 730; // Azure billing convention
+function skurCatalogForRegion(region) {
+  // Seed: only Australia East has data right now. Other regions surface a warning in the data pill.
+  if (region === 'australiaeast') return SKUR_SKU_CATALOG_AUE;
+  return [];
+}
+function skurEffectiveHourlyUsd(sku, plan) {
+  if (!sku || sku.hourlyUsd == null) return null;
+  const term = SKUR_TERM_DISCOUNTS[(plan && plan.term) || 'payg'] || 1;
+  return sku.hourlyUsd * term;
+}
+function skurEffectiveHourly(sku, plan) {
+  const usd = skurEffectiveHourlyUsd(sku, plan);
+  if (usd == null) return null;
+  const fx = SKUR_FX_RATES_USD[(plan && plan.currency) || 'USD'] || 1;
+  return usd * fx;
+}
+function skurMonthlyCost(sku, plan) {
+  const h = skurEffectiveHourly(sku, plan);
+  return h == null ? null : h * SKUR_HOURS_PER_MONTH;
+}
+function skurFormatMoney(amount, currency) {
+  if (amount == null || !isFinite(amount)) return '—';
+  const cur = currency || skurPlan.currency || 'USD';
+  try { return new Intl.NumberFormat(undefined, { style:'currency', currency: cur, maximumFractionDigits: amount < 100 ? 2 : 0 }).format(amount); }
+  catch (_) { return `${cur} ${amount.toFixed(2)}`; }
+}
+function updateSkurDataPill() {
+  const pill  = document.getElementById('skurDataPill');
+  const count = document.getElementById('skurDataPillCount');
+  const label = document.getElementById('skurDataPillLabel');
+  if (!pill || !count || !label) return;
+  const cat = skurCatalogForRegion(skurPlan.region);
+  const region = SKUR_AZURE_REGIONS.find(r => r.id === skurPlan.region);
+  const regionLabel = region ? region.label : skurPlan.region;
+  if (cat.length) {
+    pill.classList.remove('is-warn');
+    count.textContent = cat.length;
+    label.textContent = `SKUs · ${regionLabel} · seed`;
+    pill.title = `${cat.length} VM SKUs available for ${regionLabel}.\n\nSource: ${SKUR_CATALOG_META.source} · as of ${SKUR_CATALOG_META.asOfDate}\nBasis: ${SKUR_CATALOG_META.basis}\n\nClick for details.`;
+  } else {
+    pill.classList.add('is-warn');
+    count.textContent = '0';
+    label.textContent = `SKUs · ${regionLabel} (no seed data)`;
+    pill.title = `No catalog data for ${regionLabel} in this build.\nOnly ${SKUR_AZURE_REGIONS.find(r=>r.id===SKUR_CATALOG_META.baseRegion)?.label||SKUR_CATALOG_META.baseRegion} ships seed data; other regions arrive with the Phase 1 data pipeline.\n\nClick for details.`;
+  }
+}
+function skurShowDataPillInfo() {
+  const cat = skurCatalogForRegion(skurPlan.region);
+  const region = SKUR_AZURE_REGIONS.find(r => r.id === skurPlan.region);
+  const regionLabel = region ? region.label : skurPlan.region;
+  const baseRegionLabel = SKUR_AZURE_REGIONS.find(r => r.id === SKUR_CATALOG_META.baseRegion)?.label || SKUR_CATALOG_META.baseRegion;
+  const lines = [
+    `📦 SKU catalog (seed data)`,
+    ``,
+    `Source: ${SKUR_CATALOG_META.source}`,
+    `As of: ${SKUR_CATALOG_META.asOfDate}`,
+    `Basis: ${SKUR_CATALOG_META.basis}`,
+    `Base region / currency: ${baseRegionLabel} / ${SKUR_CATALOG_META.baseCurrency}`,
+    ``,
+    `Currently selected region: ${regionLabel} → ${cat.length} SKU${cat.length===1?'':'s'} loaded`,
+    ``,
+    `Coverage: ${cat.length ? 'B-series (burstable), Dsv5/Dasv5 (general), Esv5 (memory), Fsv2 (compute)' : '— none —'}`,
+    ``,
+    `⚠ All prices are approximate public-list values for illustration only.`,
+    `Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
+    `AHUB pricing is decorative until Windows pricing lands with the Phase 1 data pipeline.`,
+  ];
+  alert(lines.join('\n'));
+}
+// Refresh the data pill whenever the plan changes (esp. region).
+document.addEventListener('skurPlanChanged', updateSkurDataPill);
 
 function renderSkuRecStatCards() {
   const host = document.getElementById('skuRecStatCards');
   if (!host) return;
   // Ensure plan bar is initialised whenever the recommender renders.
   initSkurPlanBar();
+  updateSkurDataPill();
   const vms = allVMs || [];
   const poweredOn = vms.filter(v => (v.power || '').toLowerCase() === 'poweredon').length;
   const totalCpu = vms.reduce((a, v) => a + (parseInt(v.cpus) || 0), 0);
