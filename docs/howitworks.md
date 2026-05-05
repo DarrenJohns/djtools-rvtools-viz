@@ -174,6 +174,28 @@ These two scores place each VM on the Risk Quadrant scatter.
 
 ---
 
+## 🎯 SKU Recommender
+
+The SKU recommender is a self-contained module sitting alongside the readiness layer. It consumes the same `allVMs` array but renders into its own collapsible section.
+
+**State.** Three top-level pieces — `skurPlan` (region/currency/term/headroom), `skurGroups` (sizing groups with mode + members + pinned flag), and `skurOutOfScope` (key → reason+note map). Tag rules and selection sit in their own collections. Every meaningful state change dispatches a `skurPlanChanged` event with `{detail:{field}}` — the data pill, group rail, recommendation grid, and live-data lazy-loader all subscribe and re-render.
+
+**Live data loader.** `skurInitLiveData()` runs on `DOMContentLoaded` (and lazily on region change). It fetches `data/metadata.json` to discover available regions, then `data/<region>.json` (capability) + `data/<region>-pricing.json` (retail prices, keyed by *size* — `A1_v2`, not `Standard_A1_v2`). `_skurNormaliseLiveSkus()` filters to B/D/E/F families, drops region-restricted SKUs, infers processor family from the name suffix (`a` → AMD, `p` → ARM, else Intel), and joins capability + price into the `{name, family, vcpu, ramGb, hourlyUsd, …}` shape the ranker expects. On `file://` the loader silently no-ops (browsers block `fetch()` from local files); the recommender falls back to the 40-SKU seed catalog.
+
+**Ranking.** `skurRankCandidates(vm, eligible, mode, plan)` maps every eligible SKU through `skurFitFor(vm, sku)` (returns `null` if the SKU can't fit the VM) and `skurScore<Mode>(fit, sku, plan)`:
+
+- **Balanced** — distance from headroom target on both CPU and RAM, with a small cost tiebreaker.
+- **Cost** — cheapest hourly rate that satisfies the minimum headroom floor.
+- **Rightsized** — waste-normalised (waste / vm-size) on both axes with cost tiebreaker.
+
+The top score wins; ranks 2–3 become alternates. Confidence is computed from min headroom + burstable family flag.
+
+**Duplicate handling.** `parseRVToolsData()` deduplicates after mapping using a stable key — UUID first, then `name|cluster|dc` composite. First occurrence wins; the dropped count is exposed on `window.rvtoolsDupInfo` and surfaced in the file-load banner and the Excel Summary sheet.
+
+**Exports.** CSV uses `_downloadCSV(prefix, headers, rows)` to emit a 21-column row per VM. Excel builds an `XLSX.utils.book_new()` workbook with Summary / All-recommendations / per-group / OOS / Plan sheets — sheet names sanitised to strip `: \ / ? * [ ]` and capped at 28 chars (Excel's 31-char limit minus a dedupe-suffix budget). All numeric cells stay numeric so Excel can chart them.
+
+---
+
 ## 📊 Charts — Chart.js Integration
 
 `renderCharts()` (and each per-section render function) creates Chart.js instances. Before re-creating a chart we destroy any existing instance on that canvas to avoid memory leaks during filter changes:

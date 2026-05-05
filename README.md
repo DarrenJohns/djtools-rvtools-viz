@@ -87,13 +87,34 @@
 | **Per-VM notes** | Plain-English migration recommendations based on OS age, power state, and resource profile |
 | **Azure Migrate signpost** | The app makes it clear this is an indicative view — links out to Azure Migrate for proper assessment |
 
+### 🎯 Azure SKU Recommender *(beta)*
+
+A second-tier "what would this look like in Azure?" layer. Driven by **live Azure pricing + capability data** for AU East and NZ North out of the box, with a monthly auto-refresh pipeline.
+
+| Feature | What it does |
+|---------|-------------|
+| **Sizing groups** | Group VMs by tag, name pattern, cluster, or manual selection. Each group picks an optimisation mode: **Balanced** (best-fit), **Cost** (cheapest that fits), or **Rightsized** (minimise waste). Pin groups to keep them top-of-rail. |
+| **Live SKU catalog** | 945+ B/D/E/F-family SKUs per region, refreshed monthly from the Azure CLI + Retail Prices API. Restricted SKUs filtered out, processor family inferred from the name (Intel/AMD/ARM). |
+| **Per-VM recommendation** | Each in-scope VM gets a recommended SKU, two alternates, monthly cost, CPU/RAM headroom %, and a confidence rating (High / Medium / Low). |
+| **Plan controls** | Region, currency, term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model, and headroom targets — change anywhere and every group + VM re-evaluates. |
+| **Tag rules + auto-grouping** | Build rules over RVTools annotations / folders / clusters; auto-cluster VMs into sizing groups by any tag value. |
+| **Out-of-scope handling** | Mark VMs as Decommission / Retain on-prem / Already migrated / Other (with note). Excluded from cost roll-ups + recommendations; restorable in bulk. |
+| **Bulk actions** | Multi-select VMs in the inventory and add to group, create new group, remove from all groups, or mark out-of-scope (with destructive-action confirmation > 5 VMs). Selection breakdown shows grouped / ungrouped / OOS counts. |
+| **Duplicate VM handling** | RVTools exports with duplicate vInfo rows (same UUID, or same name+cluster+DC) are collapsed to first occurrence. Dropped count shown on file load and in the Excel Summary. |
+| **CSV export** | Five scopes — Active group, Pinned groups, All groups, Out-of-scope, Everything. 21-column schema with SKU + family + cost + headroom + confidence + alternates. |
+| **Excel workbook export** | Multi-sheet `.xlsx` with **Summary** (group totals, grand total, dup flag), **All recommendations** combined, **one sheet per group** (Excel-safe sheet names), **Out of scope** (when present), and **Plan** (every plan setting + catalog source + timestamp). Three scopes: All / Pinned / Active. |
+| **Group rail or board view** | Choose vertical rail + active-group panel, or 4-column responsive board overview of compact group cards. View choice persisted in `localStorage`. |
+
+> The recommender is in **beta**. Recommendations are indicative — Azure Migrate remains the authoritative tool for production cutover sizing.
+
 ### 🔍 Explore, filter, and export
 
 | Feature | What it does |
 |---------|-------------|
 | **Overview filters** | Datacenter / OS family / power state / readiness — scoped to the Overview cards + six analytics charts only (Wave Plan, Inventory, Risk Quadrant, and infrastructure sections always show the full estate) |
 | **Sortable, paginated tables** | All 10 data tables paginate at 25 rows/page, with full-text search and click-to-sort columns |
-| **CSV export** | Download readiness recommendations or the full inventory |
+| **CSV export** | Download readiness recommendations, the full inventory, or SKU recommender outputs (5 scopes) |
+| **Excel export** | Multi-sheet workbook from the SKU Recommender with Summary, per-group sheets, OOS, and Plan |
 | **Offline HTML snapshot** | Self-contained `.html` report with charts baked in as images — works offline, has an amber **OFFLINE SNAPSHOT** banner |
 
 ### 🎨 General

@@ -143,7 +143,29 @@ Each section is collapsed by default. A section auto-hides if the tab that power
 | 🎯 **Risk Quadrant** | Scatter plot of every VM, X = Migration Complexity, Y = Business Impact, coloured by readiness group. Includes an Azure Migrate signpost. |
 | 🌊 **Readiness Groups** | Searchable, sortable, paginated table of VMs grouped by readiness with per-VM notes |
 
-### 4.4 Bottom
+### 4.4 Azure SKU Recommender (collapsible, beta)
+
+A second-tier "what would this look like in Azure?" view, layered on top of the readiness analysis.
+
+| Section | Description |
+|---------|-------------|
+| **Plan settings bar** | Region, currency, term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model, headroom targets. Changes fan out to every group + VM via a `skurPlanChanged` event. |
+| **Tag rules** | JSON-serialisable rules over annotations / folders / clusters. Auto-cluster VMs by any tag value into sizing groups. |
+| **Sizing groups** | Each group has a name, optimisation mode (Balanced / Cost / Rightsized), members (VM keys), and an optional pin flag. Two view modes (rail+panel and 4-column board) persisted in `localStorage['skur.groupsView']`. |
+| **Inventory grid + bulk bar** | Multi-select VMs to add to group, create new group, remove from all groups, or mark out-of-scope. Bulk bar shows breakdown (grouped / ungrouped / OOS). >5-VM OOS prompts confirmation. |
+| **CSV / Excel exports** | CSV: 5 scopes (Active / Pinned / All / OOS / Everything), 21-column schema. Excel: multi-sheet workbook (Summary / All recommendations / per-group / OOS / Plan), 3 scopes (All / Pinned / Active), Excel-safe sheet-name sanitisation. |
+
+**SKU catalog source.** Live JSON loader (`skurInitLiveData` / `_skurLoadRegionData`) consumes `data/<region>.json`, `<region>-pricing.json`, `<region>-disks.json`, plus shared `regions.json` + `metadata.json`. Falls back to a 40-SKU seed catalog when offline / on `file://`. Catalog refresh is automated via the `refresh-azure-data.yml` workflow (monthly cron) — see [`docs/data-pipeline.md`](data-pipeline.md).
+
+**Recommendation algorithm (per VM).**
+1. If the VM is out-of-scope → return `{state:'oos'}`.
+2. If `cpus`/`ram` missing → return `{state:'no-input', mode:'balanced'}`.
+3. Resolve eligibility — if VM belongs to exactly one group, use that group's mode + filtered SKU list; else balanced + full regional catalog.
+4. Score every eligible SKU by mode (Balanced = distance from headroom target on both axes + cost tiebreaker; Cost = cheapest with min headroom; Rightsized = waste-normalised + cost tiebreaker).
+5. Pick top score → recommended SKU; next two → alternates. Fit object carries CPU/RAM headroom + waste counts.
+6. Confidence: **High** = full inputs + min headroom ≥ 20% + non-burstable. **Medium** = headroom 10–20% or burstable. **Low** = no inputs, no eligible, no match, or unhealthy state.
+
+### 4.5 Bottom
 
 | Section | Description |
 |---------|-------------|
@@ -234,7 +256,26 @@ Two CSV exports are available:
 
 Filename pattern: `rvtools_export_YYYYMMDD_HHMMSS.csv`
 
-### 8.2 Offline HTML snapshot ("Save Locally")
+### 8.2 SKU Recommender CSV
+
+Per-VM recommendation rows for one of five scopes — **Active group** / **Pinned** / **All groups** / **Out-of-scope** / **Everything**. Filename pattern: `rvtools_skur_<scope>_YYYY-MM-DD.csv`.
+
+Columns (21): `Group, Mode, VM, OS, vCPU, RAM_GB, Cluster, Datacentre, Powered, OOS_Reason, Recommended_SKU, SKU_Family, SKU_vCPU, SKU_RAM_GB, Monthly_Cost, Currency, CPU_Headroom_Pct, RAM_Headroom_Pct, Confidence, State, Alt_SKUs`.
+
+### 8.3 SKU Recommender Excel workbook
+
+Multi-sheet `.xlsx` for one of three scopes (All / Pinned / Active). Filename pattern: `rvtools_skur_YYYY-MM-DD[_<scope>].xlsx`.
+
+Sheets:
+- **Summary** — group, mode, members, eligible SKUs, total monthly $/region currency, pinned flag, grand total + OOS count + duplicates-collapsed flag (when present).
+- **All recommendations** — every grouped VM as a row, prefixed with Group + Mode columns.
+- **One sheet per group** — Excel-safe sheet name (strip `: \ / ? * [ ]`, cap at 28 chars, dedupe with suffix).
+- **Out of scope** — present only when OOS VMs exist; columns: VM / OS / vCPU / RAM_GB / Cluster / Datacentre / Reason / Note.
+- **Plan** — every `skurPlan` key/value, export timestamp, catalog source (seed / live / live-pending / unavailable).
+
+Numeric cells (vCPU, RAM, costs, headroom %) are written as numbers, not strings, so Excel can chart and aggregate them directly.
+
+### 8.4 Offline HTML snapshot ("Save Locally")
 
 A single self-contained `.html` file that contains:
 - All charts as base64 PNGs (`canvas.toDataURL()`)
