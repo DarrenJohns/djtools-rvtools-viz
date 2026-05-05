@@ -483,6 +483,28 @@ footer strong{opacity:1;}
 .skur-group-rail-spacer{flex:1 1 auto;min-height:6px;}
 .skur-group-rail-oos{margin-top:6px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1px dashed rgba(220,53,69,.4);background:rgba(220,53,69,.05);font-size:12px;color:#dc3545;font-weight:600;display:flex;align-items:center;gap:6px;}
 .skur-group-rail-oos.is-active{background:rgba(220,53,69,.18);border-style:solid;}
+.skur-view-btn{background:var(--bg-layer1);border:none;padding:5px 10px;font:inherit;font-size:12px;color:var(--text-secondary);cursor:pointer;border-right:1px solid var(--border-default);}
+.skur-view-btn:last-child{border-right:none;}
+.skur-view-btn:hover{background:var(--bg-layer2);}
+.skur-view-btn.is-active{background:rgba(15,108,189,.14);color:var(--text-primary);font-weight:600;}
+.skur-groups-board{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:8px;}
+.skur-board-card{position:relative;border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:10px 12px 10px 12px;background:var(--bg-layer1);cursor:pointer;display:flex;flex-direction:column;gap:6px;}
+.skur-board-card:hover{background:var(--bg-layer2);border-color:var(--border-default);}
+.skur-board-card.is-pinned{border-left:3px solid #f59e0b;}
+.skur-board-card .bc-head{display:flex;align-items:center;gap:6px;}
+.skur-board-card .bc-mode{font-size:13px;}
+.skur-board-card .bc-name{font-weight:600;font-size:13px;color:var(--text-primary);flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skur-board-card .bc-pin{font-size:11px;line-height:1;padding:2px 4px;border-radius:3px;color:var(--text-tertiary);opacity:.25;cursor:pointer;border:none;background:transparent;}
+.skur-board-card:hover .bc-pin{opacity:.7;}
+.skur-board-card .bc-pin:hover{background:rgba(0,0,0,.06);opacity:1;}
+.skur-board-card .bc-pin.is-pinned{opacity:1;color:#d97706;}
+.skur-board-card .bc-meta{font-size:11px;color:var(--text-tertiary);display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.skur-board-card .bc-meta .bc-issues{color:#dc3545;font-weight:700;}
+.skur-board-card .bc-meta .bc-warns{color:#f59e0b;font-weight:700;}
+.skur-board-card .bc-cost{font-size:13px;color:var(--text-primary);font-weight:600;margin-top:2px;}
+.skur-board-card .bc-cost-label{font-weight:400;color:var(--text-tertiary);font-size:11px;}
+.skur-board-oos{grid-column:1/-1;border:1px dashed rgba(220,53,69,.4);background:rgba(220,53,69,.05);color:#dc3545;font-weight:600;font-size:12px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;}
+.skur-board-oos.is-active{background:rgba(220,53,69,.18);border-style:solid;}
 .skur-group-rail-oos:hover{background:rgba(220,53,69,.12);}
 .skur-group-rail-empty{padding:14px 10px;text-align:center;color:var(--text-tertiary);font-style:italic;font-size:12px;}
 .skur-group-panel{border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 18px;background:var(--bg-layer1);min-height:200px;display:flex;flex-direction:column;gap:10px;}
@@ -1027,7 +1049,11 @@ body.dark .skur-group-chip{color:#b794f4;}
         <div class="skur-groups-card">
           <div class="skur-groups-head">
             <h4>📂 Sizing groups</h4>
-            <select id="skurAutoGroupSel" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';}">
+            <div class="skur-view-toggle" role="group" aria-label="Groups view" style="margin-left:auto;display:inline-flex;border:1px solid var(--border-default);border-radius:var(--radius-sm);overflow:hidden;">
+              <button type="button" class="skur-view-btn is-active" data-view="rail" onclick="skurSetGroupsView('rail')" title="Rail + detail panel view">▤ Rail</button>
+              <button type="button" class="skur-view-btn" data-view="board" onclick="skurSetGroupsView('board')" title="Board overview (4-column card grid)">⊞ Board</button>
+            </div>
+            <select id="skurAutoGroupSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';}">
               <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
             </select>
             <button class="btn" onclick="newSkurGroup()">➕ New group</button>
@@ -1037,6 +1063,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <div class="skur-group-rail" id="skurGroupRail"></div>
             <div class="skur-group-panel is-empty" id="skurGroupPanel">Select a group to see details</div>
           </div>
+          <div class="skur-groups-board" id="skurGroupsBoard" style="display:none;"></div>
           <div class="skur-oos-summary" id="skurOosSummary" style="display:none;"></div>
         </div>
       </div>
@@ -2388,8 +2415,13 @@ function skurDupVmKeys() {
 }
 // Phase 7: active-group state for rail/panel layout.
 let skurActiveGroupId = null; // group id, or '__oos__' for OOS view, or null
+let skurGroupsView = 'rail'; // 'rail' | 'board'
 function skurSetActiveGroup(id) {
   skurActiveGroupId = id || null;
+  renderSkurGroups();
+}
+function skurSetGroupsView(v) {
+  skurGroupsView = (v === 'board') ? 'board' : 'rail';
   renderSkurGroups();
 }
 function skurTogglePin(id) {
@@ -2423,9 +2455,14 @@ function _skurFmtConstraintSummary(c) {
 function renderSkurGroups() {
   const empty = document.getElementById('skurGroupsEmpty');
   const twoCol = document.getElementById('skurGroupsTwoCol');
+  const board = document.getElementById('skurGroupsBoard');
   const rail = document.getElementById('skurGroupRail');
   const panel = document.getElementById('skurGroupPanel');
   if (!empty || !twoCol || !rail || !panel) return;
+  // Reflect current view on the toggle buttons.
+  document.querySelectorAll('.skur-view-btn').forEach(btn => {
+    btn.classList.toggle('is-active', btn.getAttribute('data-view') === skurGroupsView);
+  });
   // Refresh auto-group dropdown options whenever groups/rules might have changed.
   const sel = document.getElementById('skurAutoGroupSel');
   if (sel) {
@@ -2440,13 +2477,20 @@ function renderSkurGroups() {
   const escG = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const oosTotal = skurOOSCount();
   const hasGroups = skurGroups.length > 0;
-  // Empty-state visibility: hide rail/panel when no groups AND no OOS members.
+  // Empty-state visibility: hide rail/panel/board when no groups AND no OOS members.
   if (!hasGroups && !oosTotal) {
     empty.style.display = '';
     twoCol.style.display = 'none';
+    if (board) board.style.display = 'none';
   } else {
     empty.style.display = 'none';
-    twoCol.style.display = '';
+    if (skurGroupsView === 'board') {
+      twoCol.style.display = 'none';
+      if (board) board.style.display = '';
+    } else {
+      twoCol.style.display = '';
+      if (board) board.style.display = 'none';
+    }
   }
   // Re-validate active id (group could be deleted, OOS could clear).
   if (skurActiveGroupId === '__oos__' && !oosTotal) skurActiveGroupId = null;
@@ -2576,6 +2620,43 @@ function renderSkurGroups() {
   } else {
     panel.classList.add('is-empty');
     panel.innerHTML = 'Select a group to see details';
+  }
+
+  // === Render board (always populate so view switches are instant) ===
+  if (board) {
+    const boardCards = orderedGroups.map(g => {
+      const dupCount = dups.size ? g.members.reduce((n,k) => n + (dups.has(k) ? 1 : 0), 0) : 0;
+      const eligibleCount = skurEligibleSkusForGroup(g).length;
+      const exc = skurExceptionCountsForGroup(g);
+      const issues = exc.noMatch + exc.noEligible;
+      const warns = dupCount + exc.noInput;
+      const issuesHtml = issues ? `<span class="bc-issues" title="${issues} issue${issues===1?'':'s'}: too-big or blocked">⚠ ${issues}</span>` : '';
+      const warnsHtml = warns ? `<span class="bc-warns" title="${warns} warning${warns===1?'':'s'}: dup or no-input">! ${warns}</span>` : '';
+      const mode = skurNormaliseMode(g.mode);
+      const pinned = !!g.pinned;
+      const pinTitle = pinned ? 'Pinned — click to unpin' : 'Pin to top';
+      const totalCost = _skurGroupTotalMonthlyCost(g);
+      const costHtml = (totalCost == null)
+        ? `<span class="bc-cost-label">Est. monthly</span> <span style="color:var(--text-tertiary);">—</span>`
+        : `<span class="bc-cost-label">Est. monthly</span> ${escG(skurFormatMoney(totalCost, skurPlan.currency))}`;
+      return `<div class="skur-board-card${pinned?' is-pinned':''}" onclick="skurSetActiveGroup('${escG(g.id)}');skurSetGroupsView('rail');" title="Open group">
+        <div class="bc-head">
+          <span class="bc-mode" title="Sizing mode: ${escG(mode)}">${modeEmoji(mode)}</span>
+          <span class="bc-name" title="${escG(g.name)}">${escG(g.name)}</span>
+          <button class="bc-pin${pinned?' is-pinned':''}" title="${pinTitle}" onclick="event.stopPropagation();skurTogglePin('${escG(g.id)}');">📌</button>
+        </div>
+        <div class="bc-meta">
+          <span>${g.members.length} VM${g.members.length===1?'':'s'}</span>
+          <span>· 📦 ${eligibleCount}/${totalCat}</span>
+          ${issuesHtml}${warnsHtml}
+        </div>
+        <div class="bc-cost">${costHtml}</div>
+      </div>`;
+    }).join('');
+    const boardOos = oosTotal
+      ? `<div class="skur-board-oos${skurActiveGroupId==='__oos__'?' is-active':''}" onclick="skurSetActiveGroup('__oos__');skurSetGroupsView('rail');" title="View out-of-scope VMs">🚫 Out of scope · ${oosTotal} VM${oosTotal===1?'':'s'}</div>`
+      : '';
+    board.innerHTML = boardCards + boardOos;
   }
 
   // Hide the legacy OOS summary box now that the rail+panel handle it.
