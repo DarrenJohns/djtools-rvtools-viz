@@ -346,6 +346,26 @@ footer strong{opacity:1;}
 .sku-rec-statcard .sc-label{font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);font-weight:600;margin-bottom:4px;}
 .sku-rec-statcard .sc-value{font-size:1.6rem;font-weight:700;color:var(--text);line-height:1.1;}
 .sku-rec-statcard .sc-sub{font-size:.78rem;color:var(--text-muted);margin-top:3px;}
+/* SKU Recommender VM grid */
+.skur-section{margin-top:22px;}
+.skur-section-h{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:.95rem;font-weight:700;color:var(--text);}
+.skur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
+.skur-table-wrap{max-height:calc(34px * 25);overflow:auto;border:1px solid var(--border-default);border-radius:var(--radius-md);}
+.skur-table{width:100%;border-collapse:collapse;font-size:12px;}
+.skur-table thead th{background:var(--bg-layer2);text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);padding:7px 10px;border-bottom:1px solid var(--border-default);position:sticky;top:0;z-index:1;}
+.skur-table thead tr.skur-filter-row th{padding:6px 8px;background:var(--bg-layer1);border-bottom:1px solid var(--border-subtle);text-transform:none;letter-spacing:0;font-weight:400;position:static;}
+.skur-table .skur-filter{width:100%;font:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
+.skur-table .skur-filter:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(0,120,212,.12);}
+.skur-table .skur-filter-clear{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-secondary);font-size:11px;cursor:pointer;font-family:inherit;}
+.skur-table .skur-filter-clear:hover:not(:disabled){color:#d13438;border-color:#d13438;}
+.skur-table .skur-filter-clear:disabled{opacity:.35;cursor:not-allowed;}
+.skur-table tbody td{padding:7px 10px;border-bottom:1px solid var(--border-subtle);vertical-align:middle;}
+.skur-table tbody tr:hover{background:rgba(15,108,189,.06);}
+.skur-table .num{font-family:'Cascadia Code','Consolas',monospace;}
+.skur-table thead th.skur-sortable{cursor:pointer;user-select:none;}
+.skur-table thead th.skur-sortable:hover{color:var(--brand-primary);}
+.skur-ungrouped{color:var(--text-tertiary);font-size:11px;font-style:italic;}
+.skur-empty-row{padding:24px;text-align:center;color:var(--text-tertiary);font-style:italic;}
 </style>
 </head>
 <body>
@@ -777,6 +797,36 @@ footer strong{opacity:1;}
     <!-- Live content when data is loaded -->
     <div id="skuRecContent" style="display:none;">
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
+
+      <div class="skur-section">
+        <div class="skur-section-h">🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span></div>
+        <div class="skur-table-wrap">
+          <table class="skur-table" id="skurTable">
+            <thead>
+              <tr class="skur-filter-row">
+                <th style="width:32px;"><button class="skur-filter-clear" id="skurFilterClear" title="Clear all filters" onclick="skurClearFilters()" disabled>✕</button></th>
+                <th><input type="text" class="skur-filter" data-f="name" placeholder="Search name…" oninput="skurOnFilter()"></th>
+                <th><input type="text" class="skur-filter" data-f="size" placeholder="e.g. 4/16" oninput="skurOnFilter()"></th>
+                <th><select class="skur-filter" data-f="os" onchange="skurOnFilter()"><option value="">All OS</option></select></th>
+                <th><select class="skur-filter" data-f="dc" onchange="skurOnFilter()"><option value="">All DCs</option></select></th>
+                <th><select class="skur-filter" data-f="cluster" onchange="skurOnFilter()"><option value="">All clusters</option></select></th>
+                <th></th>
+              </tr>
+              <tr>
+                <th style="width:32px;">#</th>
+                <th class="skur-sortable" data-key="name" onclick="skurSort('name')">VM</th>
+                <th class="skur-sortable" data-key="cpus" onclick="skurSort('cpus')">vCPU/RAM</th>
+                <th class="skur-sortable" data-key="os" onclick="skurSort('os')">OS</th>
+                <th class="skur-sortable" data-key="dc" onclick="skurSort('dc')">Datacenter</th>
+                <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
+                <th>Group</th>
+              </tr>
+            </thead>
+            <tbody id="skurRows"></tbody>
+          </table>
+        </div>
+      </div>
+
       <p class="sku-rec-coming-soon" style="margin-top:18px;color:var(--text-muted);font-size:.9rem;">
         🚧 <strong>More coming next:</strong> per-VM Azure SKU recommendations, sizing groups, tag rules, scenario save/resume.
         Working off your <span id="skuRecDataSource">loaded RVTools data</span>.
@@ -1884,6 +1934,94 @@ function renderSkuRecommender() {
   content.style.display = 'block';
   if (pill) { pill.style.display = ''; pill.textContent = `${allVMs.length} VMs`; }
   renderSkuRecStatCards();
+  renderSkurVmGrid();
+}
+
+// === SKU Recommender VM grid (Phase 2) ===
+const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'' };
+const skurSortState = { key:'name', dir:1 };
+function skurFilteredVms() {
+  const vms = Array.isArray(allVMs) ? allVMs : [];
+  const f = skurFilters;
+  const nameQ = f.name.toLowerCase();
+  const sizeQ = f.size.toLowerCase().replace(/\s/g,'');
+  return vms.filter(v => {
+    if (nameQ && !String(v.name||'').toLowerCase().includes(nameQ)) return false;
+    if (sizeQ) { const s = `${v.cpus??'?'}/${v.ram??'?'}`.toLowerCase(); if (!s.includes(sizeQ)) return false; }
+    if (f.os && String(v.os||'') !== f.os) return false;
+    if (f.dc && String(v.dc||'') !== f.dc) return false;
+    if (f.cluster && String(v.cluster||'') !== f.cluster) return false;
+    return true;
+  });
+}
+function skurPopulateFilterOptions() {
+  const vms = Array.isArray(allVMs) ? allVMs : [];
+  const fill = (key, label) => {
+    const el = document.querySelector(`.skur-filter[data-f="${key}"]`);
+    if (!el || el.tagName !== 'SELECT') return;
+    const cur = skurFilters[key];
+    const vals = [...new Set(vms.map(v => v[key]).filter(Boolean))].sort();
+    el.innerHTML = [`<option value="">${label}</option>`]
+      .concat(vals.map(x => `<option value="${String(x).replace(/"/g,'&quot;')}"${x===cur?' selected':''}>${x}</option>`))
+      .join('');
+  };
+  fill('os','All OS'); fill('dc','All DCs'); fill('cluster','All clusters');
+  const cb = document.getElementById('skurFilterClear');
+  if (cb) cb.disabled = !Object.values(skurFilters).some(x => x);
+}
+function renderSkurVmGrid() {
+  const tb = document.getElementById('skurRows'); if (!tb) return;
+  skurPopulateFilterOptions();
+  const total = (allVMs || []).length;
+  let rows = skurFilteredVms();
+  const k = skurSortState.key, d = skurSortState.dir;
+  if (k) {
+    rows = [...rows].sort((a,b) => {
+      let va = a[k], vb = b[k];
+      if (va==null||va==='') va=null; if (vb==null||vb==='') vb=null;
+      if (va==null && vb==null) return 0;
+      if (va==null) return 1; if (vb==null) return -1;
+      if (typeof va==='number' && typeof vb==='number') return (va-vb)*d;
+      const na = parseFloat(va), nb = parseFloat(vb);
+      if (!isNaN(na) && !isNaN(nb) && String(na)===String(va) && String(nb)===String(vb)) return (na-nb)*d;
+      return String(va).localeCompare(String(vb), undefined, {numeric:true,sensitivity:'base'})*d;
+    });
+  }
+  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="7">No VMs match the current filters.</td></tr>`;
+  } else {
+    tb.innerHTML = rows.map((v,i) => `<tr>
+      <td class="num" style="color:var(--text-tertiary);">${i+1}</td>
+      <td><strong>${esc(v.name)||'<em>—</em>'}</strong></td>
+      <td class="num">${v.cpus??'?'} / ${v.ram??'?'}</td>
+      <td>${esc(v.os)||'—'}</td>
+      <td>${esc(v.dc)||'—'}</td>
+      <td>${esc(v.cluster)||'—'}</td>
+      <td><span class="skur-ungrouped">— ungrouped —</span></td>
+    </tr>`).join('');
+  }
+  const pill = document.getElementById('skurVmCountPill');
+  if (pill) pill.textContent = rows.length !== total ? `${rows.length} / ${total}` : `${total}`;
+  document.querySelectorAll('#skurTable thead th.skur-sortable').forEach(th => {
+    if (!th.dataset.label) th.dataset.label = th.textContent.replace(/\s*[↕↑↓]\s*$/,'').trim();
+    const arrow = (skurSortState.key === th.dataset.key) ? (skurSortState.dir === 1 ? '↑' : '↓') : '↕';
+    th.textContent = `${th.dataset.label} ${arrow}`;
+  });
+}
+function skurOnFilter() {
+  document.querySelectorAll('.skur-filter[data-f]').forEach(el => { skurFilters[el.dataset.f] = (el.value||'').trim(); });
+  renderSkurVmGrid();
+}
+function skurClearFilters() {
+  Object.keys(skurFilters).forEach(k => skurFilters[k]='');
+  document.querySelectorAll('.skur-filter[data-f]').forEach(el => { el.value=''; });
+  renderSkurVmGrid();
+}
+function skurSort(key) {
+  if (skurSortState.key === key) skurSortState.dir *= -1;
+  else { skurSortState.key = key; skurSortState.dir = 1; }
+  renderSkurVmGrid();
 }
 
 function renderSkuRecStatCards() {
