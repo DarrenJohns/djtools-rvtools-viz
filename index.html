@@ -20,6 +20,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>"/>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" integrity="sha384-QCIdq2UMVEoSRhR3ZWZwdz2/pivLowr+eokFMdYyukq7qI26VYRxFa4Nl6FKetmL" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG" crossorigin="anonymous"></script>
 <style>
 :root{
   /* Fluent / M365 design tokens */
@@ -651,7 +652,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- IMPORT (drop zone + how-to) -->
 <div class="section tab-pane upload-section active" id="importPane" data-tab="import">
   <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])"/>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz" onchange="handleFile(this.files[0])"/>
     <div class="drop-icon">📂</div>
     <h3>Drop your RVTools .xlsx file here</h3>
     <p style="margin:0;font-size:.9rem;color:var(--text-muted);font-weight:500;">or click to browse</p>
@@ -1071,6 +1072,7 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="pinned">Pinned groups only</option>
               <option value="active">Active group only</option>
             </select>
+            <button type="button" onclick="exportScenarioBundle()" title="Save data + workspace (groups, OOS, tag rules, plan settings) as a single .rvz scenario file" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">💾 Save scenario</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
@@ -1595,8 +1597,8 @@ function handleFile(file) {
   fi.textContent = `📂 Loading: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)...`;
   // Quick extension sanity check (extension is a hint; magic bytes are authoritative)
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (ext !== 'xlsx' && ext !== 'xls') {
-    showFileError(`"${esc(file.name)}" doesn't look like an Excel file.`, 'Make sure you exported from RVTools as <strong>.xlsx</strong> via <strong>File → Export all to Excel</strong>.');
+  if (ext !== 'xlsx' && ext !== 'xls' && ext !== 'rvz') {
+    showFileError(`"${esc(file.name)}" doesn't look like a supported file.`, 'Upload an RVTools <strong>.xlsx</strong> export, an <strong>.xls</strong> workbook, or a saved <strong>.rvz</strong> scenario.');
     return;
   }
   showToast(`⏳ Parsing ${file.name} (${(file.size/1024/1024).toFixed(1)} MB) — this can take a moment for large estates…`, false, true);
@@ -1734,6 +1736,198 @@ async function idbListDatasets() {
   } finally { db.close(); }
 }
 
+// =====================================================================
+// Scenario (.rvz) format — real ZIP via JSZip
+// =====================================================================
+//
+// .rvz layout:
+//   manifest.json     metadata (schema, appVersion, fingerprints, vmCount, ...)
+//   workspace.json    user customisations (groups, OOS, tagRules, planSettings)
+//   rvtools.xlsx      VERBATIM source bytes — never reserialised so the original
+//                     workbook (formatting, formulas, all tabs) is recoverable
+//
+// On import the magic bytes alone can't distinguish .rvz from .xlsx (both start
+// with PK\x03\x04). The dispatcher peeks inside the zip for a top-level
+// manifest.json; presence => .rvz, absence => assume .xlsx.
+
+const RVZ_SCHEMA_VERSION = 1;
+
+function _collectWorkspaceSnapshot() {
+  // groups: deep clone (members array shared by reference would mutate)
+  const groups = (typeof skurGroups !== 'undefined' && skurGroups)
+    ? skurGroups.map(g => ({ id: g.id, name: g.name, mode: g.mode, members: (g.members || []).slice(), pinned: !!g.pinned }))
+    : [];
+  const oos = (typeof skurOutOfScope !== 'undefined' && skurOutOfScope)
+    ? Object.fromEntries(Object.keys(skurOutOfScope).map(k => [k, { ...skurOutOfScope[k] }]))
+    : {};
+  const tagRules = (typeof skurTagRules !== 'undefined' && skurTagRules)
+    ? skurTagRules.map(r => ({ ...r }))
+    : [];
+  const planSettings = (typeof skurPlan !== 'undefined' && skurPlan)
+    ? { ...skurPlan }
+    : {};
+  return {
+    schema: WORKSPACE_SCHEMA_VERSION,
+    appVersion: APP_VERSION,
+    exportedAt: new Date().toISOString(),
+    groups,
+    outOfScope: oos,
+    tagRules,
+    planSettings,
+  };
+}
+
+function _applyWorkspaceSnapshot(ws) {
+  // ws is already migrated to current schema by caller.
+  if (typeof skurGroups !== 'undefined') {
+    skurGroups.length = 0;
+    for (const g of (ws.groups || [])) {
+      skurGroups.push({ id: g.id, name: g.name, mode: g.mode, members: (g.members || []).slice(), pinned: !!g.pinned });
+    }
+  }
+  if (typeof skurOutOfScope !== 'undefined') {
+    for (const k of Object.keys(skurOutOfScope)) delete skurOutOfScope[k];
+    for (const [k, v] of Object.entries(ws.outOfScope || {})) skurOutOfScope[k] = { ...v };
+  }
+  if (typeof skurTagRules !== 'undefined') {
+    skurTagRules.length = 0;
+    for (const r of (ws.tagRules || [])) skurTagRules.push({ ...r });
+  }
+  if (typeof skurPlan !== 'undefined' && ws.planSettings) {
+    Object.assign(skurPlan, ws.planSettings);
+  }
+}
+
+// Build a .rvz Blob. xlsxBuffer is the verbatim source (from IDB or current upload).
+async function buildScenarioRvz({ xlsxBuffer, sourceFilename, label }) {
+  if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
+  if (!xlsxBuffer) throw new Error('No source RVTools bytes available — re-upload the .xlsx first');
+  const byteSha256 = await computeBufferFingerprint(xlsxBuffer);
+  const workspace = _collectWorkspaceSnapshot();
+  const vmCount = (typeof allVMs !== 'undefined' && Array.isArray(allVMs)) ? allVMs.length : 0;
+  const manifest = {
+    schema: RVZ_SCHEMA_VERSION,
+    appVersion: APP_VERSION,
+    label: label || '',
+    exportedAt: new Date().toISOString(),
+    sourceFilename: sourceFilename || 'rvtools.xlsx',
+    vmCount,
+    byteSha256,
+    workspaceSchema: WORKSPACE_SCHEMA_VERSION,
+  };
+  const zip = new JSZip();
+  zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+  zip.file('workspace.json', JSON.stringify(workspace, null, 2));
+  zip.file('rvtools.xlsx', xlsxBuffer);
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  return { blob, manifest };
+}
+
+// Parse a .rvz buffer. Validates manifest, migrates workspace.
+// Returns { manifest, workspace, xlsxBuffer }.
+async function parseScenarioRvz(buffer) {
+  if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
+  const zip = await JSZip.loadAsync(buffer);
+  const mf = zip.file('manifest.json');
+  if (!mf) throw new Error('Not a scenario file: manifest.json missing');
+  let manifest;
+  try { manifest = JSON.parse(await mf.async('string')); }
+  catch (e) { throw new Error('manifest.json is not valid JSON: ' + e.message); }
+  if (!manifest || typeof manifest !== 'object') throw new Error('manifest.json is not an object');
+  const sv = manifest.schema;
+  if (typeof sv !== 'number' || sv < 1) throw new Error('Invalid scenario: missing or invalid manifest.schema');
+  if (sv > RVZ_SCHEMA_VERSION) throw new Error('Scenario was created by a newer app version (manifest schema v' + sv + '; this build supports v' + RVZ_SCHEMA_VERSION + ')');
+
+  const wsFile = zip.file('workspace.json');
+  if (!wsFile) throw new Error('Not a scenario file: workspace.json missing');
+  let workspace;
+  try { workspace = JSON.parse(await wsFile.async('string')); }
+  catch (e) { throw new Error('workspace.json is not valid JSON: ' + e.message); }
+  workspace = migrateWorkspace(workspace);
+
+  const xlsxFile = zip.file('rvtools.xlsx');
+  if (!xlsxFile) throw new Error('Not a scenario file: rvtools.xlsx missing');
+  const xlsxBuffer = await xlsxFile.async('arraybuffer');
+
+  // Verify byte fingerprint if present (defensive — catches tampered scenarios)
+  if (manifest.byteSha256) {
+    const computed = await computeBufferFingerprint(xlsxBuffer);
+    if (computed !== manifest.byteSha256) {
+      console.warn('[scenario] byteSha256 mismatch (manifest vs payload). Continuing — bytes are authoritative for parse.');
+    }
+  }
+  return { manifest, workspace, xlsxBuffer };
+}
+
+// Distinguish .rvz from .xlsx by peeking for manifest.json inside the zip.
+async function detectZipKind(buffer) {
+  if (typeof JSZip === 'undefined') return 'zip';
+  try {
+    const zip = await JSZip.loadAsync(buffer);
+    return zip.file('manifest.json') ? 'rvz' : 'xlsx';
+  } catch (_) {
+    return 'unknown';
+  }
+}
+
+// Capture source xlsx bytes & fingerprint after a successful parse so a later
+// .rvz export can ship verbatim bytes + workspace without re-asking the user
+// for the file. Stored on window (current session) and IndexedDB (cross-session).
+async function _persistSourceBytes(xlsxBuffer, sourceFilename) {
+  try {
+    const fingerprint = await computeBufferFingerprint(xlsxBuffer);
+    window.__rvtoolsCurrent = {
+      xlsxBuffer,
+      fingerprint,
+      sourceFilename: sourceFilename || 'rvtools.xlsx',
+      vmCount: (typeof allVMs !== 'undefined' && Array.isArray(allVMs)) ? allVMs.length : 0,
+    };
+    await idbPutSourceBytes(fingerprint, xlsxBuffer, {
+      sourceFilename: sourceFilename || 'rvtools.xlsx',
+      vmCount: window.__rvtoolsCurrent.vmCount,
+    });
+  } catch (e) {
+    console.warn('[rvtools] Could not persist source bytes:', e && e.message || e);
+  }
+}
+
+// Public: save current data + workspace as a .rvz scenario file.
+async function exportScenarioBundle() {
+  const cur = window.__rvtoolsCurrent;
+  if (!cur || !cur.xlsxBuffer) {
+    alert('No source RVTools file loaded. Upload an .xlsx first.');
+    return;
+  }
+  const ok = confirm(
+    'Save scenario (.rvz)?\n\n' +
+    'This file contains:\n' +
+    '  • Your complete RVTools .xlsx (all VMs, hosts, datastores)\n' +
+    '  • Your sizing groups, out-of-scope list, tag rules, plan settings\n\n' +
+    'Anyone you share this file with will see your full inventory. ' +
+    'Only share it with people who already have access to the source data.'
+  );
+  if (!ok) return;
+  const label = (prompt('Optional label for this scenario (shown in manifest):', '') || '').trim();
+  try {
+    const { blob, manifest } = await buildScenarioRvz({
+      xlsxBuffer: cur.xlsxBuffer,
+      sourceFilename: cur.sourceFilename,
+      label,
+    });
+    const ts = new Date().toISOString().slice(0,10);
+    const safeLabel = (label || 'scenario').replace(/[^\w.-]+/g, '_').slice(0, 40);
+    const filename = `rvtools_${safeLabel}_${ts}.rvz`;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    showToast(`💾 Saved ${filename} — ${manifest.vmCount} VMs, ${(blob.size/1024/1024).toFixed(1)} MB`);
+  } catch (e) {
+    alert('Could not build scenario: ' + (e && e.message || e));
+  }
+}
+
 
 // Magic-byte detection. Extension and MIME are hints only; this is authoritative.
 //   PK\x03\x04           → 'zip' (xlsx, rvz, or any other zip)
@@ -1847,25 +2041,72 @@ function parseLoadedWorkbook(buffer, file) {
     showToast(`⏳ ${labels[stage] || stage} — ${file.name}`, false, true);
   };
 
-  // Try the worker; fall back to main-thread on worker setup failure.
-  _parseSheetsViaWorker(buffer, onProgress)
+  // For zip buffers, peek inside to disambiguate xlsx from .rvz scenario.
+  const dispatchPromise = (kind === 'zip')
+    ? detectZipKind(buffer).then(zk => zk === 'rvz' ? _loadScenario(buffer, file) : _loadXlsx(buffer, file, onProgress))
+    : _loadXlsx(buffer, file, onProgress);
+
+  dispatchPromise.catch(err => {
+    const m = String(err && err.message || err);
+    if (m.includes('parse-failed') || m.includes('worker-error')) {
+      showFileError(`"${esc(file.name)}" couldn't be parsed as Excel.`, 'Common causes: (1) the file has a <strong>sensitivity label</strong> (e.g. Confidential / Highly Confidential) that blocks browser parsing — re-save it as <em>Public</em> or <em>General</em>; (2) it wasn\'t exported from RVTools as <strong>.xlsx</strong>; or (3) it was opened/edited in another tool — try re-exporting.');
+    } else {
+      showFileError('Something went wrong while processing the file.', `Details: ${esc(m)}`);
+    }
+  });
+}
+
+function _loadXlsx(buffer, file, onProgress) {
+  // Clone for IDB persistence — Worker postMessage transfers (detaches) the original buffer
+  const bufClone = buffer.slice(0);
+  return _parseSheetsViaWorker(buffer, onProgress)
     .catch(err => {
       const m = String(err && err.message || err);
       if (m.startsWith('worker-unavailable') || m.startsWith('worker-postmessage-failed')) {
         console.warn('[rvtools] Web worker unavailable, parsing on main thread:', m);
-        return _parseSheetsSync(buffer);
+        return _parseSheetsSync(bufClone);
       }
       throw err;
     })
-    .then(parsed => _applyParsedSheets(parsed, file))
-    .catch(err => {
-      const m = String(err && err.message || err);
-      if (m.includes('parse-failed') || m.includes('worker-error')) {
-        showFileError(`"${esc(file.name)}" couldn't be parsed as Excel.`, 'Common causes: (1) the file has a <strong>sensitivity label</strong> (e.g. Confidential / Highly Confidential) that blocks browser parsing — re-save it as <em>Public</em> or <em>General</em>; (2) it wasn\'t exported from RVTools as <strong>.xlsx</strong>; or (3) it was opened/edited in another tool — try re-exporting.');
-      } else {
-        showFileError('Something went wrong while processing the file.', `Details: ${esc(m)}`);
-      }
+    .then(parsed => {
+      _applyParsedSheets(parsed, file);
+      // Fire-and-forget persistence (don't block UI on IDB)
+      _persistSourceBytes(bufClone, file.name);
     });
+}
+
+async function _loadScenario(buffer, file) {
+  showToast(`📦 Opening scenario ${file.name}…`, false, true);
+  const { manifest, workspace, xlsxBuffer } = await parseScenarioRvz(buffer);
+  // Parse the embedded xlsx using the same pipeline. xlsxBuffer copy preserved for re-export.
+  const xlsxClone = xlsxBuffer.slice(0);
+  const onProgress = (stage, tab) => {
+    const labels = { 'loading-lib':'Loading parser…', 'parsing':'Parsing embedded xlsx…', 'extracting':`Extracting ${tab||''}…` };
+    showToast(`⏳ ${labels[stage] || stage} — ${file.name}`, false, true);
+  };
+  let parsed;
+  try {
+    parsed = await _parseSheetsViaWorker(xlsxBuffer, onProgress);
+  } catch (e) {
+    const m = String(e && e.message || e);
+    if (m.startsWith('worker-unavailable') || m.startsWith('worker-postmessage-failed')) {
+      parsed = _parseSheetsSync(xlsxClone);
+    } else { throw e; }
+  }
+  _applyParsedSheets(parsed, { name: manifest.sourceFilename || file.name });
+  // Apply the workspace snapshot AFTER VMs are loaded so members validate.
+  try {
+    _applyWorkspaceSnapshot(workspace);
+    if (typeof renderSkurGroups === 'function') renderSkurGroups();
+    if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+    if (typeof renderTagRules === 'function') renderTagRules();
+  } catch (e) {
+    console.warn('[scenario] applyWorkspaceSnapshot failed:', e && e.message || e);
+    showToast('⚠ Scenario opened, but workspace customisations could not be applied.', true);
+  }
+  await _persistSourceBytes(xlsxClone, manifest.sourceFilename || file.name);
+  const lbl = manifest.label ? ` "${manifest.label}"` : '';
+  showToast(`📦 Scenario${lbl} restored — ${manifest.vmCount} VMs, ${(workspace.groups||[]).length} groups`);
 }
 
 function _applyParsedSheets(parsed, file) {
