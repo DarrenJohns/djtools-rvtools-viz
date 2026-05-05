@@ -1633,35 +1633,126 @@ function detectFileKind(buffer) {
   return 'unknown';
 }
 
+// SheetJS CDN URL — kept in sync with the <script src> tag at the top of the file.
+// The web worker imports this same URL via importScripts(); fallback path uses the global XLSX.
+const RVTOOLS_SHEETJS_URL = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+const RVTOOLS_KNOWN_TABS = ['vInfo','vDatastore','vSnapshot','vHost','vDisk','vNetwork','vHealth','vCluster','vCPU','vMemory'];
+
+// Parse an RVTools workbook off the main thread. Resolves to:
+//   { SheetNames:[...], sheets: { <tab>: { sheetName, rows:[...] } } }
+// Falls back to a synchronous main-thread parse if Workers are unavailable
+// (file:// CSP, ancient browser, etc.). Progress callback receives stage strings.
+function _parseSheetsViaWorker(buffer, onProgress) {
+  return new Promise((resolve, reject) => {
+    const src = `
+      self.onmessage = function(e) {
+        const data = e.data;
+        try {
+          self.postMessage({ kind:'progress', stage:'loading-lib' });
+          importScripts(data.sheetjsUrl);
+          self.postMessage({ kind:'progress', stage:'parsing' });
+          const wb = XLSX.read(data.buffer, { type:'array' });
+          const out = { SheetNames: wb.SheetNames, sheets: {} };
+          for (const tab of data.tabs) {
+            const sn = wb.SheetNames.find(s => s.toLowerCase() === tab.toLowerCase());
+            if (sn) {
+              self.postMessage({ kind:'progress', stage:'extracting', tab: tab });
+              out.sheets[tab] = { sheetName: sn, rows: XLSX.utils.sheet_to_json(wb.Sheets[sn], { defval:'' }) };
+            }
+          }
+          self.postMessage({ kind:'done', result: out });
+        } catch (err) {
+          self.postMessage({ kind:'error', message: String((err && err.message) || err) });
+        }
+      };
+    `;
+    let url, worker;
+    try {
+      const blob = new Blob([src], { type: 'application/javascript' });
+      url = URL.createObjectURL(blob);
+      worker = new Worker(url);
+    } catch (e) {
+      if (url) URL.revokeObjectURL(url);
+      return reject(new Error('worker-unavailable: ' + (e && e.message || e)));
+    }
+    const cleanup = () => { try { worker.terminate(); } catch(_){} try { URL.revokeObjectURL(url); } catch(_){} };
+    worker.onerror = (e) => { cleanup(); reject(new Error('worker-error: ' + (e.message || 'unknown'))); };
+    worker.onmessage = (ev) => {
+      const m = ev.data;
+      if (m.kind === 'progress') { try { onProgress && onProgress(m.stage, m.tab); } catch(_){} }
+      else if (m.kind === 'done') { cleanup(); resolve(m.result); }
+      else if (m.kind === 'error') { cleanup(); reject(new Error('parse-failed: ' + m.message)); }
+    };
+    try {
+      // Transferable: zero-copy buffer hand-off to worker
+      worker.postMessage({ buffer: buffer, sheetjsUrl: RVTOOLS_SHEETJS_URL, tabs: RVTOOLS_KNOWN_TABS }, [buffer]);
+    } catch (e) {
+      cleanup();
+      reject(new Error('worker-postmessage-failed: ' + (e && e.message || e)));
+    }
+  });
+}
+
+function _parseSheetsSync(buffer) {
+  const wb = XLSX.read(buffer, { type:'array' });
+  const out = { SheetNames: wb.SheetNames, sheets: {} };
+  for (const tab of RVTOOLS_KNOWN_TABS) {
+    const sn = wb.SheetNames.find(s => s.toLowerCase() === tab.toLowerCase());
+    if (sn) out.sheets[tab] = { sheetName: sn, rows: XLSX.utils.sheet_to_json(wb.Sheets[sn], { defval:'' }) };
+  }
+  return out;
+}
+
 function parseLoadedWorkbook(buffer, file) {
   const fi = document.getElementById('fileInfo');
-    // Magic-byte check — catches files renamed to .xlsx (e.g. workspace.json) before XLSX gets confused
-    const kind = detectFileKind(buffer);
-    if (kind === 'json') {
-      showFileError(`"${esc(file.name)}" looks like JSON, not an Excel workbook.`, 'This appears to be a workspace or scenario file, not an RVTools <strong>.xlsx</strong> export. Make sure you exported from RVTools via <strong>File → Export all to Excel</strong>.');
-      return;
-    }
-    if (kind === 'unknown') {
-      showFileError(`"${esc(file.name)}" doesn't look like an Excel workbook.`, 'The file content does not match the <strong>.xlsx</strong> format (no ZIP signature). It may be corrupt, encrypted, or a different file type renamed to .xlsx. Re-export from RVTools.');
-      return;
-    }
-    // kind === 'zip' (xlsx) or 'cfb' (legacy xls) — proceed; XLSX.read will validate the inner structure
-    let wb;
+  // Magic-byte check — catches files renamed to .xlsx (e.g. workspace.json) before XLSX gets confused
+  const kind = detectFileKind(buffer);
+  if (kind === 'json') {
+    showFileError(`"${esc(file.name)}" looks like JSON, not an Excel workbook.`, 'This appears to be a workspace or scenario file, not an RVTools <strong>.xlsx</strong> export. Make sure you exported from RVTools via <strong>File → Export all to Excel</strong>.');
+    return;
+  }
+  if (kind === 'unknown') {
+    showFileError(`"${esc(file.name)}" doesn't look like an Excel workbook.`, 'The file content does not match the <strong>.xlsx</strong> format (no ZIP signature). It may be corrupt, encrypted, or a different file type renamed to .xlsx. Re-export from RVTools.');
+    return;
+  }
+
+  const onProgress = (stage, tab) => {
+    const labels = { 'loading-lib':'Loading parser…', 'parsing':'Parsing workbook…', 'extracting':`Extracting ${tab||''}…` };
+    showToast(`⏳ ${labels[stage] || stage} — ${file.name}`, false, true);
+  };
+
+  // Try the worker; fall back to main-thread on worker setup failure.
+  _parseSheetsViaWorker(buffer, onProgress)
+    .catch(err => {
+      const m = String(err && err.message || err);
+      if (m.startsWith('worker-unavailable') || m.startsWith('worker-postmessage-failed')) {
+        console.warn('[rvtools] Web worker unavailable, parsing on main thread:', m);
+        return _parseSheetsSync(buffer);
+      }
+      throw err;
+    })
+    .then(parsed => _applyParsedSheets(parsed, file))
+    .catch(err => {
+      const m = String(err && err.message || err);
+      if (m.includes('parse-failed') || m.includes('worker-error')) {
+        showFileError(`"${esc(file.name)}" couldn't be parsed as Excel.`, 'Common causes: (1) the file has a <strong>sensitivity label</strong> (e.g. Confidential / Highly Confidential) that blocks browser parsing — re-save it as <em>Public</em> or <em>General</em>; (2) it wasn\'t exported from RVTools as <strong>.xlsx</strong>; or (3) it was opened/edited in another tool — try re-exporting.');
+      } else {
+        showFileError('Something went wrong while processing the file.', `Details: ${esc(m)}`);
+      }
+    });
+}
+
+function _applyParsedSheets(parsed, file) {
+  const fi = document.getElementById('fileInfo');
     try {
-      wb = XLSX.read(buffer, {type:'array'});
-    } catch (err) {
-      showFileError(`"${esc(file.name)}" couldn't be parsed as Excel.`, 'Common causes: (1) the file has a <strong>sensitivity label</strong> (e.g. Confidential / Highly Confidential) that blocks browser parsing — re-save it as <em>Public</em> or <em>General</em>; (2) it wasn\'t exported from RVTools as <strong>.xlsx</strong>; or (3) it was opened/edited in another tool — try re-exporting.');
-      return;
-    }
-    try {
-      const sheetName = wb.SheetNames.find(s => s.toLowerCase() === 'vinfo');
-      if (!sheetName) {
-        const found = wb.SheetNames.slice(0,5).map(esc).join(', ');
+      const vInfoEntry = parsed.sheets.vInfo;
+      if (!vInfoEntry) {
+        const found = (parsed.SheetNames || []).slice(0,5).map(esc).join(', ');
         showFileError('No <strong>vInfo</strong> sheet found in this file.', `In RVTools use <strong>File → Export all to Excel</strong> (or export at least the vInfo tab). Sheets we found: ${found || 'none'}.`);
         return;
       }
-      const ws = wb.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(ws, {defval:''});
+      const sheetName = vInfoEntry.sheetName;
+      const data = vInfoEntry.rows;
       if (!data.length) {
         showFileError('The vInfo sheet is empty.', 'Confirm the export wasn\'t empty — connect RVTools to a vCenter or host with VMs and re-export.');
         return;
@@ -1686,10 +1777,9 @@ function parseLoadedWorkbook(buffer, file) {
       };
       const detectedTabs = ['vInfo'];
       for (const [tabName, parser] of Object.entries(tabParsers)) {
-        const sn = wb.SheetNames.find(s => s.toLowerCase() === tabName.toLowerCase());
-        if (sn) {
-          const tabData = XLSX.utils.sheet_to_json(wb.Sheets[sn], {defval:''});
-          allData[tabName] = parser(tabData);
+        const entry = parsed.sheets[tabName];
+        if (entry) {
+          allData[tabName] = parser(entry.rows);
           detectedTabs.push(tabName);
         }
       }
