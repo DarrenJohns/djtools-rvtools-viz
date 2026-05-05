@@ -324,6 +324,11 @@ footer strong{opacity:1;}
 .toast.success{border-color:#a5d6a7;}
 .toast.error{border-color:#ef9a9a;color:var(--status-danger);}
 .toast.warning{border-color:#ffe0b2;color:var(--status-warning);}
+/* Cross-tab pause banner — prominent so the user notices */
+.crosstab-banner{position:fixed;top:0;left:0;right:0;z-index:1300;background:#fff3cd;color:#664d03;border-bottom:2px solid #ffc107;padding:10px 16px;text-align:center;font-size:14px;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.15);transform:translateY(-100%);transition:transform .25s ease-out;}
+.crosstab-banner.show{transform:translateY(0);}
+.crosstab-banner .ct-close{margin-left:14px;background:transparent;border:1px solid #664d03;color:#664d03;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;font-weight:600;}
+.crosstab-banner .ct-close:hover{background:#664d03;color:#fff3cd;}
 /* ── Welcome modal ── */
 .welcome-card{max-width:540px;}
 .welcome-banner{background:linear-gradient(135deg,#0f6cbd 0%,#0e4a8a 100%);color:#fff;padding:28px 32px 20px;text-align:center;}
@@ -608,6 +613,10 @@ body.dark .skur-group-chip{color:#b794f4;}
 
 <!-- Toast Container -->
 <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+<div class="crosstab-banner" id="crossTabBanner" role="alert" aria-live="assertive" hidden>
+  <span id="crossTabBannerMsg">⏸ Autosave paused — another tab is editing this workspace.</span>
+  <button type="button" class="ct-close" onclick="hideCrossTabBanner()">Dismiss</button>
+</div>
 
 
 
@@ -2044,6 +2053,23 @@ function _reconcileWorkspaceMembers(snap) {
   return { matchedVmIds, unmatchedVmIds };
 }
 
+function showCrossTabBanner(msg) {
+  const el = document.getElementById('crossTabBanner');
+  if (!el) return;
+  if (msg) {
+    const m = document.getElementById('crossTabBannerMsg');
+    if (m) m.textContent = msg;
+  }
+  el.hidden = false;
+  requestAnimationFrame(() => el.classList.add('show'));
+}
+function hideCrossTabBanner() {
+  const el = document.getElementById('crossTabBanner');
+  if (!el) return;
+  el.classList.remove('show');
+  setTimeout(() => { el.hidden = true; }, 250);
+}
+
 // === Workspace autosave (dataset-aware) + cross-tab coordination ===========
 const RVTOOLS_AUTOSAVE_KEY = 'rvtools.autosave.v1';
 const RVTOOLS_AUTOSAVE_INTERVAL_MS = 8000;
@@ -2097,7 +2123,7 @@ function _skurStartAutosave() {
         else if (m.type === 'present') { _skurOtherTabPresent = true; }
         else if (m.type === 'autosave') {
           _skurOtherTabPresent = true;
-          showToast('⏸ Autosave paused — another tab is editing this workspace.', false, true);
+          showCrossTabBanner('⏸ Autosave paused — another tab is editing this workspace. Close this tab or reload the other to resume.');
         }
       };
       try { _skurBroadcast.postMessage({ type: 'hello' }); } catch (_) {}
@@ -2112,7 +2138,7 @@ function _skurStartAutosave() {
       const ours = _skurAutosaveLast ? JSON.parse(_skurAutosaveLast) : null;
       if (!ours || (incoming.savedAt && incoming.savedAt > ours.savedAt)) {
         _skurOtherTabPresent = true;
-        showToast('⏸ Autosave paused — another tab is editing this workspace.', false, true);
+        showCrossTabBanner('⏸ Autosave paused — another tab is editing this workspace. Close this tab or reload the other to resume.');
       }
     } catch (_) {}
   });
