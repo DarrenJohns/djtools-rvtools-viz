@@ -475,6 +475,8 @@ footer strong{opacity:1;}
 .skur-rule .skur-rule-actions{display:inline-flex;gap:4px;}
 .skur-rule .skur-rule-actions button{background:transparent;border:1px solid transparent;color:var(--text-secondary);width:24px;height:24px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;}
 .skur-rule .skur-rule-actions button:hover{background:var(--bg-layer1);border-color:var(--border-default);color:var(--text-primary);}
+.skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
+.skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 
@@ -1176,11 +1178,6 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
 
       <div class="skur-section">
-        <div class="skur-section-h">🩺 Readiness<span class="skur-pill" id="skurReadinessHint" style="font-weight:400;color:var(--text-tertiary);">click a tile to filter the grid below</span></div>
-        <div class="skur-readiness" id="skurReadinessStrip"></div>
-      </div>
-
-      <div class="skur-section">
         <div class="skur-section-h">🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span></div>
         <div class="skur-bulkbar hidden" id="skurBulkBar">
           <span><strong class="bb-count" id="skurBulkCount">0</strong> selected</span>
@@ -1216,8 +1213,6 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th><select class="skur-filter" data-f="group" onchange="skurOnFilter()"><option value="">All groups</option></select></th>
                 <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()"></th>
                 <th></th>
-                <th></th>
-                <th></th>
               </tr>
               <tr>
                 <th style="width:28px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
@@ -1227,11 +1222,9 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th class="skur-sortable" data-key="os" onclick="skurSort('os')">OS</th>
                 <th class="skur-sortable" data-key="dc" onclick="skurSort('dc')">Datacenter</th>
                 <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
-                <th>Group</th>
+                <th>Group(s)</th>
                 <th>Tags</th>
-                <th class="skur-sortable" data-key="recSku" onclick="skurSort('recSku')" title="Recommended Azure SKU based on group sizing mode + constraints">Recommended SKU</th>
-                <th class="skur-sortable" data-key="recCost" onclick="skurSort('recCost')" title="Estimated monthly cost (compute only, plan currency)" style="text-align:right;">$/mo</th>
-                <th title="Headroom = (SKU capacity − VM usage) / SKU capacity">Headroom</th>
+                <th style="width:36px;" title="Add this VM to a group"></th>
               </tr>
             </thead>
             <tbody id="skurRows"></tbody>
@@ -1240,7 +1233,7 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
 
       <p class="sku-rec-coming-soon" style="margin-top:18px;color:var(--text-muted);font-size:.9rem;">
-        🚧 <strong>More coming next:</strong> per-VM Azure SKU recommendations, sizing groups, tag rules, scenario save/resume.
+        🚧 <strong>Next up:</strong> sizing groups now drive per-group recommendations — pick or create a group, then open it to see SKU + cost + headroom.
         Working off your <span id="skuRecDataSource">loaded RVTools data</span>.
       </p>
     </div>
@@ -4056,6 +4049,8 @@ function skurPopulateFilterOptions() {
 }
 function renderSkurVmGrid() {
   const tb = document.getElementById('skurRows'); if (!tb) return;
+  // Stale sort keys (recSku / recCost) lost their column headers in v1.3 — reset.
+  if (skurSortState.key === 'recSku' || skurSortState.key === 'recCost') { skurSortState.key = null; skurSortState.dir = 1; }
   skurPopulateFilterOptions();
   const total = (allVMs || []).length;
   let rows = skurFilteredVms();
@@ -4120,7 +4115,7 @@ function renderSkurVmGrid() {
     </span>`;
   };
   if (!rows.length) {
-    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="12">No VMs match the current filters.</td></tr>`;
+    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="10">No VMs match the current filters.</td></tr>`;
   } else {
     tb.innerHTML = rows.map((v,i) => {
       const k = skurVmKey(v);
@@ -4141,7 +4136,6 @@ function renderSkurVmGrid() {
       const tagsHtml = tags.length
         ? tags.map(t => `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}</span>`).join('')
         : `<span class="skur-tag-none">—</span>`;
-      const rec = recOf(v);
       const trCls = [checked && 'checked', oos && 'oos-row'].filter(Boolean).join(' ');
       return `<tr${trCls?` class="${trCls}"`:''}>
         <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked ? ' checked' : ''}></td>
@@ -4153,9 +4147,7 @@ function renderSkurVmGrid() {
         <td>${esc(v.cluster)||'—'}</td>
         <td>${groupHtml}</td>
         <td>${tagsHtml}</td>
-        <td>${renderRecCell(rec)}</td>
-        <td style="text-align:right;">${renderCostCell(rec)}</td>
-        <td>${renderHeadroomCell(rec)}</td>
+        <td><button class="skur-row-add" title="Add this VM to a group" onclick="skurRowAddToGroup('${esc(k)}')">＋</button></td>
       </tr>`;
     }).join('');
   }
@@ -4180,6 +4172,20 @@ function skurSort(key) {
   if (skurSortState.key === key) skurSortState.dir *= -1;
   else { skurSortState.key = key; skurSortState.dir = 1; }
   renderSkurVmGrid();
+}
+// Per-row '+ add to group' shortcut: select just this VM and surface the bulk bar.
+function skurRowAddToGroup(vmKey) {
+  if (!vmKey) return;
+  if (typeof skurSelectedKeys === 'undefined') return;
+  skurSelectedKeys.clear();
+  skurSelectedKeys.add(vmKey);
+  if (typeof skurUpdateBulkBar === 'function') skurUpdateBulkBar();
+  renderSkurVmGrid();
+  const sel = document.getElementById('skurBulkAddTo');
+  if (sel) {
+    try { sel.scrollIntoView({behavior:'smooth', block:'nearest'}); } catch(_) {}
+    try { sel.focus(); } catch(_) {}
+  }
 }
 
 // === SKU Recommender Plan settings (Phase 3) ===
