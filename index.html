@@ -878,7 +878,10 @@ body.dark .skur-group-chip{color:#b794f4;}
         <div class="skur-groups-card">
           <div class="skur-groups-head">
             <h4>📂 Sizing groups</h4>
-            <button class="btn" style="margin-left:auto;" onclick="newSkurGroup()">➕ New group</button>
+            <select id="skurAutoGroupSel" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';}">
+              <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
+            </select>
+            <button class="btn" onclick="newSkurGroup()">➕ New group</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-list" id="skurGroupsList"></div>
@@ -2106,6 +2109,17 @@ function renderSkurGroups() {
   const list = document.getElementById('skurGroupsList');
   const empty = document.getElementById('skurGroupsEmpty');
   if (!list || !empty) return;
+  // Refresh auto-group dropdown options whenever groups/rules might have changed.
+  const sel = document.getElementById('skurAutoGroupSel');
+  if (sel) {
+    const keys = [...new Set(skurTagRules.map(r => r.tagKey).filter(Boolean))].sort();
+    const opts = ['<option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>']
+      .concat(keys.length ? keys.map(k => `<option value="${String(k).replace(/"/g,'&quot;')}">by ${String(k).replace(/</g,'&lt;')}</option>`)
+                         : ['<option value="" disabled>No tag rules yet — add one first</option>']);
+    sel.innerHTML = opts.join('');
+    sel.disabled = !keys.length;
+    sel.title = keys.length ? 'Create one sizing group per distinct value of the chosen tag key' : 'Add a tag rule first to enable auto-grouping';
+  }
   if (!skurGroups.length) { empty.style.display = ''; list.innerHTML = ''; return; }
   empty.style.display = 'none';
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -2117,6 +2131,47 @@ function renderSkurGroups() {
       <button title="Delete group" onclick="deleteSkurGroup('${esc(g.id)}')">🗑</button>
     </span>
   </div>`).join('');
+}
+function skurAutoGroupByTag(key) {
+  if (!key) return;
+  // Gather { value -> [vmKey...] } from VMs that resolve a tag with this key.
+  const valueToKeys = new Map();
+  let untaggedSkipped = 0;
+  (allVMs || []).forEach(vm => {
+    const matches = skurTagsForVm(vm).filter(t => t.key === key);
+    if (!matches.length) { untaggedSkipped++; return; }
+    matches.forEach(t => {
+      if (!valueToKeys.has(t.value)) valueToKeys.set(t.value, []);
+      valueToKeys.get(t.value).push(skurVmKey(vm));
+    });
+  });
+  if (!valueToKeys.size) { alert(`No VMs have a "${key}" tag. Add or adjust a tag rule first.`); return; }
+  const distinctValues = [...valueToKeys.keys()].sort();
+  const totalVms = [...new Set([].concat(...valueToKeys.values()))].length;
+  const msg = `Auto-group by "${key}":\n\n` +
+              `• ${distinctValues.length} distinct value${distinctValues.length===1?'':'s'} → up to ${distinctValues.length} group${distinctValues.length===1?'':'s'}\n` +
+              `• ${totalVms} VM${totalVms===1?'':'s'} will be grouped\n` +
+              (untaggedSkipped ? `• ${untaggedSkipped} untagged VM${untaggedSkipped===1?'':'s'} skipped\n` : '') +
+              `\nGroups named "${key}: <value>". Existing groups with the same name will be reused (additive).\n\nProceed?`;
+  if (!confirm(msg)) return;
+  let created = 0, updated = 0, addedMembers = 0;
+  for (const [val, keys] of valueToKeys.entries()) {
+    const name = `${key}: ${val}`;
+    const dedup = [...new Set(keys)];
+    let g = skurGroups.find(x => x.name.toLowerCase() === name.toLowerCase());
+    if (!g) {
+      g = { id: skurNewGroupId(), name, mode: 'balanced', members: dedup, pinned: false };
+      skurGroups.push(g);
+      created++; addedMembers += dedup.length;
+    } else {
+      const before = g.members.length;
+      dedup.forEach(k => { if (!g.members.includes(k)) g.members.push(k); });
+      const delta = g.members.length - before;
+      if (delta > 0) { updated++; addedMembers += delta; }
+    }
+  }
+  renderSkurGroups(); renderSkurVmGrid();
+  alert(`Auto-group complete:\n• ${created} new group${created===1?'':'s'} created\n• ${updated} existing group${updated===1?'':'s'} updated\n• ${addedMembers} membership${addedMembers===1?'':'s'} added`);
 }
 function newSkurGroup(prefilledMembers) {
   const name = (prompt('Name for the new sizing group:') || '').trim();
@@ -2320,6 +2375,7 @@ function saveSkurRule() {
   }
   closeSkurRuleModal();
   renderSkurTagRules();
+  renderSkurGroups();
   renderSkurVmGrid();
 }
 function deleteSkurRule(id) {
@@ -2328,6 +2384,7 @@ function deleteSkurRule(id) {
   if (!confirm(`Delete rule "${skurTagRules[idx].tagKey}:${skurTagRules[idx].tagValue}"?`)) return;
   skurTagRules.splice(idx, 1);
   renderSkurTagRules();
+  renderSkurGroups();
   renderSkurVmGrid();
 }
 
