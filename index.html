@@ -1709,19 +1709,24 @@ function parseRVToolsData(rows) {
       ip: String(find(row,'Primary IP Address','IP Address') || '').trim(),
       dns: String(find(row,'DNS Name') || '').trim(),
       uuid: String(find(row,'VM UUID','UUID') || '').trim(),
+      instanceUuid: String(find(row,'VM UUID','Instance UUID','InstanceUuid') || '').trim(),
+      biosUuid: String(find(row,'BIOS UUID','SMBIOS UUID') || '').trim(),
+      moRef: String(find(row,'VM ID','MoRef','MOID','Object ID') || '').trim(),
+      vcenter: String(find(row,'VI SDK Server','vCenter','VCenter Server') || '').trim(),
       folder: String(find(row,'Folder') || '').trim(),
       annotation: String(find(row,'Annotation','Notes') || '').trim(),
       efiSecureBoot: toBool(find(row,'EFI Secure boot')),
       cbt: toBool(find(row,'CBT')),
     };
   }).filter(v => v && v.name && v.name !== 'Unknown');
-  // Deduplicate: prefer UUID, fall back to name|cluster|dc composite. Keep first occurrence.
+  // Stable identity: prefer strong IDs (instanceUuid > biosUuid > vCenter+moRef) over name. Survives VM rename.
+  for (const v of mapped) v.identity = computeVmIdentity(v);
+  // Deduplicate by stable key. Keep first occurrence.
   const seen = new Map();
   const dups = [];
   const out = [];
   for (const v of mapped) {
-    const key = v.uuid && v.uuid.trim() ? ('uuid:' + v.uuid.trim().toLowerCase())
-              : ('nm:' + v.name.toLowerCase() + '|' + (v.cluster||'').toLowerCase() + '|' + (v.dc||'').toLowerCase());
+    const key = v.identity.key;
     if (seen.has(key)) {
       dups.push({ name: v.name, key, kept: seen.get(key).name });
     } else {
@@ -2444,8 +2449,30 @@ function skurNewGroupId() {
   try { if (window.crypto && crypto.randomUUID) return 'g_' + crypto.randomUUID(); } catch (_) {}
   return 'g_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
-// Stable-ish identity for in-memory MVP. Phase 8 replaces with composite hash (vCenter|DC|cluster|moRef||uuid||name).
-function skurVmKey(vm) { return String(vm.uuid || vm.name || ''); }
+// Stable VM identity. Prefers strong IDs over name so manual tags / OOS / group membership
+// survive VM renames. Hash-free string composite keeps parse synchronous; can be upgraded to
+// sha256 (via crypto.subtle.digest) when scenario round-trip lands.
+function computeVmIdentity(vm) {
+  const norm = s => String(s || '').trim().toLowerCase();
+  const iu = norm(vm.instanceUuid || vm.uuid);
+  const bu = norm(vm.biosUuid);
+  const mo = norm(vm.moRef);
+  const vc = norm(vm.vcenter);
+  const nm = norm(vm.name);
+  const cl = norm(vm.cluster);
+  const dc = norm(vm.dc);
+  let key;
+  if (iu)         key = 'iuid:' + iu;
+  else if (bu)    key = 'buid:' + bu;
+  else if (mo)    key = 'mo:' + vc + '|' + mo;
+  else            key = 'nm:' + nm + '|' + cl + '|' + dc;
+  return { key, name: vm.name, vcenter: vm.vcenter || '', datacenter: vm.dc || '', cluster: vm.cluster || '', moRef: vm.moRef || '', instanceUuid: vm.instanceUuid || vm.uuid || '', biosUuid: vm.biosUuid || '' };
+}
+function skurVmKey(vm) {
+  if (vm && vm.identity && vm.identity.key) return vm.identity.key;
+  // Fallback for VMs constructed outside parse (defensive)
+  return computeVmIdentity(vm || {}).key;
+}
 function skurGroupsForVm(vm) {
   const k = skurVmKey(vm);
   return skurGroups.filter(g => g.members.includes(k));

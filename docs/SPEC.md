@@ -157,6 +157,8 @@ A second-tier "what would this look like in Azure?" view, layered on top of the 
 
 **SKU catalog source.** Live JSON loader (`skurInitLiveData` / `_skurLoadRegionData`) consumes `data/<region>.json`, `<region>-pricing.json`, `<region>-disks.json`, plus shared `regions.json` + `metadata.json`. Falls back to a 40-SKU seed catalog when offline / on `file://`. Catalog refresh is automated via the `refresh-azure-data.yml` workflow (monthly cron) — see [`docs/data-pipeline.md`](data-pipeline.md).
 
+**Stable VM identity.** Every parsed VM gets `vm.identity = {key, name, vcenter, datacenter, cluster, moRef, instanceUuid, biosUuid}`. The `key` is a normalized composite preferring strong IDs over name so manual tags / OOS / group membership survive VM rename: `iuid:<instanceUuid>` → `buid:<biosUuid>` → `mo:<vcenter>|<moRef>` → `nm:<name>|<cluster>|<dc>` (last resort). All in-app keying (`skurVmKey`, OOS map, group members, dedupe in `parseRVToolsData`) flows through this single identity.
+
 **Recommendation algorithm (per VM).**
 1. If the VM is out-of-scope → return `{state:'oos'}`.
 2. If `cpus`/`ram` missing → return `{state:'no-input', mode:'balanced'}`.
