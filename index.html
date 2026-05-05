@@ -1609,6 +1609,51 @@ function handleFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
+// Workspace schema versioning. Bump WORKSPACE_SCHEMA_VERSION on any backwards-incompatible
+// change to the workspace snapshot shape (groups, manualTags, planSettings, OOS, tagRules,
+// recommenderSettings, etc.). Add a numeric migration entry from <oldVersion> to <oldVersion+1>.
+//
+// The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
+// at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
+// .rvz scenarios or workspace.json files.
+const APP_VERSION = '1.1.0-beta';
+const WORKSPACE_SCHEMA_VERSION = 1;
+const WORKSPACE_MIGRATIONS = {
+  // Example for when v2 lands:
+  // 1: (s) => ({ ...s, schema: 2, newField: defaultValue }),
+};
+
+// Walk a snapshot through the migration chain to the current schema.
+// Throws (caller surfaces a toast):
+//   - missing/non-numeric schema  → "Invalid workspace"
+//   - schema > current            → "created by newer app version"
+//   - missing migration step      → "no migration available"
+function migrateWorkspace(snapshot) {
+  if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+    throw new Error('Invalid workspace: not an object.');
+  }
+  let v = snapshot.schema;
+  if (typeof v !== 'number' || !Number.isFinite(v) || v < 1 || Math.floor(v) !== v) {
+    throw new Error('Invalid workspace: missing or invalid "schema" field.');
+  }
+  if (v > WORKSPACE_SCHEMA_VERSION) {
+    throw new Error('Workspace was created by a newer version of this app (schema v' + v + '; this build supports up to v' + WORKSPACE_SCHEMA_VERSION + '). Update the app to open it.');
+  }
+  let s = snapshot;
+  while (v < WORKSPACE_SCHEMA_VERSION) {
+    const step = WORKSPACE_MIGRATIONS[v];
+    if (typeof step !== 'function') {
+      throw new Error('No migration available for workspace schema v' + v + ' -> v' + (v+1) + '.');
+    }
+    s = step(s);
+    if (!s || typeof s !== 'object' || s.schema !== v + 1) {
+      throw new Error('Migration v' + v + ' -> v' + (v+1) + ' produced invalid output.');
+    }
+    v = s.schema;
+  }
+  return s;
+}
+
 // Magic-byte detection. Extension and MIME are hints only; this is authoritative.
 //   PK\x03\x04           → 'zip' (xlsx, rvz, or any other zip)
 //   {  (after BOM/ws)    → 'json'
