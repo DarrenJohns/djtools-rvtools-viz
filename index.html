@@ -382,6 +382,10 @@ footer strong{opacity:1;}
 .skur-rec-headroom .hr-val.good{color:#10b981;}
 .skur-rec-headroom .hr-val.warn{color:#f59e0b;}
 .skur-rec-headroom .hr-val.bad{color:#dc3545;}
+.skur-conf-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;cursor:help;flex-shrink:0;}
+.skur-conf-dot.lvl-high{background:#10b981;box-shadow:0 0 0 2px rgba(16,185,129,.18);}
+.skur-conf-dot.lvl-medium{background:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.18);}
+.skur-conf-dot.lvl-low{background:#dc3545;box-shadow:0 0 0 2px rgba(220,53,69,.18);}
 .skur-elig-chip.is-low{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#f59e0b;}
 .skur-elig-chip.is-empty{background:rgba(220,53,69,.15);border-color:rgba(220,53,69,.4);color:#dc3545;}
 .skur-modal-fieldgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;margin:4px 0 2px;}
@@ -2880,18 +2884,22 @@ function renderSkurVmGrid() {
   const headroomCls = (h) => h >= 0.20 ? 'good' : (h >= 0.10 ? 'warn' : 'bad');
   const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
   const renderRecCell = (rec) => {
-    if (!rec) return `<span class="skur-rec-none">—</span>`;
+    const conf = skurConfidenceFor(rec);
+    const confDot = (rec && rec.state !== 'oos')
+      ? `<span class="skur-conf-dot lvl-${conf.level}" title="Confidence: ${esc(conf.label)}\n${conf.reasons.map(r=>'• '+r).join('\n')}"></span>`
+      : '';
+    if (!rec) return `${confDot}<span class="skur-rec-none">—</span>`;
     if (rec.state === 'oos') return `<span class="skur-rec-none" title="VM marked out of scope">— OOS —</span>`;
-    if (rec.state === 'no-input') return `<span class="skur-rec-none" title="Missing vCPU or RAM on this VM">no input</span>`;
-    if (rec.state === 'no-eligible') return `<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints leave 0 eligible SKUs">no eligible SKU</span>`;
-    if (rec.state === 'no-match') return `<span class="skur-rec-none" title="VM exceeds every eligible SKU's vCPU/RAM in group '${esc(rec.groupName||'')}'">VM too large</span>`;
+    if (rec.state === 'no-input') return `${confDot}<span class="skur-rec-none" title="Missing vCPU or RAM on this VM">no input</span>`;
+    if (rec.state === 'no-eligible') return `${confDot}<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints leave 0 eligible SKUs">no eligible SKU</span>`;
+    if (rec.state === 'no-match') return `${confDot}<span class="skur-rec-none" title="VM exceeds every eligible SKU's vCPU/RAM in group '${esc(rec.groupName||'')}'">VM too large</span>`;
     const sku = rec.sku;
     const fam = (sku.family||'X').toUpperCase();
     const altsTip = rec.alts && rec.alts.length ? `\nAlts: ${rec.alts.map(s=>s.name).join(', ')}` : '';
     const ctx = rec.groupName ? `Group "${rec.groupName}" · ${rec.mode}` : `ungrouped · ${rec.mode}`;
     const tip = `${sku.name} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${sku.processor||'any'}${sku.burstable?' · burstable':''}\n${ctx}${altsTip}`;
     return `<span class="skur-rec-cell" title="${esc(tip)}">
-      <span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="rc-name">${esc(sku.name)}</span>
+      ${confDot}<span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="rc-name">${esc(sku.name)}</span>
       <span class="rc-spec">${sku.vcpu} vCPU · ${sku.ramGb} GB${sku.burstable?' · burst':''}</span>
     </span>`;
   };
@@ -3311,6 +3319,29 @@ function skurRecommendForVm(vm) {
 function skurRecCostMonthly(rec) {
   if (!rec || rec.state !== 'ok' || !rec.sku) return null;
   return skurMonthlyCost(rec.sku, skurPlan);
+}
+// Phase 5 slice 6: confidence rules.
+// High   = full inputs + min headroom ≥ 20% + non-burstable
+// Medium = headroom 10–20% OR recommended SKU is burstable (still fits but not steady-state ideal)
+// Low    = no input, no eligible, no match, or any other unhealthy state
+function skurConfidenceFor(rec) {
+  if (!rec) return { level:'low', label:'Low', reasons:['No recommendation'] };
+  if (rec.state === 'oos') return { level:'low', label:'—', reasons:['VM is out of scope'] };
+  if (rec.state === 'no-input')    return { level:'low', label:'Low', reasons:['Missing vCPU or RAM on the VM record'] };
+  if (rec.state === 'no-eligible') return { level:'low', label:'Low', reasons:[`Group constraints leave 0 eligible SKUs`] };
+  if (rec.state === 'no-match')    return { level:'low', label:'Low', reasons:['VM exceeds every eligible SKU (vCPU or RAM)'] };
+  if (rec.state !== 'ok' || !rec.fit || !rec.sku) return { level:'low', label:'Low', reasons:['Unknown state'] };
+  const reasons = [];
+  let level = 'high';
+  const minH = Math.min(rec.fit.cpuHeadroom, rec.fit.ramHeadroom);
+  if (minH < 0.20) { level = 'medium'; reasons.push(`Tight fit — min headroom ${(minH*100).toFixed(0)}% (target ≥20%)`); }
+  if (rec.sku.burstable) {
+    level = (level === 'high') ? 'medium' : level;
+    reasons.push('Burstable B-series — best for spiky workloads, not 24/7 steady-state');
+  }
+  if (!rec.groupName) reasons.push('VM is ungrouped — using default Balanced mode + full catalog');
+  if (!reasons.length) reasons.push(`Comfortable fit (CPU ${(rec.fit.cpuHeadroom*100).toFixed(0)}% / RAM ${(rec.fit.ramHeadroom*100).toFixed(0)}% headroom) on a non-burstable SKU`);
+  return { level, label: level==='high'?'High':(level==='medium'?'Medium':'Low'), reasons };
 }
 
 // === Phase 5 slice 2 (resumed): per-group eligibility filter ===
