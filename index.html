@@ -652,7 +652,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- IMPORT (drop zone + how-to) -->
 <div class="section tab-pane upload-section active" id="importPane" data-tab="import">
   <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz" onchange="handleFile(this.files[0])"/>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz,.json" onchange="handleFile(this.files[0])"/>
     <div class="drop-icon">📂</div>
     <h3>Drop your RVTools .xlsx file here</h3>
     <p style="margin:0;font-size:.9rem;color:var(--text-muted);font-weight:500;">or click to browse</p>
@@ -1073,6 +1073,11 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="active">Active group only</option>
             </select>
             <button type="button" onclick="exportScenarioBundle()" title="Save data + workspace (groups, OOS, tag rules, plan settings) as a single .rvz scenario file" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">💾 Save scenario</button>
+            <select onchange="if(this.value){exportWorkspaceJson(this.value);this.value='';}" title="Save just the workspace customisations as JSON (no source data). Useful for sharing rules without the inventory." style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">
+              <option value="" disabled selected hidden>📋 Export workspace ▾</option>
+              <option value="full">Full workspace (groups + OOS + rules + settings)</option>
+              <option value="rules">Rules template only (rules + plan settings)</option>
+            </select>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
@@ -1597,8 +1602,8 @@ function handleFile(file) {
   fi.textContent = `📂 Loading: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)...`;
   // Quick extension sanity check (extension is a hint; magic bytes are authoritative)
   const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (ext !== 'xlsx' && ext !== 'xls' && ext !== 'rvz') {
-    showFileError(`"${esc(file.name)}" doesn't look like a supported file.`, 'Upload an RVTools <strong>.xlsx</strong> export, an <strong>.xls</strong> workbook, or a saved <strong>.rvz</strong> scenario.');
+  if (ext !== 'xlsx' && ext !== 'xls' && ext !== 'rvz' && ext !== 'json') {
+    showFileError(`"${esc(file.name)}" doesn't look like a supported file.`, 'Upload an RVTools <strong>.xlsx</strong> export, an <strong>.xls</strong> workbook, a saved <strong>.rvz</strong> scenario, or a workspace <strong>.json</strong> file.');
     return;
   }
   showToast(`⏳ Parsing ${file.name} (${(file.size/1024/1024).toFixed(1)} MB) — this can take a moment for large estates…`, false, true);
@@ -1928,6 +1933,207 @@ async function exportScenarioBundle() {
   }
 }
 
+// Public: save just the workspace customisations as JSON.
+//   kind='full'  -> groups + OOS + rules + plan settings (full restore on same dataset)
+//   kind='rules' -> rules + plan settings only (shareable template; no VM-derived data)
+function exportWorkspaceJson(kind) {
+  const snap = _collectWorkspaceSnapshot();
+  let payload, suffix;
+  if (kind === 'rules') {
+    payload = {
+      schema: snap.schema,
+      appVersion: snap.appVersion,
+      exportedAt: snap.exportedAt,
+      kind: 'rules-template',
+      tagRules: snap.tagRules,
+      planSettings: snap.planSettings,
+    };
+    suffix = 'rules';
+  } else {
+    payload = Object.assign({}, snap, { kind: 'workspace-full' });
+    suffix = 'workspace';
+  }
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const ts = new Date().toISOString().slice(0,10);
+  const filename = `rvtools_${suffix}_${ts}.json`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  const counts = (kind === 'rules')
+    ? `${(snap.tagRules||[]).length} rules`
+    : `${(snap.groups||[]).length} groups, ${Object.keys(snap.outOfScope||{}).length} OOS, ${(snap.tagRules||[]).length} rules`;
+  showToast(`📋 Saved ${filename} — ${counts}`);
+}
+
+// Apply a workspace JSON (full or rules-template) to the loaded inventory.
+async function importWorkspaceJson(buffer, file) {
+  let parsed;
+  try {
+    const text = (typeof buffer === 'string') ? buffer : new TextDecoder('utf-8').decode(buffer);
+    parsed = JSON.parse(text.replace(/^\uFEFF/, ''));
+  } catch (e) {
+    showFileError(`"${esc(file.name)}" is not valid JSON.`, esc(e.message));
+    return;
+  }
+  let snap;
+  try { snap = migrateWorkspace(parsed); }
+  catch (e) {
+    showFileError(`"${esc(file.name)}" workspace is incompatible.`, esc(e.message));
+    return;
+  }
+  if (!Array.isArray(allVMs) || allVMs.length === 0) {
+    if (!confirm('No RVTools data is loaded yet. Apply this workspace anyway?\n\n(Rules and plan settings will apply; group memberships will be empty until you load matching data.)')) return;
+  }
+  const summary = _reconcileWorkspaceMembers(snap);
+  const hasGroups = Array.isArray(snap.groups) && snap.groups.length > 0;
+  if (hasGroups && (summary.unmatchedVmIds.length > 0 || summary.matchedVmIds.length === 0)) {
+    const msg = `Workspace reconciliation:\n\n` +
+                `  • Matched VMs: ${summary.matchedVmIds.length}\n` +
+                `  • Unmatched (kept as unresolved refs): ${summary.unmatchedVmIds.length}\n` +
+                `  • Groups: ${(snap.groups||[]).length}\n` +
+                `  • Rules: ${(snap.tagRules||[]).length}\n\n` +
+                `Apply matched members and keep unmatched refs for re-export?\n` +
+                `(Cancel to abort and keep your current workspace.)`;
+    if (!confirm(msg)) return;
+  }
+  _applyWorkspaceSnapshot(snap);
+  if (typeof renderSkurGroups === 'function') renderSkurGroups();
+  if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+  if (typeof renderTagRules === 'function') renderTagRules();
+  showToast(`📋 Applied ${file.name} — ${summary.matchedVmIds.length} matched, ${summary.unmatchedVmIds.length} unmatched`);
+}
+
+function _reconcileWorkspaceMembers(snap) {
+  const known = new Set();
+  if (Array.isArray(allVMs)) {
+    for (const vm of allVMs) {
+      const k = (typeof skurVmKey === 'function') ? skurVmKey(vm) : (vm && vm.identity && vm.identity.key);
+      if (k) known.add(k);
+    }
+  }
+  const matchedVmIds = []; const unmatchedVmIds = [];
+  if (Array.isArray(snap.groups)) {
+    for (const g of snap.groups) {
+      if (!Array.isArray(g.members)) { g.members = []; continue; }
+      const keep = []; const drop = [];
+      for (const m of g.members) {
+        if (known.has(m)) { keep.push(m); matchedVmIds.push(m); }
+        else { drop.push(m); unmatchedVmIds.push(m); }
+      }
+      g.members = keep;
+      if (drop.length) g._unresolved = drop;
+    }
+  }
+  if (unmatchedVmIds.length > 0) {
+    snap.unresolvedVmRefs = (snap.unresolvedVmRefs || []).concat(unmatchedVmIds);
+  }
+  if (snap.outOfScope && typeof snap.outOfScope === 'object') {
+    const keep = {}; const drop = {};
+    for (const [k,v] of Object.entries(snap.outOfScope)) {
+      if (known.has(k)) { keep[k] = v; matchedVmIds.push(k); }
+      else { drop[k] = v; unmatchedVmIds.push(k); }
+    }
+    snap.outOfScope = keep;
+    if (Object.keys(drop).length) snap._unresolvedOOS = drop;
+  }
+  return { matchedVmIds, unmatchedVmIds };
+}
+
+// === Workspace autosave (dataset-aware) + cross-tab coordination ===========
+const RVTOOLS_AUTOSAVE_KEY = 'rvtools.autosave.v1';
+const RVTOOLS_AUTOSAVE_INTERVAL_MS = 8000;
+let _skurAutosaveLast = '';
+let _skurAutosaveTimer = null;
+let _skurBroadcast = null;
+let _skurOtherTabPresent = false;
+
+function _readAutosave() {
+  try { const raw = localStorage.getItem(RVTOOLS_AUTOSAVE_KEY); return raw ? JSON.parse(raw) : null; }
+  catch (_) { return null; }
+}
+function _writeAutosave(payload) {
+  try { localStorage.setItem(RVTOOLS_AUTOSAVE_KEY, JSON.stringify(payload)); return true; }
+  catch (e) { console.warn('[autosave] write failed:', e && e.message); return false; }
+}
+
+function _skurAutosaveTick() {
+  try {
+    if (_skurOtherTabPresent) return;
+    const cur = window.__rvtoolsCurrent;
+    if (!cur || !cur.fingerprint) return;
+    const ws = _collectWorkspaceSnapshot();
+    const payload = {
+      savedAt: new Date().toISOString(),
+      appVersion: APP_VERSION,
+      dataset: { fingerprint: cur.fingerprint, sourceFilename: cur.sourceFilename, vmCount: cur.vmCount },
+      workspace: ws,
+    };
+    const json = JSON.stringify(payload);
+    if (json === _skurAutosaveLast) return;
+    const existing = _readAutosave();
+    if (existing && existing.savedAt && existing.savedAt > payload.savedAt) return;
+    _writeAutosave(payload);
+    _skurAutosaveLast = json;
+    if (_skurBroadcast) { try { _skurBroadcast.postMessage({ type: 'autosave', savedAt: payload.savedAt, fingerprint: cur.fingerprint }); } catch (_) {} }
+  } catch (e) { console.warn('[autosave] tick failed:', e && e.message); }
+}
+
+function _skurStartAutosave() {
+  if (_skurAutosaveTimer) return;
+  _skurAutosaveTimer = setInterval(_skurAutosaveTick, RVTOOLS_AUTOSAVE_INTERVAL_MS);
+  window.addEventListener('beforeunload', _skurAutosaveTick);
+  if (typeof BroadcastChannel !== 'undefined') {
+    try {
+      _skurBroadcast = new BroadcastChannel('rvtools-viz');
+      _skurBroadcast.onmessage = (ev) => {
+        const m = ev && ev.data; if (!m) return;
+        if (m.type === 'hello') { try { _skurBroadcast.postMessage({ type: 'present' }); } catch (_) {} }
+        else if (m.type === 'present') { _skurOtherTabPresent = true; }
+        else if (m.type === 'autosave') {
+          _skurOtherTabPresent = true;
+          showToast('⏸ Autosave paused — another tab is editing this workspace.', false, true);
+        }
+      };
+      try { _skurBroadcast.postMessage({ type: 'hello' }); } catch (_) {}
+    } catch (_) { _skurBroadcast = null; }
+  }
+}
+
+function _skurMaybeResumeAutosave() {
+  try {
+    const cur = window.__rvtoolsCurrent;
+    const saved = _readAutosave();
+    if (!cur || !saved || !saved.workspace || !saved.dataset) return;
+    if (saved.dataset.fingerprint === cur.fingerprint) {
+      const snap = migrateWorkspace(saved.workspace);
+      _applyWorkspaceSnapshot(snap);
+      if (typeof renderSkurGroups === 'function') renderSkurGroups();
+      if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+      if (typeof renderTagRules === 'function') renderTagRules();
+      showToast(`↩ Resumed autosaved workspace from ${new Date(saved.savedAt).toLocaleString()}`);
+    } else {
+      const ok = confirm(
+        `An autosaved workspace exists from ${new Date(saved.savedAt).toLocaleString()},\n` +
+        `but it was for a different dataset (${saved.dataset.sourceFilename || 'unknown'}, ${saved.dataset.vmCount || '?'} VMs).\n\n` +
+        `Apply matched groups/rules to this dataset? Cancel to discard the autosave.`
+      );
+      if (ok) {
+        const snap = migrateWorkspace(saved.workspace);
+        const summary = _reconcileWorkspaceMembers(snap);
+        _applyWorkspaceSnapshot(snap);
+        if (typeof renderSkurGroups === 'function') renderSkurGroups();
+        if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+        if (typeof renderTagRules === 'function') renderTagRules();
+        showToast(`↩ Reconciled autosave — ${summary.matchedVmIds.length} matched, ${summary.unmatchedVmIds.length} unresolved`);
+      } else {
+        try { localStorage.removeItem(RVTOOLS_AUTOSAVE_KEY); } catch(_){}
+      }
+    }
+  } catch (e) { console.warn('[autosave] resume probe failed:', e && e.message); }
+}
+
 
 // Magic-byte detection. Extension and MIME are hints only; this is authoritative.
 //   PK\x03\x04           → 'zip' (xlsx, rvz, or any other zip)
@@ -2028,8 +2234,7 @@ function parseLoadedWorkbook(buffer, file) {
   // Magic-byte check — catches files renamed to .xlsx (e.g. workspace.json) before XLSX gets confused
   const kind = detectFileKind(buffer);
   if (kind === 'json') {
-    showFileError(`"${esc(file.name)}" looks like JSON, not an Excel workbook.`, 'This appears to be a workspace or scenario file, not an RVTools <strong>.xlsx</strong> export. Make sure you exported from RVTools via <strong>File → Export all to Excel</strong>.');
-    return;
+    return importWorkspaceJson(buffer, file);
   }
   if (kind === 'unknown') {
     showFileError(`"${esc(file.name)}" doesn't look like an Excel workbook.`, 'The file content does not match the <strong>.xlsx</strong> format (no ZIP signature). It may be corrupt, encrypted, or a different file type renamed to .xlsx. Re-export from RVTools.');
@@ -2071,7 +2276,7 @@ function _loadXlsx(buffer, file, onProgress) {
     .then(parsed => {
       _applyParsedSheets(parsed, file);
       // Fire-and-forget persistence (don't block UI on IDB)
-      _persistSourceBytes(bufClone, file.name);
+      _persistSourceBytes(bufClone, file.name).then(() => { _skurMaybeResumeAutosave(); _skurStartAutosave(); });
     });
 }
 
@@ -2105,6 +2310,7 @@ async function _loadScenario(buffer, file) {
     showToast('⚠ Scenario opened, but workspace customisations could not be applied.', true);
   }
   await _persistSourceBytes(xlsxClone, manifest.sourceFilename || file.name);
+  _skurStartAutosave();
   const lbl = manifest.label ? ` "${manifest.label}"` : '';
   showToast(`📦 Scenario${lbl} restored — ${manifest.vmCount} VMs, ${(workspace.groups||[]).length} groups`);
 }
