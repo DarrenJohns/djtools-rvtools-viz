@@ -422,6 +422,13 @@ footer strong{opacity:1;}
 .skur-group-item .gi-actions{display:inline-flex;gap:2px;}
 .skur-group-item .gi-actions button{background:transparent;border:none;color:var(--text-secondary);width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:11px;font-family:inherit;}
 .skur-group-item .gi-actions button:hover{background:var(--bg-layer1);color:var(--text-primary);}
+.skur-oos-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;background:rgba(220,53,69,.08);border:1px solid rgba(220,53,69,.25);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
+.skur-oos-summary .oos-label{color:#dc3545;font-weight:700;}
+.skur-oos-summary .oos-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.3);border-radius:999px;color:#dc3545;font-weight:600;font-size:11px;}
+.skur-oos-summary .oos-restore{background:transparent;border:none;color:var(--text-secondary);text-decoration:underline;cursor:pointer;font:inherit;font-size:11px;padding:0;margin-left:auto;}
+.skur-oos-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.35);border-radius:999px;color:#dc3545;font-weight:600;font-size:11px;margin-right:4px;}
+.skur-table tr.oos-row td{opacity:.55;}
+.skur-table tr.oos-row td:first-child,.skur-table tr.oos-row td:nth-child(2){opacity:1;}
 .skur-group-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:rgba(120,80,200,.12);color:#7d4ed6;font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(120,80,200,.25);}
 body.dark .skur-group-chip{color:#b794f4;}
 /* Bulk bar */
@@ -885,6 +892,7 @@ body.dark .skur-group-chip{color:#b794f4;}
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-list" id="skurGroupsList"></div>
+          <div class="skur-oos-summary" id="skurOosSummary" style="display:none;"></div>
         </div>
       </div>
 
@@ -903,6 +911,14 @@ body.dark .skur-group-chip{color:#b794f4;}
             <option value="" disabled selected hidden>➕ Add to group…</option>
             <optgroup label="Existing groups" id="skurBulkGroupOpts"></optgroup>
             <option value="__new__">+ New group…</option>
+          </select>
+          <select id="skurBulkOos" onchange="skurBulkSetOos(this.value);this.value='';" title="Mark selected VMs as out of scope (excluded from cost roll-ups in Phase 5)">
+            <option value="" disabled selected hidden>🚫 Mark out of scope…</option>
+            <option value="decommission">Decommission</option>
+            <option value="retain">Retain on-prem</option>
+            <option value="migrated">Already migrated</option>
+            <option value="other">Other…</option>
+            <option value="__restore__">↩ Restore to in-scope</option>
           </select>
         </div>
         <div class="skur-table-wrap">
@@ -2095,6 +2111,57 @@ function renderSkuRecommender() {
 // In-memory only; persistence in Phase 8.
 const skurGroups = []; // { id, name, mode:'balanced'|'cost'|'rightsized', members:[vmKey], pinned:false }
 const skurSelectedKeys = new Set();
+// Out-of-scope: vmKey -> { reason, note, at }. Excluded from cost roll-ups (Phase 5).
+const skurOutOfScope = Object.create(null);
+const SKUR_OOS_REASONS = {
+  decommission: { label: 'Decommission', emoji: '🗑' },
+  retain:       { label: 'Retain on-prem', emoji: '🏢' },
+  migrated:     { label: 'Already migrated', emoji: '✅' },
+  other:        { label: 'Other', emoji: '🚫' },
+};
+function skurIsOOS(vm) { return !!skurOutOfScope[skurVmKey(vm)]; }
+function skurOOSEntry(vm) { return skurOutOfScope[skurVmKey(vm)] || null; }
+function skurOOSCount() { return Object.keys(skurOutOfScope).length; }
+function skurMarkOOS(keys, reason, note) {
+  if (!Array.isArray(keys) || !keys.length) return 0;
+  if (!SKUR_OOS_REASONS[reason]) reason = 'other';
+  let n = 0;
+  const at = Date.now();
+  for (const k of keys) { if (!k) continue; skurOutOfScope[k] = { reason, note: note || '', at }; n++; }
+  return n;
+}
+function skurUnmarkOOS(keys) {
+  if (!Array.isArray(keys)) return 0;
+  let n = 0;
+  for (const k of keys) { if (skurOutOfScope[k]) { delete skurOutOfScope[k]; n++; } }
+  return n;
+}
+function skurBulkSetOos(reason) {
+  const keys = [...skurSelectedKeys]; if (!keys.length || !reason) return;
+  if (reason === '__restore__') {
+    const n = skurUnmarkOOS(keys);
+    skurClearSelection(); renderSkurGroups(); renderSkurVmGrid();
+    if (n) alert(`Restored ${n} VM${n===1?'':'s'} to in-scope.`);
+    return;
+  }
+  let note = '';
+  if (reason === 'other') {
+    note = (prompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, '') || '').trim();
+  }
+  const n = skurMarkOOS(keys, reason, note);
+  skurClearSelection(); renderSkurGroups(); renderSkurVmGrid();
+  if (n) {
+    const r = SKUR_OOS_REASONS[reason];
+    alert(`Marked ${n} VM${n===1?'':'s'} as out of scope (${r.label}${note?': '+note:''}).`);
+  }
+}
+function skurRestoreAllOos() {
+  const n = skurOOSCount();
+  if (!n) return;
+  if (!confirm(`Restore all ${n} out-of-scope VM${n===1?'':'s'} back to in-scope?`)) return;
+  for (const k of Object.keys(skurOutOfScope)) delete skurOutOfScope[k];
+  renderSkurGroups(); renderSkurVmGrid();
+}
 function skurNewGroupId() {
   try { if (window.crypto && crypto.randomUUID) return 'g_' + crypto.randomUUID(); } catch (_) {}
   return 'g_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -2120,17 +2187,39 @@ function renderSkurGroups() {
     sel.disabled = !keys.length;
     sel.title = keys.length ? 'Create one sizing group per distinct value of the chosen tag key' : 'Add a tag rule first to enable auto-grouping';
   }
-  if (!skurGroups.length) { empty.style.display = ''; list.innerHTML = ''; return; }
-  empty.style.display = 'none';
-  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-  list.innerHTML = skurGroups.map(g => `<div class="skur-group-item">
-    <span class="gi-name">${esc(g.name)}</span>
-    <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>
-    <span class="gi-actions">
-      <button title="Rename group" onclick="renameSkurGroup('${esc(g.id)}')">✏</button>
-      <button title="Delete group" onclick="deleteSkurGroup('${esc(g.id)}')">🗑</button>
-    </span>
-  </div>`).join('');
+  if (!skurGroups.length) { empty.style.display = ''; list.innerHTML = ''; }
+  else {
+    empty.style.display = 'none';
+    const escG = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    list.innerHTML = skurGroups.map(g => `<div class="skur-group-item">
+      <span class="gi-name">${escG(g.name)}</span>
+      <span class="gi-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>
+      <span class="gi-actions">
+        <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏</button>
+        <button title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑</button>
+      </span>
+    </div>`).join('');
+  }
+  // Out-of-scope summary
+  const oosBox = document.getElementById('skurOosSummary');
+  if (oosBox) {
+    const total = skurOOSCount();
+    if (!total) { oosBox.style.display = 'none'; oosBox.innerHTML = ''; }
+    else {
+      const escS = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+      const counts = {};
+      for (const k of Object.keys(skurOutOfScope)) {
+        const r = skurOutOfScope[k].reason || 'other';
+        counts[r] = (counts[r] || 0) + 1;
+      }
+      const chips = Object.keys(SKUR_OOS_REASONS)
+        .filter(r => counts[r])
+        .map(r => `<span class="oos-chip" title="${escS(SKUR_OOS_REASONS[r].label)}">${SKUR_OOS_REASONS[r].emoji} ${escS(SKUR_OOS_REASONS[r].label)} ${counts[r]}</span>`)
+        .join('');
+      oosBox.innerHTML = `<span class="oos-label">🚫 Out of scope:</span> <strong>${total} VM${total===1?'':'s'}</strong> ${chips} <button class="oos-restore" onclick="skurRestoreAllOos()">Restore all</button>`;
+      oosBox.style.display = '';
+    }
+  }
 }
 function skurAutoGroupByTag(key) {
   if (!key) return;
@@ -2459,7 +2548,10 @@ function skurFilteredVms() {
     if (f.cluster && String(v.cluster||'') !== f.cluster) return false;
     if (f.group) {
       const gs = skurGroupsForVm(v);
-      if (f.group === '__ungrouped__') { if (gs.length) return false; }
+      const isOos = skurIsOOS(v);
+      if (f.group === '__ungrouped__') { if (gs.length || isOos) return false; }
+      else if (f.group === '__oos__') { if (!isOos) return false; }
+      else if (f.group === '__inscope__') { if (isOos) return false; }
       else if (!gs.some(g => g.id === f.group)) return false;
     }
     if (rdKey) { const flags = skurReadinessFlagsFor(v); if (!flags[rdKey]) return false; }
@@ -2488,7 +2580,11 @@ function skurPopulateFilterOptions() {
     const cur = skurFilters.group;
     const opts = [`<option value="">All groups</option>`]
       .concat(skurGroups.map(g => `<option value="${g.id}"${g.id===cur?' selected':''}>${String(g.name).replace(/</g,'&lt;')} (${g.members.length})</option>`))
-      .concat([`<option value="__ungrouped__"${cur==='__ungrouped__'?' selected':''}>— Ungrouped —</option>`]);
+      .concat([`<option value="__ungrouped__"${cur==='__ungrouped__'?' selected':''}>— Ungrouped —</option>`])
+      .concat(skurOOSCount() ? [
+        `<option value="__oos__"${cur==='__oos__'?' selected':''}>🚫 Out of scope (${skurOOSCount()})</option>`,
+        `<option value="__inscope__"${cur==='__inscope__'?' selected':''}>✓ In scope only</option>`,
+      ] : []);
     gel.innerHTML = opts.join('');
   }
   const cb = document.getElementById('skurFilterClear');
@@ -2518,18 +2614,22 @@ function renderSkurVmGrid() {
   } else {
     tb.innerHTML = rows.map((v,i) => {
       const k = skurVmKey(v);
-      const checked = skurSelectedKeys.has(k) ? ' checked' : '';
-      const trCls = checked ? ' class="checked"' : '';
+      const checked = skurSelectedKeys.has(k);
       const gs = skurGroupsForVm(v);
-      const groupHtml = gs.length
+      const oos = skurOOSEntry(v);
+      const oosChipHtml = oos
+        ? `<span class="skur-oos-chip" title="Out of scope · ${esc(SKUR_OOS_REASONS[oos.reason]?.label || 'Other')}${oos.note?' · '+esc(oos.note):''}">${SKUR_OOS_REASONS[oos.reason]?.emoji || '🚫'} ${esc(SKUR_OOS_REASONS[oos.reason]?.label || 'Out of scope')}</span>`
+        : '';
+      const groupHtml = (oosChipHtml) + (gs.length
         ? gs.map(g => `<span class="skur-group-chip" title="In group ${esc(g.name)}">📂 ${esc(g.name)}</span>`).join('')
-        : `<span class="skur-ungrouped">— ungrouped —</span>`;
+        : (oos ? '' : `<span class="skur-ungrouped">— ungrouped —</span>`));
       const tags = skurTagsForVm(v);
       const tagsHtml = tags.length
         ? tags.map(t => `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}</span>`).join('')
         : `<span class="skur-tag-none">—</span>`;
-      return `<tr${trCls}>
-        <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked}></td>
+      const trCls = [checked && 'checked', oos && 'oos-row'].filter(Boolean).join(' ');
+      return `<tr${trCls?` class="${trCls}"`:''}>
+        <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked ? ' checked' : ''}></td>
         <td class="num" style="color:var(--text-tertiary);">${i+1}</td>
         <td><strong>${esc(v.name)||'<em>—</em>'}</strong></td>
         <td class="num">${v.cpus??'?'} / ${v.ram??'?'}</td>
