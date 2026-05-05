@@ -1057,6 +1057,13 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
             </select>
             <button class="btn" onclick="newSkurGroup()">➕ New group</button>
+            <select id="skurExportSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
+              <option value="" disabled selected hidden>📥 Export CSV ▾</option>
+              <option value="active">Active group only</option>
+              <option value="all">All groups (combined)</option>
+              <option value="oos">Out-of-scope only</option>
+              <option value="everything">Everything (groups + OOS + ungrouped)</option>
+            </select>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
@@ -3719,6 +3726,75 @@ function skurRecommendForVm(vm) {
 function skurRecCostMonthly(rec) {
   if (!rec || rec.state !== 'ok' || !rec.sku) return null;
   return skurMonthlyCost(rec.sku, skurPlan);
+}
+
+// CSV export — per-group / all / OOS / everything
+function skurExportCsv(scope) {
+  scope = scope || 'all';
+  const headers = ['Group','Mode','VM','OS','vCPU','RAM_GB','Cluster','Datacentre','Powered','OOS_Reason',
+                   'Recommended_SKU','SKU_Family','SKU_vCPU','SKU_RAM_GB','Monthly_Cost','Currency',
+                   'CPU_Headroom_Pct','RAM_Headroom_Pct','Confidence','State','Alt_SKUs'];
+  const rows = [];
+  const byKey = new Map((typeof allVMs !== 'undefined' && allVMs ? allVMs : []).map(v => [skurVmKey(v), v]));
+  const fmtPct = n => (n == null || !isFinite(n)) ? '' : (n * 100).toFixed(1);
+  const addVm = (vm, groupName, modeLbl) => {
+    if (!vm) return;
+    let rec = null; try { rec = skurRecommendForVm(vm); } catch (_) {}
+    const oos = skurOOSEntry(vm);
+    const conf = (typeof skurConfidenceFor === 'function') ? skurConfidenceFor(rec) : { label: '' };
+    const cost = skurRecCostMonthly(rec);
+    const sku = (rec && rec.sku) ? rec.sku : null;
+    const alts = (rec && Array.isArray(rec.alts)) ? rec.alts.map(s => s && s.name).filter(Boolean).join(' | ') : '';
+    rows.push([
+      groupName || '',
+      modeLbl || '',
+      vm.name || '',
+      vm.os || vm.guestOS || '',
+      vm.cpus != null ? vm.cpus : '',
+      vm.ram != null ? vm.ram : '',
+      vm.cluster || '',
+      vm.dc || vm.datacenter || '',
+      vm.powerstate || vm.powered || '',
+      oos ? (oos.reason + (oos.note ? ' — ' + oos.note : '')) : '',
+      sku ? sku.name : (rec ? '[' + rec.state + ']' : ''),
+      sku ? sku.family : '',
+      sku ? sku.vcpu : '',
+      sku ? sku.ramGb : '',
+      cost != null ? cost.toFixed(2) : '',
+      (skurPlan && skurPlan.currency) || 'USD',
+      rec && rec.fit ? fmtPct(rec.fit.cpuHeadroom) : '',
+      rec && rec.fit ? fmtPct(rec.fit.ramHeadroom) : '',
+      conf.label || '',
+      rec ? rec.state : '',
+      alts,
+    ]);
+  };
+
+  if (scope === 'active') {
+    if (!skurActiveGroupId) { alert('No active group selected. Click a group in the rail first.'); return; }
+    if (skurActiveGroupId === '__oos__') {
+      Object.keys(skurOutOfScope).forEach(k => addVm(byKey.get(k), '(out of scope)', ''));
+    } else {
+      const g = skurGroups.find(x => x.id === skurActiveGroupId);
+      if (!g) { alert('Active group not found.'); return; }
+      g.members.forEach(k => addVm(byKey.get(k), g.name, g.mode));
+    }
+  } else if (scope === 'oos') {
+    Object.keys(skurOutOfScope).forEach(k => addVm(byKey.get(k), '(out of scope)', ''));
+  } else { // 'all' or 'everything'
+    skurGroups.forEach(g => g.members.forEach(k => addVm(byKey.get(k), g.name, g.mode)));
+    if (scope === 'everything') {
+      Object.keys(skurOutOfScope).forEach(k => addVm(byKey.get(k), '(out of scope)', ''));
+      const grouped = new Set();
+      skurGroups.forEach(g => g.members.forEach(k => grouped.add(k)));
+      (typeof allVMs !== 'undefined' && allVMs ? allVMs : []).forEach(v => {
+        const k = skurVmKey(v);
+        if (!grouped.has(k) && !skurOutOfScope[k]) addVm(v, '(ungrouped)', '');
+      });
+    }
+  }
+  if (!rows.length) { alert('No rows to export for this scope.'); return; }
+  _downloadCSV('rvtools_skur_' + scope, headers, rows);
 }
 // Phase 5 slice 6: confidence rules.
 // High   = full inputs + min headroom ≥ 20% + non-burstable
