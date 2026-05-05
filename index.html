@@ -380,6 +380,12 @@ footer strong{opacity:1;}
 .skur-rd.miss{border-color:rgba(15,108,189,.4);background:rgba(15,108,189,.08);}
 .skur-rd-clear{margin-left:auto;align-self:center;background:transparent;border:none;color:var(--text-secondary);font-size:11px;cursor:pointer;text-decoration:underline;font-family:inherit;}
 .skur-rd-clear:disabled{opacity:.4;cursor:not-allowed;text-decoration:none;}
+.skur-tagrules{border:1px dashed var(--border-default);border-radius:var(--radius-md);padding:14px 16px;background:var(--bg-layer1);}
+.skur-tagrules-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.skur-tagrules-head h4{margin:0;font-size:.95rem;font-weight:700;color:var(--text);}
+.skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 10px;}
+.skur-tagrules .btn-disabled{opacity:.6;cursor:not-allowed;}
+.skur-tagrules .skur-soon{margin-left:auto;font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
 </style>
 </head>
 <body>
@@ -813,7 +819,18 @@ footer strong{opacity:1;}
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
 
       <div class="skur-section">
-        <div class="skur-section-h">🩺 Readiness <span class="skur-pill" id="skurReadinessHint" style="font-weight:400;color:var(--text-tertiary);">click a tile to filter the grid below</span></div>
+        <div class="skur-tagrules">
+          <div class="skur-tagrules-head">
+            <h4>🏷️ Tag rules</h4>
+            <span class="skur-soon">Coming soon</span>
+          </div>
+          <p class="skur-tagrules-empty">No tag rules yet. Tag rules will let you auto-group VMs by name patterns, OS, cluster, or custom criteria — and feed sizing decisions in the recommendation engine.</p>
+          <button class="btn btn-disabled" disabled title="Coming in Phase 4 — auto-group by tag">➕ Add rule</button>
+        </div>
+      </div>
+
+      <div class="skur-section">
+        <div class="skur-section-h">🩺 Readiness<span class="skur-pill" id="skurReadinessHint" style="font-weight:400;color:var(--text-tertiary);">click a tile to filter the grid below</span></div>
         <div class="skur-readiness" id="skurReadinessStrip"></div>
       </div>
 
