@@ -364,6 +364,24 @@ footer strong{opacity:1;}
 .skur-data-pill .dp-count{font-weight:700;color:var(--text-primary);}
 .skur-data-pill.is-warn .dp-count{color:#f59e0b;}
 .skur-elig-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);border-radius:999px;color:var(--brand-primary);font-size:10px;font-weight:700;cursor:help;}
+.skur-rec-cell{font-family:var(--font-mono,'Consolas',monospace);font-size:12px;line-height:1.3;}
+.skur-rec-cell .rc-name{font-weight:700;color:var(--text-primary);}
+.skur-rec-cell .rc-spec{display:block;color:var(--text-tertiary);font-size:10px;margin-top:1px;}
+.skur-rec-fam{display:inline-block;width:18px;height:18px;border-radius:4px;font-size:10px;font-weight:800;text-align:center;line-height:18px;margin-right:5px;vertical-align:middle;color:#fff;}
+.skur-rec-fam.fam-B{background:#7c3aed;}
+.skur-rec-fam.fam-D{background:#0ea5e9;}
+.skur-rec-fam.fam-E{background:#10b981;}
+.skur-rec-fam.fam-F{background:#f59e0b;}
+.skur-rec-fam.fam-X{background:#64748b;}
+.skur-rec-none{color:var(--text-tertiary);font-style:italic;font-size:11px;}
+.skur-rec-cost{font-family:var(--font-mono,'Consolas',monospace);font-weight:700;color:var(--text-primary);text-align:right;white-space:nowrap;}
+.skur-rec-cost .rc-mode{display:block;font-weight:500;font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.4px;}
+.skur-rec-headroom{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;font-family:var(--font-mono,'Consolas',monospace);font-size:11px;font-weight:700;}
+.skur-rec-headroom .hr-row{display:inline-flex;align-items:center;gap:4px;}
+.skur-rec-headroom .hr-lbl{color:var(--text-tertiary);font-weight:500;font-size:10px;width:24px;}
+.skur-rec-headroom .hr-val.good{color:#10b981;}
+.skur-rec-headroom .hr-val.warn{color:#f59e0b;}
+.skur-rec-headroom .hr-val.bad{color:#dc3545;}
 .skur-elig-chip.is-low{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#f59e0b;}
 .skur-elig-chip.is-empty{background:rgba(220,53,69,.15);border-color:rgba(220,53,69,.4);color:#dc3545;}
 .skur-modal-fieldgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;margin:4px 0 2px;}
@@ -999,6 +1017,9 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th><select class="skur-filter" data-f="cluster" onchange="skurOnFilter()"><option value="">All clusters</option></select></th>
                 <th><select class="skur-filter" data-f="group" onchange="skurOnFilter()"><option value="">All groups</option></select></th>
                 <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()"></th>
+                <th></th>
+                <th></th>
+                <th></th>
               </tr>
               <tr>
                 <th style="width:28px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
@@ -1010,6 +1031,9 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
                 <th>Group</th>
                 <th>Tags</th>
+                <th class="skur-sortable" data-key="recSku" onclick="skurSort('recSku')" title="Recommended Azure SKU based on group sizing mode + constraints">Recommended SKU</th>
+                <th class="skur-sortable" data-key="recCost" onclick="skurSort('recCost')" title="Estimated monthly cost (compute only, plan currency)" style="text-align:right;">$/mo</th>
+                <th title="Headroom = (SKU capacity − VM usage) / SKU capacity">Headroom</th>
               </tr>
             </thead>
             <tbody id="skurRows"></tbody>
@@ -2742,10 +2766,19 @@ function renderSkurVmGrid() {
   skurPopulateFilterOptions();
   const total = (allVMs || []).length;
   let rows = skurFilteredVms();
+  // Pre-compute recommendations once so sort + render share the same data.
+  const recMap = new Map();
+  rows.forEach(v => { try { recMap.set(skurVmKey(v), skurRecommendForVm(v)); } catch(_) { recMap.set(skurVmKey(v), null); } });
+  const recOf = (v) => recMap.get(skurVmKey(v)) || null;
   const k = skurSortState.key, d = skurSortState.dir;
   if (k) {
+    const skuSortVal = (v) => { const r = recOf(v); return (r && r.state==='ok' && r.sku) ? r.sku.name : null; };
+    const costSortVal = (v) => { const r = recOf(v); const c = skurRecCostMonthly(r); return (typeof c === 'number' && isFinite(c)) ? c : null; };
     rows = [...rows].sort((a,b) => {
-      let va = a[k], vb = b[k];
+      let va, vb;
+      if (k === 'recSku')      { va = skuSortVal(a);  vb = skuSortVal(b); }
+      else if (k === 'recCost'){ va = costSortVal(a); vb = costSortVal(b); }
+      else                     { va = a[k];           vb = b[k]; }
       if (va==null||va==='') va=null; if (vb==null||vb==='') vb=null;
       if (va==null && vb==null) return 0;
       if (va==null) return 1; if (vb==null) return -1;
@@ -2756,8 +2789,41 @@ function renderSkurVmGrid() {
     });
   }
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const fmtPct = (n) => `${Math.round(n*100)}%`;
+  const headroomCls = (h) => h >= 0.20 ? 'good' : (h >= 0.10 ? 'warn' : 'bad');
+  const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
+  const renderRecCell = (rec) => {
+    if (!rec) return `<span class="skur-rec-none">—</span>`;
+    if (rec.state === 'oos') return `<span class="skur-rec-none" title="VM marked out of scope">— OOS —</span>`;
+    if (rec.state === 'no-input') return `<span class="skur-rec-none" title="Missing vCPU or RAM on this VM">no input</span>`;
+    if (rec.state === 'no-eligible') return `<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints leave 0 eligible SKUs">no eligible SKU</span>`;
+    if (rec.state === 'no-match') return `<span class="skur-rec-none" title="VM exceeds every eligible SKU's vCPU/RAM in group '${esc(rec.groupName||'')}'">VM too large</span>`;
+    const sku = rec.sku;
+    const fam = (sku.family||'X').toUpperCase();
+    const altsTip = rec.alts && rec.alts.length ? `\nAlts: ${rec.alts.map(s=>s.name).join(', ')}` : '';
+    const ctx = rec.groupName ? `Group "${rec.groupName}" · ${rec.mode}` : `ungrouped · ${rec.mode}`;
+    const tip = `${sku.name} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${sku.processor||'any'}${sku.burstable?' · burstable':''}\n${ctx}${altsTip}`;
+    return `<span class="skur-rec-cell" title="${esc(tip)}">
+      <span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="rc-name">${esc(sku.name)}</span>
+      <span class="rc-spec">${sku.vcpu} vCPU · ${sku.ramGb} GB${sku.burstable?' · burst':''}</span>
+    </span>`;
+  };
+  const renderCostCell = (rec) => {
+    if (!rec || rec.state !== 'ok') return `<span class="skur-rec-none">—</span>`;
+    const m = skurRecCostMonthly(rec);
+    if (typeof m !== 'number' || !isFinite(m)) return `<span class="skur-rec-none">—</span>`;
+    return `<span class="skur-rec-cost" title="Plan: ${esc(skurPlan.region)} · ${esc(skurPlan.term)} · ${esc(skurPlan.currency)}\nMode: ${esc(rec.mode)}">${esc(skurFormatMoney(m, skurPlan.currency))}<span class="rc-mode">${modeEmoji(rec.mode)} ${esc(rec.mode)}</span></span>`;
+  };
+  const renderHeadroomCell = (rec) => {
+    if (!rec || rec.state !== 'ok' || !rec.fit) return `<span class="skur-rec-none">—</span>`;
+    const f = rec.fit;
+    return `<span class="skur-rec-headroom" title="CPU: ${f.vCpu} of ${f.skuCpu} vCPU used\nRAM: ${f.vRam} of ${f.skuRam} GB used">
+      <span class="hr-row"><span class="hr-lbl">CPU</span><span class="hr-val ${headroomCls(f.cpuHeadroom)}">${fmtPct(f.cpuHeadroom)}</span></span>
+      <span class="hr-row"><span class="hr-lbl">RAM</span><span class="hr-val ${headroomCls(f.ramHeadroom)}">${fmtPct(f.ramHeadroom)}</span></span>
+    </span>`;
+  };
   if (!rows.length) {
-    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="9">No VMs match the current filters.</td></tr>`;
+    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="12">No VMs match the current filters.</td></tr>`;
   } else {
     tb.innerHTML = rows.map((v,i) => {
       const k = skurVmKey(v);
@@ -2778,6 +2844,7 @@ function renderSkurVmGrid() {
       const tagsHtml = tags.length
         ? tags.map(t => `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}</span>`).join('')
         : `<span class="skur-tag-none">—</span>`;
+      const rec = recOf(v);
       const trCls = [checked && 'checked', oos && 'oos-row'].filter(Boolean).join(' ');
       return `<tr${trCls?` class="${trCls}"`:''}>
         <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked ? ' checked' : ''}></td>
@@ -2789,6 +2856,9 @@ function renderSkurVmGrid() {
         <td>${esc(v.cluster)||'—'}</td>
         <td>${groupHtml}</td>
         <td>${tagsHtml}</td>
+        <td>${renderRecCell(rec)}</td>
+        <td style="text-align:right;">${renderCostCell(rec)}</td>
+        <td>${renderHeadroomCell(rec)}</td>
       </tr>`;
     }).join('');
   }
@@ -3034,6 +3104,7 @@ function skurShowDataPillInfo() {
 document.addEventListener('skurPlanChanged', updateSkurDataPill);
 // Region change also affects per-group eligibility chips.
 document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
+document.addEventListener('skurPlanChanged', () => { try { renderSkurVmGrid(); } catch (_) {} });
 
 // === Phase 5 slice 3: mode scorers (Balanced / Cost / Right-sized) ===
 // All scoring functions return a number where LOWER is better. Infinity = ineligible.
@@ -3056,8 +3127,8 @@ function skurFitFor(vm, sku) {
   return {
     vCpu, vRam,
     skuCpu: sku.vcpu, skuRam: sku.ramGb,
-    cpuHeadroom: (sku.vcpu - vCpu) / vCpu,
-    ramHeadroom: (sku.ramGb - vRam) / vRam,
+    cpuHeadroom: (sku.vcpu - vCpu) / sku.vcpu,
+    ramHeadroom: (sku.ramGb - vRam) / sku.ramGb,
     wastedCpu: sku.vcpu - vCpu,
     wastedRam: sku.ramGb - vRam,
   };
@@ -3111,6 +3182,49 @@ try { window.skurDebugScore = function(vmName, mode) {
   const ranked = skurRankCandidates(vm, eligible, mode || 'balanced', skurPlan);
   return ranked.slice(0, 5).map(r => ({ sku: r.sku.name, vcpu: r.sku.vcpu, ramGb: r.sku.ramGb, hourlyUsd: r.sku.hourlyUsd, score: r.score.toFixed(4) }));
 }; } catch (_) {}
+
+// === Phase 5 slice 4: per-VM recommendation resolver ===
+// Picks the SKU candidate set + sizing mode from the VM's group context, then ranks.
+// Returns one of:
+//   { state:'oos' }                                          — VM marked out of scope
+//   { state:'no-input', mode }                               — missing cpus/ram on VM
+//   { state:'no-eligible', mode, groupName }                 — group constraints eliminate everything
+//   { state:'no-match',   mode, groupName, eligibleCount }   — eligible exists but VM exceeds every fit
+//   { state:'ok', sku, fit, score, mode, groupName, alts }   — happy path
+function skurRecommendForVm(vm) {
+  if (!vm) return null;
+  if (skurOOSEntry(vm)) return { state: 'oos' };
+  const cpus = Number(vm.cpus), ram = Number(vm.ram);
+  if (!cpus || !ram || !isFinite(cpus) || !isFinite(ram)) {
+    return { state: 'no-input', mode: 'balanced' };
+  }
+  const groups = (skurGroupsForVm(vm) || []);
+  let mode = 'balanced';
+  let eligible;
+  let groupName = null;
+  if (groups.length === 1) {
+    const g = groups[0];
+    mode = skurNormaliseMode(g.mode);
+    eligible = skurEligibleSkusForGroup(g, skurPlan.region);
+    groupName = g.name;
+  } else {
+    // Ungrouped or multi-group: balanced + full catalog (no group constraints applied).
+    eligible = skurCatalogForRegion(skurPlan.region);
+  }
+  if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName };
+  const ranked = skurRankCandidates(vm, eligible, mode, skurPlan);
+  if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length };
+  return {
+    state: 'ok', mode, groupName,
+    sku: ranked[0].sku, fit: ranked[0].fit, score: ranked[0].score,
+    alts: ranked.slice(1, 3).map(r => r.sku),
+    eligibleCount: eligible.length,
+  };
+}
+function skurRecCostMonthly(rec) {
+  if (!rec || rec.state !== 'ok' || !rec.sku) return null;
+  return skurMonthlyCost(rec.sku, skurPlan);
+}
 
 // === Phase 5 slice 2 (resumed): per-group eligibility filter ===
 const SKUR_GROUP_CONSTRAINT_DEFAULTS = Object.freeze({
