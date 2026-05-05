@@ -2415,13 +2415,17 @@ function skurDupVmKeys() {
 }
 // Phase 7: active-group state for rail/panel layout.
 let skurActiveGroupId = null; // group id, or '__oos__' for OOS view, or null
-let skurGroupsView = 'rail'; // 'rail' | 'board'
+let skurGroupsView = (() => {
+  try { const v = localStorage.getItem('skur.groupsView'); return (v === 'board' || v === 'rail') ? v : 'rail'; }
+  catch (_) { return 'rail'; }
+})(); // 'rail' | 'board'
 function skurSetActiveGroup(id) {
   skurActiveGroupId = id || null;
   renderSkurGroups();
 }
 function skurSetGroupsView(v) {
   skurGroupsView = (v === 'board') ? 'board' : 'rail';
+  try { localStorage.setItem('skur.groupsView', skurGroupsView); } catch (_) {}
   renderSkurGroups();
 }
 function skurTogglePin(id) {
