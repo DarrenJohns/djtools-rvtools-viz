@@ -386,6 +386,30 @@ footer strong{opacity:1;}
 .skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 10px;}
 .skur-tagrules .btn-disabled{opacity:.6;cursor:not-allowed;}
 .skur-tagrules .skur-soon{margin-left:auto;font-size:11px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;font-weight:600;}
+/* Tag rules list + chips + modal */
+.skur-rules-list{margin:8px 0 10px;display:flex;flex-direction:column;gap:6px;}
+.skur-rule{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-primary);}
+.skur-rule .skur-rule-cond{font-family:'Cascadia Code','Consolas',monospace;color:var(--text-secondary);}
+.skur-rule .skur-rule-arrow{color:var(--text-tertiary);}
+.skur-rule .skur-rule-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:rgba(15,108,189,.12);color:var(--brand-primary);font-weight:600;font-size:11px;}
+.skur-rule .skur-rule-meta{margin-left:auto;color:var(--text-tertiary);font-size:11px;}
+.skur-rule .skur-rule-actions{display:inline-flex;gap:4px;}
+.skur-rule .skur-rule-actions button{background:transparent;border:1px solid transparent;color:var(--text-secondary);width:24px;height:24px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;}
+.skur-rule .skur-rule-actions button:hover{background:var(--bg-layer1);border-color:var(--border-default);color:var(--text-primary);}
+.skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
+.skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
+/* Modal */
+.skur-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center;}
+.skur-modal-overlay.show{display:flex;}
+.skur-modal-card{background:var(--bg-layer1);color:var(--text-primary);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:20px 22px;width:520px;max-width:92vw;box-shadow:0 16px 48px rgba(0,0,0,.4);}
+.skur-modal-card h4{margin:0 0 14px;font-size:1rem;font-weight:700;}
+.skur-modal-row{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;margin-bottom:10px;}
+.skur-modal-row label{font-size:12px;color:var(--text-secondary);font-weight:600;}
+.skur-modal-row select,.skur-modal-row input{width:100%;font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
+.skur-modal-row select:focus,.skur-modal-row input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(0,120,212,.12);}
+.skur-modal-preview{margin:6px 0 14px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
+.skur-modal-preview.err{color:#d13438;background:rgba(209,52,56,.06);border-color:rgba(209,52,56,.3);}
+.skur-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px;}
 </style>
 </head>
 <body>
@@ -822,10 +846,10 @@ footer strong{opacity:1;}
         <div class="skur-tagrules">
           <div class="skur-tagrules-head">
             <h4>🏷️ Tag rules</h4>
-            <span class="skur-soon">Coming soon</span>
+            <button class="btn" style="margin-left:auto;" onclick="openSkurRuleModal()">➕ Add rule</button>
           </div>
-          <p class="skur-tagrules-empty">No tag rules yet. Tag rules will let you auto-group VMs by name patterns, OS, cluster, or custom criteria — and feed sizing decisions in the recommendation engine.</p>
-          <button class="btn btn-disabled" disabled title="Coming in Phase 4 — auto-group by tag">➕ Add rule</button>
+          <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
+          <div class="skur-rules-list" id="skurRulesList"></div>
         </div>
       </div>
 
@@ -847,6 +871,7 @@ footer strong{opacity:1;}
                 <th><select class="skur-filter" data-f="dc" onchange="skurOnFilter()"><option value="">All DCs</option></select></th>
                 <th><select class="skur-filter" data-f="cluster" onchange="skurOnFilter()"><option value="">All clusters</option></select></th>
                 <th></th>
+                <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()"></th>
               </tr>
               <tr>
                 <th style="width:32px;">#</th>
@@ -856,6 +881,7 @@ footer strong{opacity:1;}
                 <th class="skur-sortable" data-key="dc" onclick="skurSort('dc')">Datacenter</th>
                 <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
                 <th>Group</th>
+                <th>Tags</th>
               </tr>
             </thead>
             <tbody id="skurRows"></tbody>
@@ -867,6 +893,48 @@ footer strong{opacity:1;}
         🚧 <strong>More coming next:</strong> per-VM Azure SKU recommendations, sizing groups, tag rules, scenario save/resume.
         Working off your <span id="skuRecDataSource">loaded RVTools data</span>.
       </p>
+    </div>
+  </div>
+</div>
+
+<!-- SKU Recommender: Tag rule add/edit modal -->
+<div class="skur-modal-overlay" id="skurRuleModal" onclick="if(event.target===this)closeSkurRuleModal()">
+  <div class="skur-modal-card" role="dialog" aria-modal="true" aria-labelledby="skurRuleModalTitle">
+    <h4 id="skurRuleModalTitle">➕ Add tag rule</h4>
+    <div class="skur-modal-row">
+      <label>If</label>
+      <select id="skurRuleField">
+        <option value="name">VM name</option>
+        <option value="os">OS</option>
+        <option value="cluster">Cluster</option>
+        <option value="dc">Datacenter</option>
+      </select>
+    </div>
+    <div class="skur-modal-row">
+      <label>Operator</label>
+      <select id="skurRuleOp">
+        <option value="contains">contains</option>
+        <option value="equals">equals</option>
+        <option value="startsWith">starts with</option>
+        <option value="regex">matches regex</option>
+      </select>
+    </div>
+    <div class="skur-modal-row">
+      <label>Value</label>
+      <input type="text" id="skurRuleValue" placeholder="e.g. prod or ^web-">
+    </div>
+    <div class="skur-modal-row">
+      <label>Then tag</label>
+      <input type="text" id="skurRuleTagKey" placeholder="key e.g. env">
+    </div>
+    <div class="skur-modal-row">
+      <label>=</label>
+      <input type="text" id="skurRuleTagValue" placeholder="value e.g. prod">
+    </div>
+    <div class="skur-modal-preview" id="skurRulePreview">— start typing —</div>
+    <div class="skur-modal-actions">
+      <button class="btn" onclick="closeSkurRuleModal()">Cancel</button>
+      <button class="btn btn-primary" id="skurRuleSaveBtn" onclick="saveSkurRule()">Save</button>
     </div>
   </div>
 </div>
@@ -1970,7 +2038,149 @@ function renderSkuRecommender() {
   content.style.display = 'block';
   if (pill) { pill.style.display = ''; pill.textContent = `${allVMs.length} VMs`; }
   renderSkuRecStatCards();
+  renderSkurTagRules();
   renderSkurReadinessStrip();
+  renderSkurVmGrid();
+}
+
+// === SKU Recommender Tag rules MVP (Phase 4 slice 1) ===
+// In-memory only; persistence comes in Phase 8 autosave. JSON-serializable shape.
+const skurTagRules = []; // { id, field, op, value, flags, tagKey, tagValue }
+const SKUR_FIELD_DEFS = {
+  name:    { label: 'VM name',    get: v => v.name },
+  os:      { label: 'OS',         get: v => v.os },
+  cluster: { label: 'Cluster',    get: v => v.cluster },
+  dc:      { label: 'Datacenter', get: v => v.dc },
+};
+function skurNewRuleId() {
+  try { if (window.crypto && crypto.randomUUID) return 'r_' + crypto.randomUUID(); } catch (_) {}
+  return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+}
+function skurRuleMatchesVm(rule, vm) {
+  try {
+    const def = SKUR_FIELD_DEFS[rule.field]; if (!def) return false;
+    const hay = String(def.get(vm) ?? '');
+    const needle = String(rule.value ?? '').trim();
+    if (!needle) return false;
+    if (rule.op === 'regex') {
+      const re = new RegExp(rule.value, rule.flags || '');
+      return re.test(hay);
+    }
+    const h = hay.toLowerCase(), n = needle.toLowerCase();
+    if (rule.op === 'contains')   return h.includes(n);
+    if (rule.op === 'equals')     return h === n;
+    if (rule.op === 'startsWith') return h.startsWith(n);
+    return false;
+  } catch (_) { return false; }
+}
+// Returns de-duped tags by key:value, preserving ruleIds for tooltip/diagnostic later.
+function skurTagsForVm(vm) {
+  const map = new Map();
+  for (const r of skurTagRules) {
+    if (!skurRuleMatchesVm(r, vm)) continue;
+    const k = `${r.tagKey}\u0000${r.tagValue}`;
+    if (!map.has(k)) map.set(k, { key: r.tagKey, value: r.tagValue, ruleIds: [r.id] });
+    else map.get(k).ruleIds.push(r.id);
+  }
+  return [...map.values()];
+}
+function skurCountMatches(rule) {
+  let n = 0; for (const v of (allVMs || [])) if (skurRuleMatchesVm(rule, v)) n++; return n;
+}
+function renderSkurTagRules() {
+  const list = document.getElementById('skurRulesList');
+  const empty = document.getElementById('skurRulesEmpty');
+  if (!list || !empty) return;
+  if (!skurTagRules.length) { empty.style.display = ''; list.innerHTML = ''; return; }
+  empty.style.display = 'none';
+  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const opLabel = { contains:'contains', equals:'equals', startsWith:'starts with', regex:'matches' };
+  list.innerHTML = skurTagRules.map(r => {
+    const fld = (SKUR_FIELD_DEFS[r.field] && SKUR_FIELD_DEFS[r.field].label) || r.field;
+    const cnt = skurCountMatches(r);
+    return `<div class="skur-rule">
+      <span class="skur-rule-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></span>
+      <span class="skur-rule-arrow">→</span>
+      <span class="skur-rule-tag">${esc(r.tagKey)}:${esc(r.tagValue)}</span>
+      <span class="skur-rule-meta">${cnt} VM${cnt===1?'':'s'}</span>
+      <span class="skur-rule-actions">
+        <button title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')">✏</button>
+        <button title="Delete rule" onclick="deleteSkurRule('${esc(r.id)}')">🗑</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+let _skurEditingRuleId = null;
+function openSkurRuleModal(ruleId) {
+  _skurEditingRuleId = ruleId || null;
+  const r = ruleId ? skurTagRules.find(x => x.id === ruleId) : null;
+  document.getElementById('skurRuleModalTitle').textContent = r ? '✏ Edit tag rule' : '➕ Add tag rule';
+  document.getElementById('skurRuleField').value = r ? r.field : 'name';
+  document.getElementById('skurRuleOp').value = r ? r.op : 'contains';
+  document.getElementById('skurRuleValue').value = r ? r.value : '';
+  document.getElementById('skurRuleTagKey').value = r ? r.tagKey : '';
+  document.getElementById('skurRuleTagValue').value = r ? r.tagValue : '';
+  document.getElementById('skurRuleModal').classList.add('show');
+  ['skurRuleField','skurRuleOp','skurRuleValue','skurRuleTagKey','skurRuleTagValue'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el._skurBound) { el._skurBound = true; el.addEventListener('input', updateSkurRuleModalPreview); el.addEventListener('change', updateSkurRuleModalPreview); }
+  });
+  updateSkurRuleModalPreview();
+  setTimeout(() => { try { document.getElementById('skurRuleValue').focus(); } catch(_) {} }, 50);
+}
+function closeSkurRuleModal() {
+  document.getElementById('skurRuleModal').classList.remove('show');
+  _skurEditingRuleId = null;
+}
+function _skurReadModalDraft() {
+  return {
+    field:    document.getElementById('skurRuleField').value,
+    op:       document.getElementById('skurRuleOp').value,
+    value:    document.getElementById('skurRuleValue').value,
+    flags:    '',
+    tagKey:   document.getElementById('skurRuleTagKey').value.trim(),
+    tagValue: document.getElementById('skurRuleTagValue').value.trim(),
+  };
+}
+function updateSkurRuleModalPreview() {
+  const prev = document.getElementById('skurRulePreview');
+  const saveBtn = document.getElementById('skurRuleSaveBtn');
+  if (!prev || !saveBtn) return;
+  const d = _skurReadModalDraft();
+  prev.classList.remove('err');
+  if (!d.value.trim() || !d.tagKey || !d.tagValue) {
+    prev.textContent = 'Fill all fields to preview.'; saveBtn.disabled = true; return;
+  }
+  if (d.op === 'regex') {
+    try { new RegExp(d.value, d.flags || ''); }
+    catch (e) { prev.classList.add('err'); prev.textContent = 'Invalid regex: ' + e.message; saveBtn.disabled = true; return; }
+  }
+  // Build a temporary rule to count matches without mutating store.
+  const tmp = Object.assign({ id: '_preview' }, d);
+  const n = skurCountMatches(tmp);
+  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → will tag as ${d.tagKey}:${d.tagValue}`;
+  saveBtn.disabled = false;
+}
+function saveSkurRule() {
+  const d = _skurReadModalDraft();
+  if (!d.value.trim() || !d.tagKey || !d.tagValue) return;
+  if (d.op === 'regex') { try { new RegExp(d.value, d.flags || ''); } catch (_) { return; } }
+  if (_skurEditingRuleId) {
+    const r = skurTagRules.find(x => x.id === _skurEditingRuleId);
+    if (r) Object.assign(r, d);
+  } else {
+    skurTagRules.push(Object.assign({ id: skurNewRuleId() }, d));
+  }
+  closeSkurRuleModal();
+  renderSkurTagRules();
+  renderSkurVmGrid();
+}
+function deleteSkurRule(id) {
+  const idx = skurTagRules.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  if (!confirm(`Delete rule "${skurTagRules[idx].tagKey}:${skurTagRules[idx].tagValue}"?`)) return;
+  skurTagRules.splice(idx, 1);
+  renderSkurTagRules();
   renderSkurVmGrid();
 }
 
@@ -2028,13 +2238,14 @@ function clearSkurReadiness() {
 }
 
 // === SKU Recommender VM grid (Phase 2) ===
-const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'' };
+const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'', tags:'' };
 const skurSortState = { key:'name', dir:1 };
 function skurFilteredVms() {
   const vms = Array.isArray(allVMs) ? allVMs : [];
   const f = skurFilters;
   const nameQ = f.name.toLowerCase();
   const sizeQ = f.size.toLowerCase().replace(/\s/g,'');
+  const tagsQ = f.tags.toLowerCase();
   const rdKey = skurReadinessFilter;
   return vms.filter(v => {
     if (nameQ && !String(v.name||'').toLowerCase().includes(nameQ)) return false;
@@ -2043,6 +2254,10 @@ function skurFilteredVms() {
     if (f.dc && String(v.dc||'') !== f.dc) return false;
     if (f.cluster && String(v.cluster||'') !== f.cluster) return false;
     if (rdKey) { const flags = skurReadinessFlagsFor(v); if (!flags[rdKey]) return false; }
+    if (tagsQ) {
+      const tags = skurTagsForVm(v).map(t => `${t.key}:${t.value}`.toLowerCase()).join(' ');
+      if (!tags.includes(tagsQ)) return false;
+    }
     return true;
   });
 }
@@ -2081,17 +2296,24 @@ function renderSkurVmGrid() {
   }
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   if (!rows.length) {
-    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="7">No VMs match the current filters.</td></tr>`;
+    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="8">No VMs match the current filters.</td></tr>`;
   } else {
-    tb.innerHTML = rows.map((v,i) => `<tr>
-      <td class="num" style="color:var(--text-tertiary);">${i+1}</td>
-      <td><strong>${esc(v.name)||'<em>—</em>'}</strong></td>
-      <td class="num">${v.cpus??'?'} / ${v.ram??'?'}</td>
-      <td>${esc(v.os)||'—'}</td>
-      <td>${esc(v.dc)||'—'}</td>
-      <td>${esc(v.cluster)||'—'}</td>
-      <td><span class="skur-ungrouped">— ungrouped —</span></td>
-    </tr>`).join('');
+    tb.innerHTML = rows.map((v,i) => {
+      const tags = skurTagsForVm(v);
+      const tagsHtml = tags.length
+        ? tags.map(t => `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}</span>`).join('')
+        : `<span class="skur-tag-none">—</span>`;
+      return `<tr>
+        <td class="num" style="color:var(--text-tertiary);">${i+1}</td>
+        <td><strong>${esc(v.name)||'<em>—</em>'}</strong></td>
+        <td class="num">${v.cpus??'?'} / ${v.ram??'?'}</td>
+        <td>${esc(v.os)||'—'}</td>
+        <td>${esc(v.dc)||'—'}</td>
+        <td>${esc(v.cluster)||'—'}</td>
+        <td><span class="skur-ungrouped">— ungrouped —</span></td>
+        <td>${tagsHtml}</td>
+      </tr>`;
+    }).join('');
   }
   const pill = document.getElementById('skurVmCountPill');
   if (pill) pill.textContent = rows.length !== total ? `${rows.length} / ${total}` : `${total}`;
