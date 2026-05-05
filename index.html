@@ -473,6 +473,13 @@ footer strong{opacity:1;}
 .skur-group-rail-item .ri-meta{font-size:10px;color:var(--text-tertiary);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .skur-group-rail-item .ri-meta .ri-issues{color:#dc3545;font-weight:700;}
 .skur-group-rail-item .ri-meta .ri-warns{color:#f59e0b;font-weight:700;}
+.skur-group-rail-item .ri-pin{font-size:11px;line-height:1;padding:2px 4px;border-radius:3px;color:var(--text-tertiary);opacity:.25;cursor:pointer;border:none;background:transparent;}
+.skur-group-rail-item:hover .ri-pin{opacity:.7;}
+.skur-group-rail-item .ri-pin:hover{background:rgba(0,0,0,.06);opacity:1;}
+.skur-group-rail-item .ri-pin.is-pinned{opacity:1;color:#d97706;}
+.skur-group-rail-item.is-pinned{border-left:2px solid #f59e0b;}
+.gp-pin{background:transparent;border:1px solid var(--border-subtle);border-radius:4px;padding:2px 6px;cursor:pointer;font-size:12px;color:var(--text-tertiary);}
+.gp-pin.is-pinned{color:#d97706;border-color:#f59e0b;background:rgba(245,158,11,.08);}
 .skur-group-rail-spacer{flex:1 1 auto;min-height:6px;}
 .skur-group-rail-oos{margin-top:6px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1px dashed rgba(220,53,69,.4);background:rgba(220,53,69,.05);font-size:12px;color:#dc3545;font-weight:600;display:flex;align-items:center;gap:6px;}
 .skur-group-rail-oos.is-active{background:rgba(220,53,69,.18);border-style:solid;}
@@ -2385,6 +2392,11 @@ function skurSetActiveGroup(id) {
   skurActiveGroupId = id || null;
   renderSkurGroups();
 }
+function skurTogglePin(id) {
+  const g = skurGroups.find(x => x.id === id); if (!g) return;
+  g.pinned = !g.pinned;
+  renderSkurGroups();
+}
 function _skurGroupTotalMonthlyCost(g) {
   if (!g || !Array.isArray(g.members)) return null;
   const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
@@ -2447,7 +2459,11 @@ function renderSkurGroups() {
   const dups = skurDupVmKeys();
   const totalCat = skurCatalogForRegion(skurPlan.region).length;
   const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
-  const railItems = skurGroups.map(g => {
+  // Pinned groups float to top, preserving original creation order within each bucket.
+  const orderedGroups = skurGroups.map((g, i) => ({ g, i }))
+    .sort((a, b) => ((b.g.pinned?1:0) - (a.g.pinned?1:0)) || (a.i - b.i))
+    .map(x => x.g);
+  const railItems = orderedGroups.map(g => {
     const isActive = skurActiveGroupId === g.id;
     const dupCount = dups.size ? g.members.reduce((n,k) => n + (dups.has(k) ? 1 : 0), 0) : 0;
     const eligibleCount = skurEligibleSkusForGroup(g).length;
@@ -2457,10 +2473,13 @@ function renderSkurGroups() {
     const issuesHtml = issues ? `<span class="ri-issues" title="${issues} issue${issues===1?'':'s'}: too-big or blocked">⚠ ${issues}</span>` : '';
     const warnsHtml = warns ? `<span class="ri-warns" title="${warns} warning${warns===1?'':'s'}: dup or no-input">! ${warns}</span>` : '';
     const mode = skurNormaliseMode(g.mode);
-    return `<div class="skur-group-rail-item${isActive?' is-active':''}" onclick="skurSetActiveGroup('${escG(g.id)}')">
+    const pinned = !!g.pinned;
+    const pinTitle = pinned ? 'Pinned — click to unpin' : 'Pin to top';
+    return `<div class="skur-group-rail-item${isActive?' is-active':''}${pinned?' is-pinned':''}" onclick="skurSetActiveGroup('${escG(g.id)}')">
       <div class="ri-top">
         <span class="ri-mode-emoji" title="Sizing mode: ${escG(mode)}">${modeEmoji(mode)}</span>
         <span class="ri-name" title="${escG(g.name)}">${escG(g.name)}</span>
+        <button class="ri-pin${pinned?' is-pinned':''}" title="${pinTitle}" onclick="event.stopPropagation();skurTogglePin('${escG(g.id)}');">📌</button>
       </div>
       <div class="ri-meta">
         <span>${g.members.length} VM${g.members.length===1?'':'s'}</span>
@@ -2540,6 +2559,7 @@ function renderSkurGroups() {
           <span class="gp-mode-pill">${escG(modeLabel)}</span>
           <span class="gp-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>
           <div class="gp-actions">
+            <button class="gp-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌 ${g.pinned?'Pinned':'Pin'}</button>
             <button title="Edit constraints + sizing mode" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙ Constraints</button>
             <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏ Rename</button>
             <button class="gp-danger" title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑 Delete</button>
