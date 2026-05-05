@@ -1097,6 +1097,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <option value="" disabled selected hidden>➕ Add to group…</option>
             <optgroup label="Existing groups" id="skurBulkGroupOpts"></optgroup>
             <option value="__new__">+ New group…</option>
+            <option value="__remove__">↩ Remove from all groups</option>
           </select>
           <select id="skurBulkOos" onchange="skurBulkSetOos(this.value);this.value='';" title="Mark selected VMs as out of scope (excluded from cost roll-ups in Phase 5)">
             <option value="" disabled selected hidden>🚫 Mark out of scope…</option>
@@ -2394,6 +2395,9 @@ function skurBulkSetOos(reason) {
   let note = '';
   if (reason === 'other') {
     note = (prompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, '') || '').trim();
+  } else if (keys.length > 5) {
+    const r = SKUR_OOS_REASONS[reason];
+    if (!confirm(`Mark ${keys.length} VMs as out of scope (${r ? r.label : reason})?\n\nThey will be excluded from cost roll-ups and recommendations.`)) return;
   }
   const n = skurMarkOOS(keys, reason, note);
   skurClearSelection(); renderSkurGroups(); renderSkurVmGrid();
@@ -2759,6 +2763,21 @@ function skurBulkAddToGroup(target) {
     if (g) { skurClearSelection(); }
     return;
   }
+  if (target === '__remove__') {
+    let removed = 0;
+    const keySet = new Set(keys);
+    skurGroups.forEach(g => {
+      const before = g.members.length;
+      g.members = g.members.filter(k => !keySet.has(k));
+      removed += (before - g.members.length);
+    });
+    skurClearSelection();
+    renderSkurGroups();
+    renderSkurVmGrid();
+    if (removed) alert(`Removed ${removed} group membership${removed===1?'':'s'} across ${keys.length} VM${keys.length===1?'':'s'}.`);
+    else alert('Selected VMs were not in any group.');
+    return;
+  }
   const g = skurGroups.find(x => x.id === target); if (!g) return;
   let added = 0;
   for (const k of keys) { if (!g.members.includes(k)) { g.members.push(k); added++; } }
@@ -2791,7 +2810,29 @@ function skurUpdateBulkBar() {
   const bar = document.getElementById('skurBulkBar'); if (!bar) return;
   const n = skurSelectedKeys.size;
   bar.classList.toggle('hidden', n === 0);
-  const c = document.getElementById('skurBulkCount'); if (c) c.textContent = n;
+  // Breakdown: grouped / ungrouped / oos
+  let grouped = 0, oos = 0;
+  if (n) {
+    const groupKeys = new Set();
+    skurGroups.forEach(g => g.members.forEach(k => groupKeys.add(k)));
+    skurSelectedKeys.forEach(k => {
+      if (skurOutOfScope[k]) oos++;
+      else if (groupKeys.has(k)) grouped++;
+    });
+  }
+  const ungrouped = n - grouped - oos;
+  const c = document.getElementById('skurBulkCount');
+  if (c) {
+    let extra = '';
+    if (n > 0 && (grouped || oos)) {
+      const parts = [];
+      if (grouped) parts.push(`${grouped} grouped`);
+      if (ungrouped) parts.push(`${ungrouped} ungrouped`);
+      if (oos) parts.push(`${oos} OOS`);
+      extra = ` <span style="color:var(--text-secondary);font-weight:400;">(${parts.join(' · ')})</span>`;
+    }
+    c.innerHTML = n + extra;
+  }
   const opts = skurGroups.map(g => `<option value="${g.id}">${g.name} (${g.members.length})</option>`).join('');
   const ge = document.getElementById('skurBulkGroupOpts'); if (ge) ge.innerHTML = opts;
 }
