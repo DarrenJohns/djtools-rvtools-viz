@@ -696,6 +696,48 @@ footer strong{opacity:1;}
 .skur-group-panel .gp-row-remove{background:transparent;border:1px solid transparent;color:var(--text-tertiary);width:24px;height:24px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;}
 .skur-group-panel .gp-row-remove:hover{background:rgba(220,53,69,.1);border-color:rgba(220,53,69,.35);color:#dc3545;}
 .skur-group-panel .gp-recs-empty{margin-top:10px;padding:14px;background:var(--bg-layer1);border:1px dashed var(--border-default);border-radius:var(--radius-sm);text-align:center;color:var(--text-tertiary);font-size:13px;}
+/* Stage 9.5 M4 — rec row inline badges */
+.skur-group-panel .alt-badge{display:inline-flex;align-items:center;gap:2px;background:rgba(15,108,189,.10);border:1px solid rgba(15,108,189,.35);color:var(--brand-primary);font:inherit;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;letter-spacing:.02em;margin-left:4px;vertical-align:1px;}
+.skur-group-panel .alt-badge:hover{background:rgba(15,108,189,.18);border-color:var(--brand-primary);}
+.skur-group-panel .override-badge{display:inline-flex;align-items:center;gap:2px;background:rgba(196,127,0,.12);border:1px solid rgba(196,127,0,.40);color:#a35a00;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;margin-left:4px;letter-spacing:.02em;vertical-align:1px;}
+.skur-group-panel .override-badge:hover{background:rgba(196,127,0,.20);}
+.skur-group-panel .retire-tag{display:inline-block;color:var(--status-warn,#a35a00);font-size:10px;font-weight:600;letter-spacing:.02em;margin-left:4px;}
+.skur-group-panel .why-hint{color:var(--text-tertiary);font-style:italic;font-size:11px;}
+.skur-group-panel .sku-name{font-family:var(--font-mono,'Consolas',monospace);color:var(--brand-primary);font-weight:600;}
+.skur-group-panel .gp-row-hr{display:inline-flex;align-items:center;gap:5px;font-size:11px;}
+.skur-group-panel .gp-row-hr .hr-pct{font-weight:600;}
+.skur-group-panel .gp-row-hr.good .hr-pct{color:var(--status-success,#107c10);}
+.skur-group-panel .gp-row-hr.warn .hr-pct{color:var(--status-warn,#c47f00);}
+.skur-group-panel .gp-row-hr.bad .hr-pct{color:var(--status-danger,#dc3545);}
+.skur-group-panel .gp-overrides-chip{font-size:11px;color:var(--text-secondary);padding:2px 8px;background:rgba(196,127,0,.08);border:1px solid rgba(196,127,0,.30);border-radius:999px;}
+/* Stage 9.5 M4 — alt picker modal */
+.skur-altpicker-card{width:min(820px,92vw);max-height:84vh;display:flex;flex-direction:column;}
+.skur-altpicker-card .modal-body{display:flex;flex-direction:column;gap:10px;overflow:hidden;}
+.skur-ap-sub{font-size:12px;color:var(--text-secondary);}
+.skur-ap-filter-row{display:flex;gap:8px;align-items:center;}
+.skur-ap-filter-row input,.skur-ap-filter-row select{padding:6px 8px;font:inherit;font-size:12px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);}
+.skur-ap-filter-row input{flex:1;}
+.skur-ap-filter-clear{background:transparent;border:1px solid var(--border-default);color:var(--text-tertiary);width:28px;height:28px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;}
+.skur-ap-filter-clear:not(:disabled):hover{background:var(--bg-layer2);color:var(--text-primary);}
+.skur-ap-filter-clear:disabled{opacity:.4;cursor:default;}
+.skur-ap-list{flex:1;overflow:auto;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--bg-layer1);}
+.skur-ap-row{display:grid;grid-template-columns:minmax(220px,2fr) 70px 90px 110px 90px 90px;gap:10px;align-items:center;padding:7px 10px;font-size:12px;border-top:1px solid var(--border-subtle);}
+.skur-ap-row:first-child{border-top:none;}
+.skur-ap-row.head{background:var(--bg-layer2);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);position:sticky;top:0;z-index:1;}
+.skur-ap-row.head .ap-sortable{cursor:pointer;user-select:none;}
+.skur-ap-row.head .ap-sortable:hover{color:var(--text-secondary);}
+.skur-ap-row .ap-num{text-align:right;font-variant-numeric:tabular-nums;}
+.skur-ap-row .ap-name{font-family:var(--font-mono,'Consolas',monospace);color:var(--brand-primary);font-weight:600;}
+.skur-ap-row .ap-rec{display:inline-block;font-size:9px;font-weight:700;color:var(--status-success,#107c10);background:rgba(16,124,16,.10);border:1px solid rgba(16,124,16,.30);padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;margin-left:6px;vertical-align:1px;}
+.skur-ap-row .ap-curr{display:inline-block;font-size:9px;font-weight:700;color:var(--brand-primary);background:rgba(15,108,189,.10);border:1px solid rgba(15,108,189,.30);padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;margin-left:6px;vertical-align:1px;}
+.skur-ap-row .ap-use{padding:4px 10px;font:inherit;font-size:11px;border:1px solid var(--brand-primary);background:var(--brand-primary);color:#fff;border-radius:var(--radius-sm);cursor:pointer;}
+.skur-ap-row .ap-use:hover:not(:disabled){background:var(--brand-secondary,var(--brand-primary));}
+.skur-ap-row .ap-use:disabled{opacity:.5;cursor:default;background:var(--bg-layer2);color:var(--text-tertiary);border-color:var(--border-default);}
+.skur-ap-empty{padding:20px;text-align:center;color:var(--text-tertiary);font-style:italic;font-size:12px;}
+.skur-ap-foot{display:flex;align-items:center;gap:8px;}
+.skur-ap-foot .ap-reset{margin-right:auto;background:transparent;border:1px solid rgba(196,127,0,.40);color:#a35a00;padding:5px 12px;border-radius:var(--radius-sm);cursor:pointer;font:inherit;font-size:12px;}
+.skur-ap-foot .ap-reset:not(:disabled):hover{background:rgba(196,127,0,.10);}
+.skur-ap-foot .ap-reset:disabled{opacity:.4;cursor:default;}
 .skur-group-panel .gp-restore{background:transparent;border:1px solid rgba(220,53,69,.4);color:#dc3545;border-radius:var(--radius-sm);padding:4px 10px;font:inherit;font-size:12px;cursor:pointer;}
 .skur-group-panel .gp-restore:hover{background:rgba(220,53,69,.1);}
 .skur-group-item{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:999px;font-size:12px;}
@@ -1379,6 +1421,26 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="modal-close-row">
         <button class="btn-outline" onclick="skurCloseAutoGroupModal()">Cancel</button>
         <button class="btn-primary" id="skurAgConfirmBtn" onclick="skurConfirmAutoGroup()">Create group</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="skurAltPickerModal" onclick="if(event.target===this)skurCloseAltPicker()">
+  <div class="modal-card is-lg skur-altpicker-card" role="dialog" aria-modal="true" aria-labelledby="skurAltPickerTitle">
+    <div class="modal-banner"><h2 id="skurAltPickerTitle">🔀 Choose SKU</h2></div>
+    <div class="modal-body">
+      <div class="skur-ap-sub" id="skurApSub"></div>
+      <div class="skur-ap-filter-row">
+        <input type="text" id="skurApFilterName" placeholder="🔍 Search SKU name…" oninput="skurOnApFilter()" autocomplete="off">
+        <select id="skurApFilterFamily" onchange="skurOnApFilter()"><option value="">All families</option></select>
+        <select id="skurApFilterProcessor" onchange="skurOnApFilter()"><option value="">All processors</option></select>
+        <button class="skur-ap-filter-clear" id="skurApFilterClear" onclick="skurClearApFilters()" disabled title="Clear filters">✕</button>
+      </div>
+      <div class="skur-ap-list" id="skurApList"></div>
+      <div class="skur-ap-foot">
+        <button class="ap-reset" id="skurApReset" onclick="skurResetOverrideFromPicker()">↺ Reset to recommended</button>
+        <button class="btn-outline" onclick="skurCloseAltPicker()">Close</button>
       </div>
     </div>
   </div>
@@ -3667,6 +3729,54 @@ function skurRenderHeadroomCell(rec){
   </span>`;
 }
 
+// Stage 9.5 M4 — active-group row with inline alt/override/why/retire badges + compact +HR%·Conf headroom
+function _skurRenderActiveGroupRow(g, v, k, rec){
+  const esc = _skurEsc;
+  const escK = String(k||'').replace(/'/g, "\\'");
+  const removeBtn = `<button class="gp-row-remove" title="Remove from group" onclick="skurRemoveMemberFromGroup('${esc(g.id)}','${escK}')">✕</button>`;
+  const vmCell = `<span class="gp-recs-vm" title="${esc(v.name||'')} — ${v.cpus??'?'} vCPU / ${v.ram??'?'} GB"><strong>${esc(v.name||'(unknown)')}</strong><span class="gp-recs-vmspec">${v.cpus??'?'} / ${v.ram??'?'}</span></span>`;
+  if (!rec || rec.state !== 'ok' || !rec.sku) {
+    return `<div class="gp-recs-row">
+      ${vmCell}
+      <span class="gp-recs-sku">${skurRenderRecCell(rec)}</span>
+      <span class="gp-recs-hr">${skurRenderHeadroomCell(rec)}</span>
+      <span class="gp-recs-cost">${skurRenderCostCell(rec)}</span>
+      <span class="gp-recs-actions">${removeBtn}</span>
+    </div>`;
+  }
+  // SKU cell with badges + why + retirement
+  const altCount = Math.max(0, ((rec.ranked && rec.ranked.length) || 1) - 1);
+  const altBadge = altCount > 0
+    ? `<button class="alt-badge" title="${altCount} alternative SKU${altCount>1?'s':''} match — click to choose" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">+${altCount} alt ▾</button>`
+    : '';
+  const overrideBadge = rec.overridden
+    ? `<span class="override-badge" title="Manually overridden — click to reset to recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">manual ↺</span>`
+    : '';
+  const ret = rec.retirement;
+  const retTag = ret ? `<span class="retire-tag">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
+  const whyTxt = rec.why ? `<span class="why-hint"> · ${esc(rec.why)}</span>` : '';
+  const sku = rec.sku;
+  const fam = (sku.family||'X').toUpperCase();
+  const conf = skurConfidenceFor(rec);
+  const confDot = `<span class="skur-conf-dot lvl-${conf.level}" title="Confidence: ${esc(conf.label)}\n${conf.reasons.map(r=>'• '+r).join('\n')}"></span>`;
+  const skuCell = `<span class="gp-recs-sku" title="${esc(sku.name)} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${esc(sku.processor||'any')}${sku.burstable?' · burstable':''}">
+    <span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="sku-name">${esc(sku.name)}</span>${altBadge}${overrideBadge}${whyTxt}${retTag}
+  </span>`;
+  // Inline +HR% · Conf
+  const f = rec.fit; const minH = (f ? Math.min(f.cpuHeadroom, f.ramHeadroom) : 0);
+  const hrPct = _skurFmtPct(minH);
+  const hrCls = _skurHeadroomCls(minH);
+  const hrCell = `<span class="gp-recs-hr"><span class="gp-row-hr ${hrCls}" title="CPU ${_skurFmtPct(f.cpuHeadroom)} · RAM ${_skurFmtPct(f.ramHeadroom)}">${confDot}<span class="hr-pct">+${hrPct}</span> · ${esc(conf.label)}</span></span>`;
+  const costCell = `<span class="gp-recs-cost">${skurRenderCostCell(rec)}</span>`;
+  return `<div class="gp-recs-row">
+    ${vmCell}
+    ${skuCell}
+    ${hrCell}
+    ${costCell}
+    <span class="gp-recs-actions">${removeBtn}</span>
+  </div>`;
+}
+
 function renderSkurGroups() {
   const empty = document.getElementById('skurGroupsEmpty');
   const twoCol = document.getElementById('skurGroupsTwoCol');
@@ -3903,14 +4013,7 @@ function renderSkurGroups() {
               <span class="gp-sortable gp-recs-cost-col" onclick="skurSortGp('price')" title="Sort by price">$/mo ${_skurGpArrow('price')}</span>
               <span></span>
             </div>
-            ${_gpSlice.map(({v,k,rec}) => `
-              <div class="gp-recs-row">
-                <span class="gp-recs-vm" title="${escG(v.name||'')} — ${v.cpus??'?'} vCPU / ${v.ram??'?'} GB"><strong>${escG(v.name||'(unknown)')}</strong><span class="gp-recs-vmspec">${v.cpus??'?'} / ${v.ram??'?'}</span></span>
-                <span class="gp-recs-sku">${skurRenderRecCell(rec)}</span>
-                <span class="gp-recs-hr">${skurRenderHeadroomCell(rec)}</span>
-                <span class="gp-recs-cost">${skurRenderCostCell(rec)}</span>
-                <span class="gp-recs-actions"><button class="gp-row-remove" title="Remove from group" onclick="skurRemoveMemberFromGroup('${escG(g.id)}','${escG(k).replace(/'/g,"\\'")}')">✕</button></span>
-              </div>`).join('')}
+            ${_gpSlice.map(({v,k,rec}) => _skurRenderActiveGroupRow(g, v, k, rec)).join('')}
             ${_gpPagerHtml}
           </div>`
         : `<div class="gp-recs-empty"><em>No members yet — tick VMs in the inventory below and use ➕ Add to group.</em></div>`;
@@ -3932,6 +4035,8 @@ function renderSkurGroups() {
       const hasWin = _skurGroupHasWindowsVm(g);
       const ahubPill = (ahubOn && hasWin) ? `<span class="gp-ahub-pill" title="AHUB applied — Windows licensing surcharge waived for ${hasWin?'in-group Windows VMs':'this group'}.">AHUB applied</span>` : '';
       const computeStr = (totalCost == null) ? '—' : skurFormatMoney(totalCost, skurPlan.currency) + '/mo';
+      const ovCount = (g.skuOverrides && typeof g.skuOverrides === 'object') ? Object.keys(g.skuOverrides).length : 0;
+      const ovChip = ovCount ? `<span class="gp-overrides-chip" title="Manual SKU overrides applied to ${ovCount} VM${ovCount===1?'':'s'}">${ovCount} override${ovCount===1?'':'s'}</span>` : '';
       const c = skurGroupConstraints(g);
       const procLabel = (c.processor === 'intel') ? 'Intel' : (c.processor === 'amd' ? 'AMD' : 'Any CPU');
       const procOn = c.processor && c.processor !== 'any';
@@ -3947,12 +4052,13 @@ function renderSkurGroups() {
         <span class="gp-cband-elig"><strong>${eligibleCount}</strong> of ${totalCat} SKUs eligible</span>
         <span class="gp-cband-help">Click chips to toggle</span>
       </div>`;
-      const excHasAny = (exc.noMatch + exc.noEligible) > 0;
+      const excHasAny = (exc.noMatch + exc.noEligible + exc.retiring) > 0;
       const excStrip = excHasAny ? `<div class="gp-exc-strip">
         <span class="gp-exc-label">⚠ Sizing exceptions:</span>
         ${exc.noMatch ? `<span class="skur-exc-chip kind-noMatch${excActive('noMatch')}" title="${exc.noMatch} too-big — click to filter the inventory" onclick="skurToggleExceptionFilter('${escG(g.id)}','noMatch')">${exc.noMatch} no matching SKU</span>` : ''}
         ${exc.noEligible ? `<span class="skur-exc-chip kind-noEligible${excActive('noEligible')}" title="${exc.noEligible} blocked by constraints — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noEligible')">${exc.noEligible} blocked by constraints</span>` : ''}
         ${exc.noInput ? `<span class="skur-exc-chip kind-noInput${excActive('noInput')}" title="${exc.noInput} no-input — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noInput')">${exc.noInput} no-input</span>` : ''}
+        ${exc.retiring ? `<span class="skur-exc-chip kind-retiring" title="${exc.retiring} VM${exc.retiring===1?'':'s'} on a SKU retiring within 12 months">${exc.retiring} retiring SKU &lt;12mo</span>` : ''}
         ${dupChip}
         <span class="gp-exc-hint">Try: relax Premium-IO · widen processor</span>
       </div>` : '';
@@ -3965,6 +4071,7 @@ function renderSkurGroups() {
           </span>
           <span class="gp-summary"><strong>${g.members.length}</strong> VM${g.members.length===1?'':'s'} · <strong>${totalVcpu}</strong> vCPU · <strong>${totalRam}</strong> GB</span>
           <span class="gp-summary"><span class="gp-compute-label">Compute:</span> <span class="gp-compute">${escG(computeStr)}</span></span>
+          ${ovChip}
           ${ahubPill}
           <button class="gp-corner-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin group to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌</button>
         </div>
@@ -4458,7 +4565,7 @@ function _skurMemberKeysOf(groupId) {
   return g ? new Set(g.members) : null;
 }
 function skurExceptionCountsForGroup(g) {
-  const counts = { noMatch: 0, noEligible: 0, noInput: 0, oos: 0 };
+  const counts = { noMatch: 0, noEligible: 0, noInput: 0, oos: 0, retiring: 0 };
   if (!g || !Array.isArray(g.members)) return counts;
   const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
   for (const k of g.members) {
@@ -4469,6 +4576,7 @@ function skurExceptionCountsForGroup(g) {
     if (rec.state === 'no-match') counts.noMatch++;
     else if (rec.state === 'no-eligible') counts.noEligible++;
     else if (rec.state === 'no-input') counts.noInput++;
+    else if (rec.state === 'ok' && rec.retirement && _skurRetirementWithinMonths(rec.retirement, 12)) counts.retiring++;
   }
   return counts;
 }
@@ -5122,6 +5230,209 @@ try { window.skurDebugScore = function(vmName, mode) {
 //   { state:'no-eligible', mode, groupName }                 — group constraints eliminate everything
 //   { state:'no-match',   mode, groupName, eligibleCount }   — eligible exists but VM exceeds every fit
 //   { state:'ok', sku, fit, score, mode, groupName, alts }   — happy path
+// === Stage 9.5 M4 — retirement lookup (placeholder; populated by data loader when retirements.json is available) ===
+const _skurRetirementMap = Object.create(null); // { 'Standard_E8s_v3': '2025-08-01', ... }
+function _skurRetirementFor(skuName){
+  if (!skuName) return null;
+  return _skurRetirementMap[skuName] || _skurRetirementMap[skuName.toLowerCase()] || null;
+}
+function _skurRetirementWithinMonths(retIso, months){
+  if (!retIso) return false;
+  const t = Date.parse(retIso); if (!isFinite(t)) return false;
+  const cutoff = Date.now() + months*30.4*86400e3;
+  return t <= cutoff && t >= Date.now() - 30*86400e3;
+}
+function _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden){
+  if (overridden) return 'manual choice';
+  const fit = chosen && chosen.fit;
+  if (!fit) return '';
+  const minH = Math.min(fit.cpuHeadroom, fit.ramHeadroom);
+  if (mode === 'cost') return 'lowest cost';
+  if (mode === 'rightsized') return 'tightest fit';
+  // balanced
+  if (minH < 0.20) return 'tight fit';
+  if (minH > 0.50) return 'roomy fit';
+  return 'balanced fit';
+}
+// === Stage 9.5 M4 — manual SKU override + alt picker ===
+function _skurFindGroupById(gid){ return (skurGroups || []).find(g => g.id === gid) || null; }
+function _skurFindVmByKey(vmKey){
+  if (!vmKey) return null;
+  const list = (typeof allVMs !== 'undefined' && allVMs) ? allVMs : [];
+  for (const v of list) { if (skurVmKey(v) === vmKey) return v; }
+  return null;
+}
+function skurApplyOverride(gid, vmKey, skuName){
+  const g = _skurFindGroupById(gid); if (!g) return;
+  g.skuOverrides = g.skuOverrides || {};
+  // If user picks the recommended SKU for the current mode, clear override instead of pinning it.
+  const vm = _skurFindVmByKey(vmKey); if (!vm) return;
+  const eligible = skurEligibleSkusForGroup(g, skurPlan.region);
+  const ranked = (eligible && eligible.length) ? skurRankCandidates(vm, eligible, skurNormaliseMode(g.mode), skurPlan) : [];
+  if (ranked[0] && ranked[0].sku && ranked[0].sku.name === skuName) {
+    delete g.skuOverrides[vmKey];
+  } else {
+    g.skuOverrides[vmKey] = skuName;
+  }
+  if (typeof renderSkurStatCards === 'function') { try { renderSkurStatCards(); } catch(_) {} }
+  renderSkurGroups();
+  if (typeof renderSkurVmGrid === 'function') { try { renderSkurVmGrid(); } catch(_) {} }
+}
+function skurResetOverride(gid, vmKey){
+  const g = _skurFindGroupById(gid); if (!g || !g.skuOverrides) return;
+  if (vmKey in g.skuOverrides) delete g.skuOverrides[vmKey];
+  if (typeof renderSkurStatCards === 'function') { try { renderSkurStatCards(); } catch(_) {} }
+  renderSkurGroups();
+  if (typeof renderSkurVmGrid === 'function') { try { renderSkurVmGrid(); } catch(_) {} }
+}
+let _skurApCtx = null;       // { gid, vmKey }
+let _skurApFilters = { name:'', family:'', processor:'' };
+let _skurApSort = { key: null, dir: 1 };
+function skurOpenAltPicker(gid, vmKey){
+  const g = _skurFindGroupById(gid); const vm = _skurFindVmByKey(vmKey);
+  if (!g || !vm) return;
+  _skurApCtx = { gid, vmKey };
+  _skurApFilters = { name:'', family:'', processor:'' };
+  _skurApSort = { key:null, dir:1 };
+  const rec = skurRecommendForVm(vm);
+  const ranked = (rec && Array.isArray(rec.ranked)) ? rec.ranked : [];
+  const fams = [...new Set(ranked.map(s => (s && s.family) || '').filter(Boolean))].sort();
+  const procs = [...new Set(ranked.map(s => (s && s.processor) || '').filter(Boolean))].sort();
+  const fillSel = (id, vals, label) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.innerHTML = `<option value="">${label}</option>` + vals.map(v => `<option value="${_skurEsc(v)}">${_skurEsc(v)}</option>`).join('');
+    el.value = '';
+  };
+  fillSel('skurApFilterFamily', fams, 'All families');
+  fillSel('skurApFilterProcessor', procs, 'All processors');
+  const nameEl = document.getElementById('skurApFilterName'); if (nameEl) nameEl.value = '';
+  const titleEl = document.getElementById('skurAltPickerTitle');
+  if (titleEl) titleEl.innerHTML = `🔀 Choose SKU for ${_skurEsc(vm.name||'(unknown)')}`;
+  const resetBtn = document.getElementById('skurApReset');
+  if (resetBtn) resetBtn.disabled = !(g.skuOverrides && (vmKey in g.skuOverrides));
+  skurRenderApList();
+  const ov = document.getElementById('skurAltPickerModal'); if (ov) ov.classList.add('show');
+}
+function skurCloseAltPicker(){
+  _skurApCtx = null;
+  const ov = document.getElementById('skurAltPickerModal'); if (ov) ov.classList.remove('show');
+}
+function skurOnApFilter(){
+  const n = document.getElementById('skurApFilterName');
+  const f = document.getElementById('skurApFilterFamily');
+  const p = document.getElementById('skurApFilterProcessor');
+  _skurApFilters = {
+    name: (n && n.value || '').trim(),
+    family: (f && f.value || '').trim(),
+    processor: (p && p.value || '').trim(),
+  };
+  skurRenderApList();
+}
+function skurClearApFilters(){
+  _skurApFilters = { name:'', family:'', processor:'' };
+  ['skurApFilterName','skurApFilterFamily','skurApFilterProcessor'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  skurRenderApList();
+}
+function skurSortAp(key){
+  if (_skurApSort.key === key) _skurApSort.dir *= -1;
+  else { _skurApSort.key = key; _skurApSort.dir = 1; }
+  skurRenderApList();
+}
+function skurRenderApList(){
+  if (!_skurApCtx) return;
+  const list = document.getElementById('skurApList'); if (!list) return;
+  const g = _skurFindGroupById(_skurApCtx.gid); const vm = _skurFindVmByKey(_skurApCtx.vmKey);
+  if (!g || !vm) { list.innerHTML = '<div class="skur-ap-empty">Group or VM no longer available.</div>'; return; }
+  const rec = skurRecommendForVm(vm);
+  const ranked = (rec && Array.isArray(rec.ranked)) ? rec.ranked : [];
+  // Recommended = mode-default first ranked SKU (ignoring override).
+  const eligible = skurEligibleSkusForGroup(g, skurPlan.region);
+  const recRanked = (eligible && eligible.length) ? skurRankCandidates(vm, eligible, skurNormaliseMode(g.mode), skurPlan) : [];
+  const recName = (recRanked[0] && recRanked[0].sku && recRanked[0].sku.name) || (ranked[0] && ranked[0].name) || null;
+  const currName = (rec && rec.sku && rec.sku.name) || null;
+  let recs = ranked.map((sku, i) => {
+    const cpus = Number(vm.cpus) || 1, ram = Number(vm.ram) || 1;
+    const cpuH = (sku.vcpu - cpus) / sku.vcpu;
+    const ramH = (sku.ramGb - ram) / sku.ramGb;
+    const headroom = Math.round(Math.min(cpuH, ramH) * 100);
+    let cost = null;
+    try { cost = skurMonthlyCost(sku, skurPlan); } catch (_) { cost = null; }
+    return { sku, rank: i, headroom, cost: (cost == null || !isFinite(cost)) ? null : cost };
+  });
+  const f = _skurApFilters; const nq = f.name.toLowerCase();
+  let filtered = recs.filter(x => {
+    if (nq && !(x.sku.name||'').toLowerCase().includes(nq)) return false;
+    if (f.family && (x.sku.family||'') !== f.family) return false;
+    if (f.processor && (x.sku.processor||'') !== f.processor) return false;
+    return true;
+  });
+  if (_skurApSort.key) {
+    const k = _skurApSort.key, d = _skurApSort.dir;
+    filtered.sort((a, b) => {
+      let va, vb;
+      if (k === 'name') { va = a.sku.name||''; vb = b.sku.name||''; }
+      else if (k === 'vcpu') { va = a.sku.vcpu; vb = b.sku.vcpu; }
+      else if (k === 'ram') { va = a.sku.ramGb; vb = b.sku.ramGb; }
+      else if (k === 'processor') { va = a.sku.processor||''; vb = b.sku.processor||''; }
+      else if (k === 'cost') { va = (a.cost == null) ? Infinity : a.cost; vb = (b.cost == null) ? Infinity : b.cost; }
+      if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * d;
+      return String(va).localeCompare(String(vb), undefined, { numeric:true, sensitivity:'base' }) * d;
+    });
+  }
+  // Sub-line
+  const subEl = document.getElementById('skurApSub');
+  if (subEl) {
+    const totalLabel = (filtered.length === ranked.length)
+      ? `${ranked.length} eligible SKU${ranked.length===1?'':'s'}`
+      : `${filtered.length} of ${ranked.length} SKUs match`;
+    subEl.innerHTML = `${vm.cpus||'?'} vCPU · ${vm.ram||'?'} GB · ${_skurEsc(vm.os||vm.guestOS||'unknown OS')} — group <strong>${_skurEsc(g.name)}</strong> (${_skurEsc(skurNormaliseMode(g.mode))}) · ${_skurEsc(totalLabel)}`;
+  }
+  const arrow = k => (_skurApSort.key === k) ? (_skurApSort.dir === 1 ? '↑' : '↓') : '↕';
+  const head = `<div class="skur-ap-row head">
+    <span class="ap-sortable" onclick="skurSortAp('name')">SKU ${arrow('name')}</span>
+    <span class="ap-sortable ap-num" onclick="skurSortAp('vcpu')">vCPU ${arrow('vcpu')}</span>
+    <span class="ap-sortable ap-num" onclick="skurSortAp('ram')">RAM ${arrow('ram')}</span>
+    <span class="ap-sortable" onclick="skurSortAp('processor')">Processor ${arrow('processor')}</span>
+    <span class="ap-sortable ap-num" onclick="skurSortAp('cost')">$/mo ${arrow('cost')}</span>
+    <span></span>
+  </div>`;
+  const cur = (skurPlan && skurPlan.currency) || 'USD';
+  const rows = filtered.map(({ sku, headroom, cost }) => {
+    const isRec = sku.name === recName;
+    const isCurr = sku.name === currName;
+    const recPill = isRec ? '<span class="ap-rec">recommended</span>' : '';
+    const currPill = (isCurr && !isRec) ? '<span class="ap-curr">current</span>' : '';
+    const ret = _skurRetirementFor(sku.name);
+    const retPill = ret ? ` <span class="retire-tag">retiring ${_skurEsc(String(ret).slice(0,7))}</span>` : '';
+    const escName = (sku.name||'').replace(/'/g, "\\'");
+    const btn = isCurr
+      ? `<button class="ap-use" disabled>In use</button>`
+      : `<button class="ap-use" onclick="skurApplyOverrideFromPicker('${escName}')">Use this</button>`;
+    const costStr = (cost == null) ? '—' : skurFormatMoney(cost, cur);
+    return `<div class="skur-ap-row">
+      <span><span class="ap-name">${_skurEsc(sku.name||'')}</span>${recPill}${currPill}${retPill}<div class="why-hint" style="margin-top:2px;">+${headroom}% headroom</div></span>
+      <span class="ap-num">${sku.vcpu}</span>
+      <span class="ap-num">${sku.ramGb} GB</span>
+      <span style="font-size:11px;color:var(--text-secondary);">${_skurEsc(sku.processor||'—')}</span>
+      <span class="ap-num">${_skurEsc(costStr)}</span>
+      ${btn}
+    </div>`;
+  }).join('');
+  list.innerHTML = head + (rows || '<div class="skur-ap-empty">No SKUs match the current filters.</div>');
+  const cb = document.getElementById('skurApFilterClear');
+  if (cb) cb.disabled = !(_skurApFilters.name || _skurApFilters.family || _skurApFilters.processor);
+}
+function skurApplyOverrideFromPicker(skuName){
+  if (!_skurApCtx) return;
+  skurApplyOverride(_skurApCtx.gid, _skurApCtx.vmKey, skuName);
+  skurCloseAltPicker();
+}
+function skurResetOverrideFromPicker(){
+  if (!_skurApCtx) return;
+  skurResetOverride(_skurApCtx.gid, _skurApCtx.vmKey);
+  skurCloseAltPicker();
+}
+
 function skurRecommendForVm(vm) {
   if (!vm) return null;
   if (skurOOSEntry(vm)) return { state: 'oos' };
@@ -5133,11 +5444,12 @@ function skurRecommendForVm(vm) {
   let mode = 'balanced';
   let eligible;
   let groupName = null;
+  let group = null;
   if (groups.length === 1) {
-    const g = groups[0];
-    mode = skurNormaliseMode(g.mode);
-    eligible = skurEligibleSkusForGroup(g, skurPlan.region);
-    groupName = g.name;
+    group = groups[0];
+    mode = skurNormaliseMode(group.mode);
+    eligible = skurEligibleSkusForGroup(group, skurPlan.region);
+    groupName = group.name;
   } else {
     // Ungrouped or multi-group: balanced + full catalog (no group constraints applied).
     eligible = skurCatalogForRegion(skurPlan.region);
@@ -5145,12 +5457,29 @@ function skurRecommendForVm(vm) {
   if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName };
   const ranked = skurRankCandidates(vm, eligible, mode, skurPlan);
   if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length };
-  return {
+  // Stage 9.5 M4: apply manual SKU override if set on the (single) group.
+  let chosenIdx = 0;
+  let overridden = false;
+  if (group && group.skuOverrides) {
+    const vmKey = skurVmKey(vm);
+    const overrideName = group.skuOverrides[vmKey];
+    if (overrideName) {
+      const idx = ranked.findIndex(r => r.sku && r.sku.name === overrideName);
+      if (idx >= 0) { chosenIdx = idx; overridden = true; }
+    }
+  }
+  const chosen = ranked[chosenIdx];
+  const out = {
     state: 'ok', mode, groupName,
-    sku: ranked[0].sku, fit: ranked[0].fit, score: ranked[0].score,
-    alts: ranked.slice(1, 3).map(r => r.sku),
+    sku: chosen.sku, fit: chosen.fit, score: chosen.score,
+    alts: ranked.filter((_, i) => i !== chosenIdx).slice(0, 2).map(r => r.sku),
+    ranked: ranked.map(r => r.sku).slice(0, 60),
     eligibleCount: eligible.length,
+    overridden,
+    why: _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden),
+    retirement: _skurRetirementFor(chosen.sku && chosen.sku.name) || null,
   };
+  return out;
 }
 function skurRecCostMonthly(rec) {
   if (!rec || rec.state !== 'ok' || !rec.sku) return null;
