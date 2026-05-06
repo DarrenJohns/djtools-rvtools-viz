@@ -1282,30 +1282,15 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="skur-section">
         <div class="skur-groups-card">
           <div class="skur-groups-head">
-            <h4>📁 VM Groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
-            <div class="skur-view-toggle" role="group" aria-label="Groups view" style="margin-left:auto;display:inline-flex;border:1px solid var(--border-default);border-radius:var(--radius-sm);overflow:hidden;">
-              <button type="button" class="skur-view-btn is-active" data-view="rail" onclick="skurSetGroupsView('rail')" title="Rail + detail panel view">▤ Rail</button>
-              <button type="button" class="skur-view-btn" data-view="board" onclick="skurSetGroupsView('board')" title="Board overview (4-column card grid)">⊞ Board</button>
-            </div>
-            <details class="skur-overflow" id="skurGroupsOverflow">
-              <summary title="More actions">⋯</summary>
-              <div class="skur-overflow-menu" onclick="event.stopPropagation()">
-                <select id="skurExportSel" title="Download a CSV report of the recommendations" onchange="if(this.value){skurExportCsv(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}">
-                  <option value="" disabled selected hidden>📥 CSV report…</option>
-                  <option value="active">Active group only</option>
-                  <option value="pinned">Pinned groups only</option>
-                  <option value="all">All groups (combined)</option>
-                  <option value="oos">Out-of-scope only</option>
-                  <option value="everything">Everything (groups + OOS + ungrouped)</option>
-                </select>
-                <button type="button" onclick="exportScenarioBundle();document.getElementById('skurGroupsOverflow').open=false;" title="Save scenario (.rvz): the source RVTools data + your full workspace customisations in one file. Resume on this or another machine via the same upload field.">💾 Save scenario (.rvz)</button>
-                <select onchange="if(this.value){exportWorkspaceJson(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}" title="Save just your customisations as JSON (no source data). Re-apply via the same upload field, with reconciliation to whichever dataset is loaded.">
-                  <option value="" disabled selected hidden>📋 Save workspace (.json)…</option>
-                  <option value="full">Full workspace (groups + OOS + rules + settings)</option>
-                  <option value="rules">Rules template only (rules + plan settings)</option>
-                </select>
-              </div>
-            </details>
+            <h4>📂 VM Groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
+            <select id="skurExportSel" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" title="Download a CSV report of the recommendations" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
+              <option value="" disabled selected hidden>📥 CSV ▾</option>
+              <option value="active">Active group only</option>
+              <option value="pinned">Pinned groups only</option>
+              <option value="all">All groups (combined)</option>
+              <option value="oos">Out-of-scope only</option>
+              <option value="everything">Everything (groups + OOS + ungrouped)</option>
+            </select>
             <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
               <option value="" disabled selected hidden>📊 Excel ▾</option>
               <option value="all">All groups</option>
@@ -1319,7 +1304,6 @@ body.dark .skur-group-chip{color:#b794f4;}
             <div class="skur-group-rail" id="skurGroupRail"></div>
             <div class="skur-group-panel is-empty" id="skurGroupPanel">Select a group to see details</div>
           </div>
-          <div class="skur-groups-board" id="skurGroupsBoard" style="display:none;"></div>
           <div class="skur-oos-summary" id="skurOosSummary" style="display:none;"></div>
         </div>
       </div>
