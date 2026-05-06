@@ -1761,6 +1761,9 @@ function maybeShowWelcome(){
 
 let _persistToastEl = null;
 function showToast(msg, typeOrErr, persist){
+  // Stage 9.5: when the Continue/auto-resume path is in flight we want a
+  // single clean summary toast, not the parse pipeline's progress chatter.
+  if (window._skurSuppressToasts) return;
   const type = typeof typeOrErr === 'string' ? typeOrErr : (typeOrErr === true ? 'error' : '');
   const c = document.getElementById('toastContainer');
   if (!c) return;
@@ -1879,6 +1882,8 @@ dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover
 dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
 
 function showFileError(title, helpText) {
+  // Stage 9.5: errors must surface even if Continue's suppression flag is set.
+  window._skurSuppressToasts = false;
   hideToast();
   const fi = document.getElementById('fileInfo');
   fi.className = 'file-info error';
@@ -2554,8 +2559,16 @@ async function _skurMaybeResumeAutosave() {
           if (typeof renderSkurGroups === 'function') renderSkurGroups();
           if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
           if (typeof renderTagRules === 'function') renderTagRules();
-          showToast(`↩ Resumed autosaved workspace (${(saved.workspace.groups||[]).length} groups · ${((saved.workspace.tagRules||saved.workspace.rules)||[]).length} rules)`);
-        } catch (e) { console.warn('[autosave] auto-resume failed:', e && e.message); }
+          // Release the toast suppression and emit the single summary toast.
+          window._skurSuppressToasts = false;
+          const _vmN = (typeof allVMs !== 'undefined' && Array.isArray(allVMs)) ? allVMs.length : (saved.dataset.vmCount || '?');
+          const _grpN = (saved.workspace.groups||[]).length;
+          const _ruleN = ((saved.workspace.tagRules||saved.workspace.rules)||[]).length;
+          showToast(`✅ Resumed — ${_vmN} VMs, ${_grpN} group${_grpN===1?'':'s'}, ${_ruleN} rule${_ruleN===1?'':'s'}`, 'success');
+        } catch (e) {
+          window._skurSuppressToasts = false;
+          console.warn('[autosave] auto-resume failed:', e && e.message);
+        }
         return;
       }
       _skurShowRestoreBanner(saved);
@@ -5313,6 +5326,12 @@ async function _skurContinueAutosave(){
     // Tell the post-load probe to skip its own confirm banner — the user
     // already chose "Continue" so just apply the workspace silently.
     window._skurAutoResumeNext = true;
+    // Suppress the parse-pipeline's progress/success toasts so the user only
+    // sees a single clean summary toast at the end (released in the auto-
+    // resume branch of _skurMaybeResumeAutosave). Safety timeout in case the
+    // parse never reaches that branch (e.g., parse error).
+    window._skurSuppressToasts = true;
+    setTimeout(() => { window._skurSuppressToasts = false; }, 30000);
     parseLoadedWorkbook(rec.buffer.slice(0), fakeFile);
   } catch (e) {
     console.warn('[autosave] continue failed:', e && e.message || e);
