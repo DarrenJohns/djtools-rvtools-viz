@@ -624,6 +624,46 @@ footer strong{opacity:1;}
 .skur-group-panel .gp-members .gpm-vm{display:inline-block;padding:1px 8px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:999px;margin:0 3px 4px 0;font-family:var(--font-mono,'Consolas',monospace);font-size:11px;color:var(--text-primary);cursor:pointer;}
 .skur-group-panel .gp-members .gpm-vm:hover{background:rgba(15,108,189,.12);border-color:rgba(15,108,189,.4);}
 .skur-group-panel .gp-members .gpm-more{font-size:11px;font-style:italic;color:var(--text-tertiary);}
+/* Stage 9: panel header summary line, AHUB pill, corner pin, panel toolbar, constraints chips, exceptions strip */
+.skur-group-panel .gp-head{position:relative;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-right:32px;}
+.skur-group-panel .gp-head .gp-name-edit{cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-radius:3px;padding:1px 4px;margin:-1px -4px;}
+.skur-group-panel .gp-head .gp-name-edit:hover{background:rgba(15,108,189,.08);}
+.skur-group-panel .gp-head .gp-name-edit .gp-pencil{font-size:11px;opacity:0;color:var(--text-tertiary);transition:opacity .12s;}
+.skur-group-panel .gp-head .gp-name-edit:hover .gp-pencil{opacity:1;}
+.skur-group-panel .gp-summary{font-size:12px;color:var(--text-secondary);display:inline-flex;gap:6px;align-items:center;}
+.skur-group-panel .gp-summary strong{color:var(--text-primary);}
+.skur-group-panel .gp-summary .gp-compute-label{margin-left:6px;}
+.skur-group-panel .gp-summary .gp-compute{color:var(--brand-primary);font-weight:700;font-size:13px;font-family:var(--font-mono,'Consolas',monospace);}
+.skur-group-panel .gp-ahub-pill{display:inline-block;font-size:9px;font-weight:700;color:#107c10;background:rgba(16,124,16,.10);border:1px solid rgba(16,124,16,.30);padding:1px 7px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;vertical-align:1px;cursor:help;}
+.skur-group-panel .gp-corner-pin{position:absolute;top:2px;right:6px;font-size:15px;cursor:pointer;padding:4px;border-radius:4px;color:var(--text-tertiary);filter:grayscale(1);opacity:.55;background:transparent;border:none;line-height:1;}
+.skur-group-panel .gp-corner-pin:hover{background:var(--bg-layer2);opacity:1;filter:none;}
+.skur-group-panel .gp-corner-pin.is-pinned{color:#d97706;filter:none;opacity:1;}
+.skur-group-panel .gp-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--border-subtle);margin-bottom:4px;}
+.skur-group-panel .gp-toolbar .gp-tb-spacer{flex:1 1 auto;}
+.skur-group-panel .gp-toolbar select.gp-term{font:inherit;font-size:11px;padding:3px 6px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);}
+.skur-group-panel .gp-toolbar .gp-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:11px;color:var(--text-secondary);font-weight:600;}
+.skur-group-panel .gp-toolbar .gp-toggle input{position:absolute;opacity:0;pointer-events:none;}
+.skur-group-panel .gp-toolbar .gp-toggle .gp-tg-slider{position:relative;width:30px;height:16px;background:var(--border-default);border-radius:999px;transition:background .15s;display:inline-block;}
+.skur-group-panel .gp-toolbar .gp-toggle .gp-tg-slider::before{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider{background:#107c10;}
+.skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider::before{transform:translateX(14px);}
+.skur-group-panel .gp-toolbar .gp-tb-excel{font:inherit;font-size:11px;padding:4px 9px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;}
+.skur-group-panel .gp-toolbar .gp-tb-excel:hover{background:var(--bg-layer2);}
+.skur-group-panel .gp-toolbar .gp-tb-rename{font:inherit;font-size:12px;padding:4px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);cursor:pointer;}
+.skur-group-panel .gp-toolbar .gp-tb-rename:hover{background:var(--bg-layer2);color:var(--text-primary);}
+.skur-group-panel .gp-toolbar .gp-tb-delete{font:inherit;font-size:13px;padding:4px 10px;border:1px solid rgba(220,53,69,.45);border-radius:var(--radius-sm);background:transparent;color:#dc3545;cursor:pointer;font-weight:700;line-height:1;}
+.skur-group-panel .gp-toolbar .gp-tb-delete:hover{background:rgba(220,53,69,.1);}
+.skur-group-panel .gp-cband{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin:6px 0 4px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:11px;}
+.skur-group-panel .gp-cband-label{font-weight:700;}
+.skur-group-panel .gp-cchip{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);cursor:pointer;user-select:none;}
+.skur-group-panel .gp-cchip:hover{background:var(--bg-layer2);box-shadow:0 0 0 1px var(--brand-primary);}
+.skur-group-panel .gp-cchip.is-on{background:rgba(15,108,189,.12);color:var(--brand-primary);border-color:rgba(15,108,189,.3);}
+.skur-group-panel .gp-cband-elig{margin-left:auto;display:inline-flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:11px;}
+.skur-group-panel .gp-cband-elig strong{color:var(--text-primary);}
+.skur-group-panel .gp-cband-help{font-size:10px;font-style:italic;color:var(--text-tertiary);}
+.skur-group-panel .gp-exc-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 10px;margin-bottom:4px;background:rgba(188,75,9,.06);border:1px solid rgba(188,75,9,.25);border-radius:var(--radius-sm);font-size:11px;}
+.skur-group-panel .gp-exc-strip .gp-exc-label{font-weight:700;color:#bc4b09;}
+.skur-group-panel .gp-exc-strip .gp-exc-hint{margin-left:auto;color:var(--text-tertiary);font-style:italic;font-size:10px;}
 /* v1.3: per-group recommendations table */
 .skur-group-panel .gp-recs{margin-top:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-layer1);}
 .skur-group-panel .gp-recs-head,.skur-group-panel .gp-recs-row{display:grid;grid-template-columns:minmax(140px,1.4fr) minmax(180px,2fr) minmax(110px,1fr) minmax(90px,.9fr) 28px;gap:10px;align-items:center;padding:7px 10px;font-size:12px;}
@@ -1926,7 +1966,7 @@ const RVZ_SCHEMA_VERSION = 1;
 function _collectWorkspaceSnapshot() {
   // groups: deep clone (members array shared by reference would mutate)
   const groups = (typeof skurGroups !== 'undefined' && skurGroups)
-    ? skurGroups.map(g => ({ id: g.id, name: g.name, mode: g.mode, members: (g.members || []).slice(), pinned: !!g.pinned }))
+    ? skurGroups.map(g => ({ id: g.id, name: g.name, mode: g.mode, term: g.term || 'payg', ahub: !!g.ahub, members: (g.members || []).slice(), pinned: !!g.pinned, constraints: g.constraints ? JSON.parse(JSON.stringify(g.constraints)) : null }))
     : [];
   const oos = (typeof skurOutOfScope !== 'undefined' && skurOutOfScope)
     ? Object.fromEntries(Object.keys(skurOutOfScope).map(k => [k, { ...skurOutOfScope[k] }]))
@@ -1953,7 +1993,7 @@ function _applyWorkspaceSnapshot(ws) {
   if (typeof skurGroups !== 'undefined') {
     skurGroups.length = 0;
     for (const g of (ws.groups || [])) {
-      skurGroups.push({ id: g.id, name: g.name, mode: g.mode, members: (g.members || []).slice(), pinned: !!g.pinned });
+      skurGroups.push({ id: g.id, name: g.name, mode: g.mode, term: g.term || 'payg', ahub: !!g.ahub, members: (g.members || []).slice(), pinned: !!g.pinned, constraints: g.constraints ? JSON.parse(JSON.stringify(g.constraints)) : null });
     }
   }
   if (typeof skurOutOfScope !== 'undefined') {
@@ -3424,20 +3464,77 @@ function skurRemoveMemberFromGroup(groupId, vmKey) {
     if (typeof renderSkuRecStatCards === 'function') { try { renderSkuRecStatCards(); } catch (_) {} }
   }
 }
+function _skurGroupPlan(g) {
+  // Stage 9: per-group term + AHUB overlay over the global skurPlan. AHUB has no
+  // pricing impact yet (catalog only carries Linux pricing) but the field is
+  // tracked so the UI can surface the "AHUB applied" state and so workspace.json
+  // round-trips it.
+  return Object.assign({}, skurPlan, {
+    term: (g && g.term) || skurPlan.term || 'payg',
+    ahub: !!(g && g.ahub),
+  });
+}
 function _skurGroupTotalMonthlyCost(g) {
   if (!g || !Array.isArray(g.members)) return null;
+  const plan = _skurGroupPlan(g);
   const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
   let sum = 0; let any = false;
   for (const k of g.members) {
     const v = byKey.get(k); if (!v) continue;
     if (skurOOSEntry(v)) continue;
     const rec = skurRecommendForVm(v);
-    if (!rec || rec.state !== 'ok') continue;
-    const m = skurRecCostMonthly(rec);
+    if (!rec || rec.state !== 'ok' || !rec.sku) continue;
+    const m = skurMonthlyCost(rec.sku, plan);
     if (typeof m === 'number' && isFinite(m)) { sum += m; any = true; }
   }
   return any ? sum : null;
 }
+function _skurGroupHasWindowsVm(g) {
+  if (!g || !Array.isArray(g.members)) return false;
+  const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+  return g.members.some(k => {
+    const v = byKey.get(k); if (!v) return false;
+    return /windows/i.test(String(v.os || ''));
+  });
+}
+function skurSetGroupTerm(groupId, term) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  g.term = term && SKUR_TERM_DISCOUNTS && (term in SKUR_TERM_DISCOUNTS) ? term : 'payg';
+  renderSkurGroups();
+  if (typeof renderSkuRecStatCards === 'function') { try { renderSkuRecStatCards(); } catch (_) {} }
+}
+function skurSetGroupAhub(groupId, ahub) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  g.ahub = !!ahub;
+  renderSkurGroups();
+}
+// Constraints chip helpers (Stage 9 — replaces openSkurConstraintsModal as primary surface)
+function skurToggleConstraintChip(groupId, key) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  const c = skurGroupConstraints(g);
+  if (key === 'requirePremiumIo') c.requirePremiumIo = !c.requirePremiumIo;
+  else if (key === 'excludeBurstable') c.excludeBurstable = !c.excludeBurstable;
+  renderSkurGroups();
+}
+function skurCycleProcessor(groupId) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  const c = skurGroupConstraints(g);
+  const order = ['any', 'intel', 'amd'];
+  const idx = order.indexOf(c.processor || 'any');
+  c.processor = order[(idx + 1) % order.length];
+  renderSkurGroups();
+}
+function skurCycleRetire(groupId) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  const c = skurGroupConstraints(g);
+  // Cycle 'any' → 6 → 12 → 24 → 'any' (months until retirement window for filtering).
+  const order = ['any', 6, 12, 24];
+  const cur = c.retireMonths == null ? 'any' : c.retireMonths;
+  const idx = order.findIndex(x => String(x) === String(cur));
+  c.retireMonths = order[((idx < 0 ? 0 : idx) + 1) % order.length];
+  renderSkurGroups();
+}
+function _skurGroupTotalMonthlyCost_OLD_REMOVED() { /* placeholder marker */ }
 function _skurFmtConstraintSummary(c) {
   if (!c) return 'all SKUs';
   const fams = (c.families && c.families.length) ? c.families.join('/') : 'no families';
@@ -3703,25 +3800,72 @@ function renderSkurGroups() {
       const mode = skurNormaliseMode(g.mode);
       const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'🎯 Right-sized',tip:'Tightest fit; minimises waste'} };
       const modeSeg = `<div class="gp-mode-seg" role="group" aria-label="Sizing mode">${['balanced','cost','rightsized'].map(m => `<button class="gp-mode-btn${m===mode?' is-active':''}" title="${modeMeta[m].tip}" onclick="skurSetGroupMode('${escG(g.id)}','${m}')">${modeMeta[m].lbl}</button>`).join('')}</div>`;
+      // Stage 9: rebuilt header + toolbar + constraints chips + exceptions strip
+      const totalVcpu = g.members.reduce((s,k) => { const v = byKey.get(k); return s + (v && Number(v.cpus) || 0); }, 0);
+      const totalRam  = g.members.reduce((s,k) => { const v = byKey.get(k); return s + (v && Number(v.ram)  || 0); }, 0);
+      const groupTerm = (g.term && (g.term in SKUR_TERM_DISCOUNTS)) ? g.term : 'payg';
+      const termOpts = [
+        ['payg','Pay-as-you-go'],
+        ['ri1','1-year Reserved'],
+        ['ri3','3-year Reserved'],
+        ['sp1','1-year Savings Plan'],
+        ['sp3','3-year Savings Plan'],
+      ].map(([k,l]) => `<option value="${k}"${k===groupTerm?' selected':''}>${l}</option>`).join('');
+      const ahubOn = !!g.ahub;
+      const hasWin = _skurGroupHasWindowsVm(g);
+      const ahubPill = (ahubOn && hasWin) ? `<span class="gp-ahub-pill" title="AHUB applied — Windows licensing surcharge waived for ${hasWin?'in-group Windows VMs':'this group'}.">AHUB applied</span>` : '';
+      const computeStr = (totalCost == null) ? '—' : skurFormatMoney(totalCost, skurPlan.currency) + '/mo';
+      const c = skurGroupConstraints(g);
+      const procLabel = (c.processor === 'intel') ? 'Intel' : (c.processor === 'amd' ? 'AMD' : 'Any CPU');
+      const procOn = c.processor && c.processor !== 'any';
+      const retVal = (c.retireMonths == null || c.retireMonths === 'any') ? 'any' : c.retireMonths;
+      const retLabel = retVal === 'any' ? 'any' : (retVal + 'mo');
+      const retOn = retVal !== 'any';
+      const cband = `<div class="gp-cband">
+        <span class="gp-cband-label">🛡️ Constraints</span>
+        <span class="gp-cchip${c.requirePremiumIo?' is-on':''}" title="Require Premium SSD-capable SKUs" onclick="skurToggleConstraintChip('${escG(g.id)}','requirePremiumIo')">PremIO</span>
+        <span class="gp-cchip${procOn?' is-on':''}" title="Click to cycle Any → Intel → AMD" onclick="skurCycleProcessor('${escG(g.id)}')">${escG(procLabel)}</span>
+        <span class="gp-cchip${c.excludeBurstable?' is-on':''}" title="Exclude burstable B-series" onclick="skurToggleConstraintChip('${escG(g.id)}','excludeBurstable')">Excl burstable</span>
+        <span class="gp-cchip${retOn?' is-on':''}" title="Retirement window — click to cycle 6 → 12 → 24 → any" onclick="skurCycleRetire('${escG(g.id)}')">Retire &lt; ${escG(retLabel)}</span>
+        <span class="gp-cband-elig"><strong>${eligibleCount}</strong> of ${totalCat} SKUs eligible</span>
+        <span class="gp-cband-help">Click chips to toggle</span>
+      </div>`;
+      const excHasAny = (exc.noMatch + exc.noEligible) > 0;
+      const excStrip = excHasAny ? `<div class="gp-exc-strip">
+        <span class="gp-exc-label">⚠ Sizing exceptions:</span>
+        ${exc.noMatch ? `<span class="skur-exc-chip kind-noMatch${excActive('noMatch')}" title="${exc.noMatch} too-big — click to filter the inventory" onclick="skurToggleExceptionFilter('${escG(g.id)}','noMatch')">${exc.noMatch} no matching SKU</span>` : ''}
+        ${exc.noEligible ? `<span class="skur-exc-chip kind-noEligible${excActive('noEligible')}" title="${exc.noEligible} blocked by constraints — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noEligible')">${exc.noEligible} blocked by constraints</span>` : ''}
+        ${exc.noInput ? `<span class="skur-exc-chip kind-noInput${excActive('noInput')}" title="${exc.noInput} no-input — click to filter" onclick="skurToggleExceptionFilter('${escG(g.id)}','noInput')">${exc.noInput} no-input</span>` : ''}
+        ${dupChip}
+        <span class="gp-exc-hint">Try: relax Premium-IO · widen processor</span>
+      </div>` : '';
       panel.classList.remove('is-empty');
       panel.innerHTML = `
         <div class="gp-head">
-          <span class="gp-name">${escG(g.name)}</span>
+          <span class="gp-name-edit" title="Click to rename" onclick="renameSkurGroup('${escG(g.id)}')">
+            <span class="gp-name">${escG(g.name)}</span>
+            <span class="gp-pencil">✏</span>
+          </span>
+          <span class="gp-summary"><strong>${g.members.length}</strong> VM${g.members.length===1?'':'s'} · <strong>${totalVcpu}</strong> vCPU · <strong>${totalRam}</strong> GB</span>
+          <span class="gp-summary"><span class="gp-compute-label">Compute:</span> <span class="gp-compute">${escG(computeStr)}</span></span>
+          ${ahubPill}
+          <button class="gp-corner-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin group to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌</button>
+        </div>
+        <div class="gp-toolbar">
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">📅 <select class="gp-term" title="Pricing term" onchange="skurSetGroupTerm('${escG(g.id)}', this.value)">${termOpts}</select></span>
+          <label class="gp-toggle" title="Azure Hybrid Use Benefit (waives Windows licensing surcharge for eligible Windows VMs)">
+            <span>AHUB</span>
+            <input type="checkbox" ${ahubOn?'checked':''} onchange="skurSetGroupAhub('${escG(g.id)}', this.checked)">
+            <span class="gp-tg-slider"></span>
+          </label>
           ${modeSeg}
-          <span class="gp-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>
-          <div class="gp-actions">
-            <button class="gp-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌 ${g.pinned?'Pinned':'Pin'}</button>
-            <button title="Edit constraints" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙ Constraints</button>
-            <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏ Rename</button>
-            <button class="gp-danger" title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑 Delete</button>
-          </div>
+          <span class="gp-tb-spacer"></span>
+          <button class="gp-tb-excel" title="Export this group to Excel" onclick="skurExportExcel('active')">📊 Excel</button>
+          <button class="gp-tb-rename" title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏ Rename</button>
+          <button class="gp-tb-delete" title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">✕</button>
         </div>
-        <div class="gp-row">
-          <span><span class="skur-elig-chip${eligCls}" title="${eligibleCount} of ${totalCat} SKUs eligible">📦 ${eligibleCount}/${totalCat} eligible</span></span>
-          <span><strong>Constraints:</strong> ${escG(constraintsLabel)}</span>
-          <span style="margin-left:auto;">${totalCostHtml}</span>
-        </div>
-        ${(excChips || dupChip) ? `<div class="gp-exc-row">${dupChip}${excChips}</div>` : ''}
+        ${cband}
+        ${excStrip}
         ${recsTable}`;
     }
   } else {
@@ -3798,7 +3942,7 @@ async function skurAutoGroupByTag(key) {
     const dedup = [...new Set(keys)];
     let g = skurGroups.find(x => x.name.toLowerCase() === name.toLowerCase());
     if (!g) {
-      g = { id: skurNewGroupId(), name, mode: 'balanced', members: dedup, pinned: false };
+      g = { id: skurNewGroupId(), name, mode: 'balanced', term: 'payg', ahub: false, members: dedup, pinned: false };
       skurGroups.push(g);
       created++; addedMembers += dedup.length;
     } else {
@@ -3817,7 +3961,7 @@ function newSkurGroup(prefilledMembers) {
   if (skurGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
     alert('A group with that name already exists.'); return null;
   }
-  const g = { id: skurNewGroupId(), name, mode: 'balanced', members: Array.isArray(prefilledMembers) ? [...new Set(prefilledMembers)] : [], pinned: false };
+  const g = { id: skurNewGroupId(), name, mode: 'balanced', term: 'payg', ahub: false, members: Array.isArray(prefilledMembers) ? [...new Set(prefilledMembers)] : [], pinned: false };
   skurGroups.push(g);
   renderSkurGroups();
   renderSkurVmGrid();
