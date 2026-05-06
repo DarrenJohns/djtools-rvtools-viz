@@ -1823,6 +1823,15 @@ function activateTab(key) {
   // Demo-data reminder on non-Import tabs
   const dtb = document.getElementById('demoTabBanner');
   if (dtb) dtb.style.display = (window._isDemoMode && key !== 'import') ? 'flex' : 'none';
+  // Stage 9.5: pre-load resume banner — its CTA is "Go to Import", so it's
+  // pointless when the user is already on Import. Re-evaluate on tab switch.
+  try {
+    if (key === 'import') {
+      const _ap = document.getElementById('autosavePrompt'); if (_ap) _ap.hidden = true;
+    } else if (typeof _skurMaybeShowPreloadPrompt === 'function') {
+      _skurMaybeShowPreloadPrompt();
+    }
+  } catch(_) {}
   // Render the SKU Recommender lazily on tab activation
   if (key === 'sku-recommender') { try { renderSkuRecommender(); } catch(e) { console.error(e); } }
   // Resize any Chart.js charts inside the now-visible pane
@@ -5240,6 +5249,13 @@ function _skurMaybeShowPreloadPrompt(){
     if (_skurPreloadPromptDismissed) return;
     const el = document.getElementById('autosavePrompt'); if (!el) return;
     if (window.__rvtoolsCurrent) { el.hidden = true; return; }
+    // Don't show the banner on the Import tab — its CTA is "Go to Import",
+    // which is meaningless when the user is already there (and the dropzone
+    // is right below).
+    try {
+      const importPane = document.querySelector('.tab-pane[data-tab="import"]');
+      if (importPane && importPane.classList.contains('active')) { el.hidden = true; return; }
+    } catch(_) {}
     const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
     if (!saved || !saved.workspace || !saved.dataset) { el.hidden = true; return; }
     const ws = saved.workspace || {};
