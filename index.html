@@ -461,14 +461,16 @@ footer strong{opacity:1;}
 .skur-table thead th.skur-sortable:hover{color:var(--brand-primary);}
 .skur-ungrouped{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 .skur-empty-row{padding:24px;text-align:center;color:var(--text-tertiary);font-style:italic;}
-.skur-tagrules{border:1px solid var(--border-default);border-radius:var(--radius-md);background:var(--bg-layer2);overflow:hidden;}
-.skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13px;font-weight:600;color:var(--text-primary);}
+.skur-tagrules{border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-layer1);overflow:hidden;}
+.skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;font-weight:600;color:var(--text-primary);border-bottom:1px solid var(--border-subtle);}
 .skur-tagrules-summary .skur-tagrules-pill{background:var(--brand-primary);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;}
 .skur-tagrules-summary .skur-tagrules-toggle{margin-left:auto;color:var(--brand-primary);cursor:pointer;font-weight:600;background:none;border:none;padding:0;font-family:inherit;font-size:13px;}
 .skur-tagrules-summary .skur-tagrules-toggle:hover{text-decoration:underline;}
-.skur-tagrules-summary .skur-tagrules-add{margin-left:8px;}
-.skur-tagrules-detail{display:none;padding:10px 14px 14px;border-top:1px solid var(--border-subtle);background:var(--bg-layer1);}
+.skur-tagrules.is-open .skur-tagrules-summary{border-bottom-color:var(--border-subtle);}
+.skur-tagrules:not(.is-open) .skur-tagrules-summary{border-bottom:none;}
+.skur-tagrules-detail{display:none;padding:10px 14px 14px;background:var(--bg-layer1);}
 .skur-tagrules-detail.open{display:block;}
+.skur-tagrules-actions{margin-top:10px;display:flex;justify-content:flex-start;}
 .skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 0;}
 .skur-tagrules .btn-disabled{opacity:.6;cursor:not-allowed;}
 /* Tag rules list + chips + modal */
@@ -1167,7 +1169,6 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
 
       <div class="skur-plan-bar" id="skurPlanBar">
-        <div class="pb-title">📐 Plan</div>
         <div class="pb-field">
           <label for="skurPlanRegion">Region</label>
           <select id="skurPlanRegion" onchange="skurOnPlanChange('region',this.value)"></select>
@@ -1217,11 +1218,11 @@ body.dark .skur-group-chip{color:#b794f4;}
             🏷️ <span>Auto tag assignment</span>
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
             <button class="skur-tagrules-toggle" id="skurTagRulesToggle" onclick="skurToggleTagRules()" type="button">Edit ▾</button>
-            <button class="btn skur-tagrules-add" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
             <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
             <div class="skur-rules-list" id="skurRulesList"></div>
+            <div class="skur-tagrules-actions"><button class="btn" onclick="openSkurRuleModal()" type="button">➕ Add rule</button></div>
           </div>
         </div>
       </div>
@@ -5369,10 +5370,9 @@ function renderSkuRecStatCards() {
   };
   const card = (ico, num, lbl, sub, cls) =>
     `<div class="sku-rec-statcard"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div></div>`;
-  const ungrouped = Math.max(0, vms.length - groupedSet.size);
   host.innerHTML = [
     card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
-    card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
+    card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped`),
     card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
     card('💰', fmtMoney(totalCost), 'Est. compute / mo', '+ storage / licensing — see Excel', 'is-money'),
   ].join('');
