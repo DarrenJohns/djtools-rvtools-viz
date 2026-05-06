@@ -1239,8 +1239,6 @@ body.dark .skur-group-chip{color:#b794f4;}
           <div class="pb-workspace-menu" onclick="event.stopPropagation()">
             <button type="button" onclick="exportWorkspaceJson('full');document.getElementById('skurWorkspaceMenu').open=false;">⬇️ Export <strong>workspace</strong><span class="pb-ws-hint">rules, groups, tags · no VM data · for sharing across datasets</span></button>
             <button type="button" onclick="document.getElementById('skurWorkspaceFile').click();document.getElementById('skurWorkspaceMenu').open=false;">⬆️ Apply <strong>workspace</strong><span class="pb-ws-hint">replaces customisations on current data</span></button>
-            <div class="pb-ws-sep"></div>
-            <button type="button" onclick="exportScenarioBundle();document.getElementById('skurWorkspaceMenu').open=false;" title="Save scenario (.rvz): the source RVTools data + your full workspace customisations in one file.">📦 Save <strong>scenario</strong> (.rvz)<span class="pb-ws-hint">data + workspace · resume later</span></button>
           </div>
         </details>
         <input type="file" id="skurWorkspaceFile" accept=".json,application/json" style="display:none" onchange="(function(ev){const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;const r=new FileReader();r.onload=function(e){importWorkspaceJson(e.target.result,f);};r.readAsArrayBuffer(f);})(event)">
