@@ -654,6 +654,10 @@ footer strong{opacity:1;}
 .skur-group-panel .gp-recs-head,.skur-group-panel .gp-recs-row{display:grid;grid-template-columns:minmax(140px,1.4fr) minmax(180px,2fr) minmax(110px,1fr) minmax(90px,.9fr) 28px;gap:10px;align-items:center;padding:7px 10px;font-size:12px;}
 .skur-group-panel .gp-recs-head{background:var(--bg-layer2);border-bottom:1px solid var(--border-subtle);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);}
 .skur-group-panel .gp-recs-head .gp-recs-cost-col{text-align:right;}
+.skur-group-panel .gp-recs-head .gp-sortable{cursor:pointer;user-select:none;}
+.skur-group-panel .gp-recs-head .gp-sortable:hover{color:var(--text-secondary);}
+.skur-group-panel .gp-recs-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;font-size:11px;color:var(--text-tertiary);border-top:1px solid var(--border-subtle);background:var(--bg-layer1);}
+.skur-group-panel .gp-recs-pager .pagination{display:flex;gap:4px;flex-wrap:wrap;}
 .skur-group-panel .gp-recs-row{border-top:1px solid var(--border-subtle);}
 .skur-group-panel .gp-recs-row:first-of-type{border-top:none;}
 .skur-group-panel .gp-recs-row:hover{background:rgba(15,108,189,.05);}
@@ -1248,15 +1252,7 @@ body.dark .skur-group-chip{color:#b794f4;}
         <div class="skur-groups-card">
           <div class="skur-groups-head">
             <h4>📂 VM Groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
-            <select id="skurExportSel" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" title="Download a CSV report of the recommendations" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📥 CSV ▾</option>
-              <option value="active">Active group only</option>
-              <option value="pinned">Pinned groups only</option>
-              <option value="all">All groups (combined)</option>
-              <option value="oos">Out-of-scope only</option>
-              <option value="everything">Everything (groups + OOS + ungrouped)</option>
-            </select>
-            <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
+            <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
               <option value="" disabled selected hidden>📊 Excel ▾</option>
               <option value="all">All groups</option>
               <option value="pinned">Pinned groups only</option>
@@ -3466,7 +3462,20 @@ function _skurFmtCostK(n) {
 }
 // Stage 9.5 Pass D: board view removed; force rail-only.
 let skurGroupsView = 'rail';
+// Stage 9.5: active group panel sort + pagination state.
+let _skurGpSort = { key: null, dir: 1 };
+let _skurGpPage = 1;
+const SKUR_GP_PAGE_SIZE = 25;
+function _skurGpArrow(k){ return (_skurGpSort.key === k) ? (_skurGpSort.dir === 1 ? '↑' : '↓') : '↕'; }
+function skurSortGp(key){
+  if (_skurGpSort.key === key) _skurGpSort.dir *= -1;
+  else { _skurGpSort.key = key; _skurGpSort.dir = 1; }
+  _skurGpPage = 1;
+  renderSkurGroups();
+}
+function skurGpGotoPage(p){ _skurGpPage = Math.max(1, p|0); renderSkurGroups(); }
 function skurSetActiveGroup(id) {
+  if (skurActiveGroupId !== (id || null)) _skurGpPage = 1;
   skurActiveGroupId = id || null;
   renderSkurGroups();
 }
@@ -3801,16 +3810,52 @@ function renderSkurGroups() {
         let rec = null; try { rec = skurRecommendForVm(v); } catch (_) {}
         return { v, k, rec };
       }).filter(Boolean);
+      // Stage 9.5: sort active-group rows
+      if (_skurGpSort.key) {
+        const sk = _skurGpSort.key, dir = _skurGpSort.dir;
+        const minHr = (rec) => {
+          if (!rec || rec.state !== 'ok' || !rec.fit) return -Infinity;
+          const c = Number(rec.fit.cpuHeadroom), r = Number(rec.fit.ramHeadroom);
+          const a = isFinite(c) ? c : Infinity, b = isFinite(r) ? r : Infinity;
+          return Math.min(a, b);
+        };
+        const priceOf = (rec) => {
+          if (!rec || rec.state !== 'ok') return Infinity;
+          const m = skurRecCostMonthly(rec); return (m == null || !isFinite(m)) ? Infinity : m;
+        };
+        const skuOf = (rec) => (rec && rec.sku && (rec.sku.name || rec.sku.size)) || '';
+        recRows.sort((a, b) => {
+          let va, vb;
+          if (sk === 'vm')        { va = (a.v.name||'').toLowerCase(); vb = (b.v.name||'').toLowerCase(); }
+          else if (sk === 'sku')  { va = skuOf(a.rec).toLowerCase(); vb = skuOf(b.rec).toLowerCase(); }
+          else if (sk === 'headroom') { va = minHr(a.rec); vb = minHr(b.rec); }
+          else if (sk === 'price')    { va = priceOf(a.rec); vb = priceOf(b.rec); }
+          else { va = 0; vb = 0; }
+          if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+          return String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+        });
+      }
+      // Stage 9.5: paginate active-group rows (25/page, like inventory)
+      const _gpTotal = recRows.length;
+      const _gpPages = Math.max(1, Math.ceil(_gpTotal / SKUR_GP_PAGE_SIZE));
+      if (_skurGpPage > _gpPages) _skurGpPage = _gpPages;
+      const _gpStart = (_skurGpPage - 1) * SKUR_GP_PAGE_SIZE;
+      const _gpSlice = recRows.slice(_gpStart, _gpStart + SKUR_GP_PAGE_SIZE);
+      const _gpPagerHtml = (_gpTotal > SKUR_GP_PAGE_SIZE) ? `
+        <div class="gp-recs-pager">
+          <span class="page-info">Showing ${_gpStart+1}–${Math.min(_gpStart+SKUR_GP_PAGE_SIZE, _gpTotal)} of ${_gpTotal} VMs</span>
+          <div class="pagination" id="skurGpPager"></div>
+        </div>` : '';
       const recsTable = recRows.length
         ? `<div class="gp-recs">
             <div class="gp-recs-head">
-              <span>VM</span>
-              <span>Recommended SKU</span>
-              <span>Headroom</span>
-              <span class="gp-recs-cost-col">$/mo</span>
+              <span class="gp-sortable" onclick="skurSortGp('vm')" title="Sort by VM name">VM ${_skurGpArrow('vm')}</span>
+              <span class="gp-sortable" onclick="skurSortGp('sku')" title="Sort by SKU">SKU · Why? ${_skurGpArrow('sku')}</span>
+              <span class="gp-sortable" onclick="skurSortGp('headroom')" title="Sort by headroom">Headroom · Conf ${_skurGpArrow('headroom')}</span>
+              <span class="gp-sortable gp-recs-cost-col" onclick="skurSortGp('price')" title="Sort by price">$/mo ${_skurGpArrow('price')}</span>
               <span></span>
             </div>
-            ${recRows.map(({v,k,rec}) => `
+            ${_gpSlice.map(({v,k,rec}) => `
               <div class="gp-recs-row">
                 <span class="gp-recs-vm" title="${escG(v.name||'')} — ${v.cpus??'?'} vCPU / ${v.ram??'?'} GB"><strong>${escG(v.name||'(unknown)')}</strong><span class="gp-recs-vmspec">${v.cpus??'?'} / ${v.ram??'?'}</span></span>
                 <span class="gp-recs-sku">${skurRenderRecCell(rec)}</span>
@@ -3818,6 +3863,7 @@ function renderSkurGroups() {
                 <span class="gp-recs-cost">${skurRenderCostCell(rec)}</span>
                 <span class="gp-recs-actions"><button class="gp-row-remove" title="Remove from group" onclick="skurRemoveMemberFromGroup('${escG(g.id)}','${escG(k).replace(/'/g,"\\'")}')">✕</button></span>
               </div>`).join('')}
+            ${_gpPagerHtml}
           </div>`
         : `<div class="gp-recs-empty"><em>No members yet — tick VMs in the inventory below and use ➕ Add to group.</em></div>`;
       const mode = skurNormaliseMode(g.mode);
@@ -3890,6 +3936,10 @@ function renderSkurGroups() {
         ${cband}
         ${excStrip}
         ${recsTable}`;
+      // Stage 9.5: wire active-group pagination buttons (uses shared renderPagination helper)
+      if (_gpTotal > SKUR_GP_PAGE_SIZE) {
+        try { renderPagination('skurGpPager', _gpPages, _skurGpPage, p => skurGpGotoPage(p)); } catch (_) {}
+      }
     }
   } else {
     panel.classList.add('is-empty');
