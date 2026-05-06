@@ -1769,6 +1769,14 @@ function showToast(msg, typeOrErr, persist){
     _persistToastEl.textContent = msg;
     return;
   }
+  // Keep at most one toast visible at a time — collapse any prior toasts
+  // (including the persist toast if a new one is replacing it).
+  c.querySelectorAll('.toast').forEach(t => {
+    if (t === _persistToastEl && persist) return;
+    t.classList.remove('show');
+    setTimeout(() => { try { t.remove(); } catch(_) {} }, 250);
+  });
+  if (_persistToastEl && !persist) _persistToastEl = null;
   const el = document.createElement('div');
   el.className = 'toast' + (type ? ' ' + type : '');
   el.textContent = msg;
@@ -2536,6 +2544,20 @@ async function _skurMaybeResumeAutosave() {
     }
     if (saved.dataset.fingerprint === cur.fingerprint) {
       // Stage 9.5: surface restore banner (mockup parity); user picks Resume / Start fresh.
+      // If the user already explicitly chose "Continue" on the pre-load banner,
+      // skip the second prompt and apply the workspace directly.
+      if (window._skurAutoResumeNext) {
+        window._skurAutoResumeNext = false;
+        try {
+          const snap = migrateWorkspace(saved.workspace);
+          _applyWorkspaceSnapshot(snap);
+          if (typeof renderSkurGroups === 'function') renderSkurGroups();
+          if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+          if (typeof renderTagRules === 'function') renderTagRules();
+          showToast(`↩ Resumed autosaved workspace (${(saved.workspace.groups||[]).length} groups · ${((saved.workspace.tagRules||saved.workspace.rules)||[]).length} rules)`);
+        } catch (e) { console.warn('[autosave] auto-resume failed:', e && e.message); }
+        return;
+      }
       _skurShowRestoreBanner(saved);
     } else {
       const ok = await skurConfirm(
@@ -5288,6 +5310,9 @@ async function _skurContinueAutosave(){
     }
     const fakeFile = { name: saved.dataset.sourceFilename || 'rvtools.xlsx', size: rec.buffer.byteLength };
     document.getElementById('autosavePrompt').hidden = true;
+    // Tell the post-load probe to skip its own confirm banner — the user
+    // already chose "Continue" so just apply the workspace silently.
+    window._skurAutoResumeNext = true;
     parseLoadedWorkbook(rec.buffer.slice(0), fakeFile);
   } catch (e) {
     console.warn('[autosave] continue failed:', e && e.message || e);
