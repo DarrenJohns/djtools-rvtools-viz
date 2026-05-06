@@ -1458,6 +1458,22 @@ body.dark .skur-group-chip{color:#b794f4;}
   </div>
 </div>
 
+<!-- Stage 9: Branded prompt modal (replaces native prompt() for group create/rename, OOS reason, scenario label) -->
+<div class="modal-overlay" id="skurPromptModal" onclick="if(event.target===this)_skurPromptDone(null)">
+  <div class="modal-card is-sm" role="dialog" aria-modal="true" aria-labelledby="skurPromptTitle">
+    <div class="modal-banner"><h2 id="skurPromptTitle">Enter value</h2></div>
+    <div class="modal-body">
+      <p id="skurPromptMessage" style="white-space:pre-line;font-size:13px;line-height:1.5;color:var(--text-primary);margin:0 0 10px;"></p>
+      <input type="text" id="skurPromptInput" class="skur-input" style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();_skurPromptDone(this.value);}else if(event.key==='Escape'){event.preventDefault();_skurPromptDone(null);}">
+      <div class="modal-close-row">
+        <button class="btn-outline" id="skurPromptCancelBtn" onclick="_skurPromptDone(null)">Cancel</button>
+        <button class="btn-primary" id="skurPromptOkBtn" onclick="_skurPromptDone(document.getElementById('skurPromptInput').value)">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /.rv-page -->
 
 <footer>
@@ -2119,7 +2135,7 @@ async function exportScenarioBundle() {
     { okLabel: 'Save scenario' }
   );
   if (!ok) return;
-  const label = (prompt('Optional label for this scenario (shown in manifest):', '') || '').trim();
+  const label = ((await skurPrompt('Optional label for this scenario (shown in manifest):', { title: 'Save scenario', placeholder: 'e.g. Q3 baseline' })) || '').trim();
   try {
     const { blob, manifest } = await buildScenarioRvz({
       xlsxBuffer: cur.xlsxBuffer,
@@ -3362,7 +3378,7 @@ async function skurBulkSetOos(reason) {
   }
   let note = '';
   if (reason === 'other') {
-    note = (prompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, '') || '').trim();
+    note = ((await skurPrompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, { title: 'Out-of-scope reason', placeholder: 'e.g. decommissioning Q3' })) || '').trim();
   } else if (keys.length > 5) {
     const r = SKUR_OOS_REASONS[reason];
     if (!await skurConfirm(`Mark ${keys.length} VMs as out of scope (${r ? r.label : reason})?\n\nThey will be excluded from cost roll-ups and recommendations.`, { okLabel: 'Mark out of scope' })) return;
@@ -3955,8 +3971,8 @@ async function skurAutoGroupByTag(key) {
   renderSkurGroups(); renderSkurVmGrid();
   alert(`Auto-group complete:\n• ${created} new group${created===1?'':'s'} created\n• ${updated} existing group${updated===1?'':'s'} updated\n• ${addedMembers} membership${addedMembers===1?'':'s'} added`);
 }
-function newSkurGroup(prefilledMembers) {
-  const name = (prompt('Name for the new sizing group:') || '').trim();
+async function newSkurGroup(prefilledMembers) {
+  const name = ((await skurPrompt('Name for the new VM group:', { title: 'New VM Group', placeholder: 'e.g. Production web tier' })) || '').trim();
   if (!name) return null;
   if (skurGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
     alert('A group with that name already exists.'); return null;
@@ -3967,9 +3983,9 @@ function newSkurGroup(prefilledMembers) {
   renderSkurVmGrid();
   return g;
 }
-function renameSkurGroup(id) {
+async function renameSkurGroup(id) {
   const g = skurGroups.find(x => x.id === id); if (!g) return;
-  const name = (prompt('Rename group:', g.name) || '').trim();
+  const name = ((await skurPrompt('Rename group:', { title: 'Rename group', defaultValue: g.name })) || '').trim();
   if (!name || name === g.name) return;
   if (skurGroups.some(x => x !== g && x.name.toLowerCase() === name.toLowerCase())) { alert('A group with that name already exists.'); return; }
   g.name = name;
@@ -3985,10 +4001,10 @@ async function deleteSkurGroup(id) {
   renderSkurExceptionBanner();
   renderSkurVmGrid();
 }
-function skurBulkAddToGroup(target) {
+async function skurBulkAddToGroup(target) {
   const keys = [...skurSelectedKeys]; if (!keys.length || !target) return;
   if (target === '__new__') {
-    const g = newSkurGroup(keys);
+    const g = await newSkurGroup(keys);
     if (g) { skurClearSelection(); }
     return;
   }
@@ -5287,6 +5303,31 @@ function _skurConfirmDone(result) {
   if (modal) modal.classList.remove('show');
   const r = _skurConfirmResolver; _skurConfirmResolver = null;
   if (r) r(!!result);
+}
+
+// === Branded prompt modal (Stage 9) — Promise-based wrapper around #skurPromptModal. ===
+let _skurPromptResolver = null;
+function skurPrompt(message, opts = {}) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('skurPromptModal');
+    if (!modal) { resolve(window.prompt(message, opts.defaultValue || '')); return; }
+    document.getElementById('skurPromptTitle').textContent = opts.title || 'Enter value';
+    document.getElementById('skurPromptMessage').textContent = String(message || '');
+    const input = document.getElementById('skurPromptInput');
+    input.value = opts.defaultValue || '';
+    input.placeholder = opts.placeholder || '';
+    document.getElementById('skurPromptOkBtn').textContent = opts.okLabel || 'OK';
+    document.getElementById('skurPromptCancelBtn').textContent = opts.cancelLabel || 'Cancel';
+    _skurPromptResolver = resolve;
+    modal.classList.add('show');
+    setTimeout(() => { try { input.focus(); input.select(); } catch(_) {} }, 30);
+  });
+}
+function _skurPromptDone(result) {
+  const modal = document.getElementById('skurPromptModal');
+  if (modal) modal.classList.remove('show');
+  const r = _skurPromptResolver; _skurPromptResolver = null;
+  if (r) r(result == null ? null : String(result));
 }
 
 function renderSkuRecStatCards() {
