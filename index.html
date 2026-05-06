@@ -420,8 +420,18 @@ footer strong{opacity:1;}
 .skur-modal-fieldgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 12px;margin:4px 0 2px;}
 .skur-modal-fieldgrid label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer;}
 .skur-modal-fieldgrid input{margin:0;cursor:pointer;}
-.skur-modal-radios{display:flex;gap:14px;align-items:center;}
+.skur-modal-fams{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.skur-modal-fams label{display:inline-flex;align-items:center;gap:6px;padding:6px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);font-size:12px;color:var(--text-primary);cursor:pointer;line-height:1.2;}
+.skur-modal-fams label:hover{border-color:var(--brand-primary);}
+.skur-modal-fams input{margin:0;cursor:pointer;}
+.skur-modal-fams .fam-key{font-weight:700;font-size:13px;}
+.skur-modal-fams .fam-sub{color:var(--text-tertiary);font-size:11px;}
+.skur-modal-radios{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
 .skur-modal-radios label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer;}
+.skur-modal-check{display:flex;flex-direction:column;gap:2px;}
+.skur-modal-check label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer;}
+.skur-modal-check input{margin:0;cursor:pointer;}
+.skur-modal-help{font-size:11px;color:var(--text-tertiary);padding-left:22px;}
 .skur-modal-vcpu{display:flex;gap:8px;align-items:center;}
 .skur-modal-vcpu input{width:80px;padding:5px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);color:var(--text-primary);font:inherit;font-size:13px;}
 .skur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
@@ -568,6 +578,11 @@ footer strong{opacity:1;}
 .skur-group-panel .gp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .skur-group-panel .gp-name{font-size:1.15rem;font-weight:700;color:var(--text-primary);}
 .skur-group-panel .gp-mode-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);color:var(--brand-primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.skur-group-panel .gp-mode-seg{display:inline-flex;border:1px solid var(--border-default);border-radius:999px;overflow:hidden;background:var(--bg-layer2);}
+.skur-group-panel .gp-mode-btn{font:inherit;font-size:11px;font-weight:600;padding:4px 10px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;display:inline-flex;align-items:center;gap:4px;border-right:1px solid var(--border-default);}
+.skur-group-panel .gp-mode-btn:last-child{border-right:none;}
+.skur-group-panel .gp-mode-btn:hover:not(.is-active){background:var(--bg-layer1);color:var(--text-primary);}
+.skur-group-panel .gp-mode-btn.is-active{background:var(--brand-primary);color:#fff;}
 .skur-group-panel .gp-count{font-size:12px;color:var(--text-secondary);}
 .skur-group-panel .gp-actions{margin-left:auto;display:flex;gap:6px;}
 .skur-group-panel .gp-actions button{background:transparent;border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:4px 10px;font:inherit;font-size:12px;color:var(--text-secondary);cursor:pointer;}
@@ -1309,11 +1324,11 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="modal-body">
     <div class="skur-modal-row">
       <label>Family allowlist</label>
-      <div class="skur-modal-fieldgrid" id="skurConstrFamilies">
-        <label><input type="checkbox" value="B" onchange="updateSkurConstraintsPreview()"> B (burstable)</label>
-        <label><input type="checkbox" value="D" onchange="updateSkurConstraintsPreview()"> D (general)</label>
-        <label><input type="checkbox" value="E" onchange="updateSkurConstraintsPreview()"> E (memory)</label>
-        <label><input type="checkbox" value="F" onchange="updateSkurConstraintsPreview()"> F (compute)</label>
+      <div class="skur-modal-fams" id="skurConstrFamilies">
+        <label><input type="checkbox" value="B" onchange="updateSkurConstraintsPreview()"><span class="fam-key">B</span><span class="fam-sub">burstable</span></label>
+        <label><input type="checkbox" value="D" onchange="updateSkurConstraintsPreview()"><span class="fam-key">D</span><span class="fam-sub">general</span></label>
+        <label><input type="checkbox" value="E" onchange="updateSkurConstraintsPreview()"><span class="fam-key">E</span><span class="fam-sub">memory</span></label>
+        <label><input type="checkbox" value="F" onchange="updateSkurConstraintsPreview()"><span class="fam-key">F</span><span class="fam-sub">compute</span></label>
       </div>
     </div>
     <div class="skur-modal-row">
@@ -1326,11 +1341,17 @@ body.dark .skur-group-chip{color:#b794f4;}
     </div>
     <div class="skur-modal-row">
       <label>Burstable</label>
-      <label class="skur-modal-radios"><input type="checkbox" id="skurConstrExcludeBurstable" onchange="updateSkurConstraintsPreview()"> Exclude burstable (B-series) — recommended for steady-state production</label>
+      <div class="skur-modal-check">
+        <label><input type="checkbox" id="skurConstrExcludeBurstable" onchange="updateSkurConstraintsPreview()"> Exclude burstable (B-series)</label>
+        <span class="skur-modal-help">Recommended for steady-state production workloads</span>
+      </div>
     </div>
     <div class="skur-modal-row">
       <label>Premium IO</label>
-      <label class="skur-modal-radios"><input type="checkbox" id="skurConstrRequirePremiumIo" onchange="updateSkurConstraintsPreview()"> Require premium IO support (s-suffix SKUs)</label>
+      <div class="skur-modal-check">
+        <label><input type="checkbox" id="skurConstrRequirePremiumIo" onchange="updateSkurConstraintsPreview()"> Require premium IO support</label>
+        <span class="skur-modal-help">Limits eligibility to s-suffix SKUs (Premium SSD-capable)</span>
+      </div>
     </div>
     <div class="skur-modal-row">
       <label>vCPU range</label>
@@ -1341,20 +1362,26 @@ body.dark .skur-group-chip{color:#b794f4;}
         <span style="color:var(--text-tertiary);font-size:12px;">(blank = no bound)</span>
       </div>
     </div>
-    <div class="skur-modal-row">
-      <label>Sizing mode</label>
-      <div class="skur-modal-radios" id="skurConstrMode">
-        <label title="Closest match to vCPU/RAM with ~30% headroom"><input type="radio" name="skurConstrModeR" value="balanced" onchange="updateSkurConstraintsPreview()"> ⚖ Balanced</label>
-        <label title="Cheapest SKU that meets minimum requirements"><input type="radio" name="skurConstrModeR" value="cost" onchange="updateSkurConstraintsPreview()"> 💰 Cost</label>
-        <label title="Tightest fit; minimises waste"><input type="radio" name="skurConstrModeR" value="rightsized" onchange="updateSkurConstraintsPreview()"> 🎯 Right-sized</label>
-      </div>
-    </div>
     <div class="skur-modal-preview" id="skurConstraintsPreview">— pick at least one family —</div>
     <div class="modal-close-row">
       <button class="btn-outline" style="margin-right:auto;" onclick="resetSkurConstraintsToDefaults()">↺ Defaults</button>
       <button class="btn-outline" onclick="closeSkurConstraintsModal()">Cancel</button>
       <button class="btn-primary" id="skurConstraintsSaveBtn" onclick="saveSkurConstraints()">Save</button>
     </div>
+    </div>
+  </div>
+</div>
+
+<!-- Branded confirm modal (Stage 8) — replaces native confirm() in skur flows. -->
+<div class="modal-overlay" id="skurConfirmModal" onclick="if(event.target===this)_skurConfirmDone(false)">
+  <div class="modal-card is-sm" role="dialog" aria-modal="true" aria-labelledby="skurConfirmTitle">
+    <div class="modal-banner"><h2 id="skurConfirmTitle">Confirm</h2></div>
+    <div class="modal-body">
+      <p id="skurConfirmMessage" style="white-space:pre-line;font-size:13px;line-height:1.5;color:var(--text-primary);margin:0;"></p>
+      <div class="modal-close-row">
+        <button class="btn-outline" id="skurConfirmCancelBtn" onclick="_skurConfirmDone(false)">Cancel</button>
+        <button class="btn-primary" id="skurConfirmOkBtn" onclick="_skurConfirmDone(true)">OK</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2010,13 +2037,14 @@ async function exportScenarioBundle() {
     alert('No source RVTools file loaded. Upload an .xlsx first.');
     return;
   }
-  const ok = confirm(
+  const ok = await skurConfirm(
     'Save scenario (.rvz)?\n\n' +
     'This file contains:\n' +
     '  • Your complete RVTools .xlsx (all VMs, hosts, datastores)\n' +
     '  • Your sizing groups, out-of-scope list, tag rules, plan settings\n\n' +
     'Anyone you share this file with will see your full inventory. ' +
-    'Only share it with people who already have access to the source data.'
+    'Only share it with people who already have access to the source data.',
+    { okLabel: 'Save scenario' }
   );
   if (!ok) return;
   const label = (prompt('Optional label for this scenario (shown in manifest):', '') || '').trim();
@@ -2091,7 +2119,7 @@ async function importWorkspaceJson(buffer, file) {
     return;
   }
   if (!Array.isArray(allVMs) || allVMs.length === 0) {
-    if (!confirm('No RVTools data is loaded yet. Apply this workspace anyway?\n\n(Rules and plan settings will apply; group memberships will be empty until you load matching data.)')) return;
+    if (!await skurConfirm('No RVTools data is loaded yet. Apply this workspace anyway?\n\n(Rules and plan settings will apply; group memberships will be empty until you load matching data.)', { okLabel: 'Apply anyway' })) return;
   }
   const summary = _reconcileWorkspaceMembers(snap);
   const hasGroups = Array.isArray(snap.groups) && snap.groups.length > 0;
@@ -2103,7 +2131,7 @@ async function importWorkspaceJson(buffer, file) {
                 `  • Rules: ${(snap.tagRules||[]).length}\n\n` +
                 `Apply matched members and keep unmatched refs for re-export?\n` +
                 `(Cancel to abort and keep your current workspace.)`;
-    if (!confirm(msg)) return;
+    if (!await skurConfirm(msg, { okLabel: 'Apply' })) return;
   }
   _applyWorkspaceSnapshot(snap);
   if (typeof renderSkurGroups === 'function') renderSkurGroups();
@@ -2239,7 +2267,7 @@ function _skurStartAutosave() {
   });
 }
 
-function _skurMaybeResumeAutosave() {
+async function _skurMaybeResumeAutosave() {
   try {
     const cur = window.__rvtoolsCurrent;
     const saved = _readAutosave();
@@ -2252,10 +2280,11 @@ function _skurMaybeResumeAutosave() {
       if (typeof renderTagRules === 'function') renderTagRules();
       showToast(`↩ Resumed autosaved workspace from ${new Date(saved.savedAt).toLocaleString()}`);
     } else {
-      const ok = confirm(
+      const ok = await skurConfirm(
         `An autosaved workspace exists from ${new Date(saved.savedAt).toLocaleString()},\n` +
         `but it was for a different dataset (${saved.dataset.sourceFilename || 'unknown'}, ${saved.dataset.vmCount || '?'} VMs).\n\n` +
-        `Apply matched groups/rules to this dataset? Cancel to discard the autosave.`
+        `Apply matched groups/rules to this dataset? Cancel to discard the autosave.`,
+        { okLabel: 'Apply' }
       );
       if (ok) {
         const snap = migrateWorkspace(saved.workspace);
@@ -3251,7 +3280,7 @@ function skurUnmarkOOS(keys) {
   for (const k of keys) { if (skurOutOfScope[k]) { delete skurOutOfScope[k]; n++; } }
   return n;
 }
-function skurBulkSetOos(reason) {
+async function skurBulkSetOos(reason) {
   const keys = [...skurSelectedKeys]; if (!keys.length || !reason) return;
   if (reason === '__restore__') {
     const n = skurUnmarkOOS(keys);
@@ -3264,7 +3293,7 @@ function skurBulkSetOos(reason) {
     note = (prompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, '') || '').trim();
   } else if (keys.length > 5) {
     const r = SKUR_OOS_REASONS[reason];
-    if (!confirm(`Mark ${keys.length} VMs as out of scope (${r ? r.label : reason})?\n\nThey will be excluded from cost roll-ups and recommendations.`)) return;
+    if (!await skurConfirm(`Mark ${keys.length} VMs as out of scope (${r ? r.label : reason})?\n\nThey will be excluded from cost roll-ups and recommendations.`, { okLabel: 'Mark out of scope' })) return;
   }
   const n = skurMarkOOS(keys, reason, note);
   skurClearSelection(); renderSkurGroups(); renderSkurVmGrid();
@@ -3273,10 +3302,10 @@ function skurBulkSetOos(reason) {
     alert(`Marked ${n} VM${n===1?'':'s'} as out of scope (${r.label}${note?': '+note:''}).`);
   }
 }
-function skurRestoreAllOos() {
+async function skurRestoreAllOos() {
   const n = skurOOSCount();
   if (!n) return;
-  if (!confirm(`Restore all ${n} out-of-scope VM${n===1?'':'s'} back to in-scope?`)) return;
+  if (!await skurConfirm(`Restore all ${n} out-of-scope VM${n===1?'':'s'} back to in-scope?`, { okLabel: 'Restore all' })) return;
   for (const k of Object.keys(skurOutOfScope)) delete skurOutOfScope[k];
   renderSkurGroups(); renderSkurVmGrid();
 }
@@ -3578,16 +3607,17 @@ function renderSkurGroups() {
           </div>`
         : `<div class="gp-recs-empty"><em>No members yet — tick VMs in the inventory below and use ➕ Add to group.</em></div>`;
       const mode = skurNormaliseMode(g.mode);
-      const modeLabel = { balanced:'⚖ Balanced', cost:'💰 Cost', rightsized:'🎯 Right-sized' }[mode] || mode;
+      const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'🎯 Right-sized',tip:'Tightest fit; minimises waste'} };
+      const modeSeg = `<div class="gp-mode-seg" role="group" aria-label="Sizing mode">${['balanced','cost','rightsized'].map(m => `<button class="gp-mode-btn${m===mode?' is-active':''}" title="${modeMeta[m].tip}" onclick="skurSetGroupMode('${escG(g.id)}','${m}')">${modeMeta[m].lbl}</button>`).join('')}</div>`;
       panel.classList.remove('is-empty');
       panel.innerHTML = `
         <div class="gp-head">
           <span class="gp-name">${escG(g.name)}</span>
-          <span class="gp-mode-pill">${escG(modeLabel)}</span>
+          ${modeSeg}
           <span class="gp-count">${g.members.length} VM${g.members.length===1?'':'s'}</span>
           <div class="gp-actions">
             <button class="gp-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌 ${g.pinned?'Pinned':'Pin'}</button>
-            <button title="Edit constraints + sizing mode" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙ Constraints</button>
+            <button title="Edit constraints" onclick="openSkurConstraintsModal('${escG(g.id)}')">⚙ Constraints</button>
             <button title="Rename group" onclick="renameSkurGroup('${escG(g.id)}')">✏ Rename</button>
             <button class="gp-danger" title="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')">🗑 Delete</button>
           </div>
@@ -3646,7 +3676,7 @@ function renderSkurGroups() {
   const oosBox = document.getElementById('skurOosSummary');
   if (oosBox) { oosBox.style.display = 'none'; oosBox.innerHTML = ''; }
 }
-function skurAutoGroupByTag(key) {
+async function skurAutoGroupByTag(key) {
   if (!key) return;
   // Gather { value -> [vmKey...] } from VMs that resolve a tag with this key.
   const valueToKeys = new Map();
@@ -3667,7 +3697,7 @@ function skurAutoGroupByTag(key) {
               `• ${totalVms} VM${totalVms===1?'':'s'} will be grouped\n` +
               (untaggedSkipped ? `• ${untaggedSkipped} untagged VM${untaggedSkipped===1?'':'s'} skipped\n` : '') +
               `\nGroups named "${key}: <value>". Existing groups with the same name will be reused (additive).\n\nProceed?`;
-  if (!confirm(msg)) return;
+  if (!await skurConfirm(msg, { okLabel: 'Auto-group' })) return;
   let created = 0, updated = 0, addedMembers = 0;
   for (const [val, keys] of valueToKeys.entries()) {
     const name = `${key}: ${val}`;
@@ -3708,9 +3738,9 @@ function renameSkurGroup(id) {
   renderSkurGroups();
   renderSkurVmGrid();
 }
-function deleteSkurGroup(id) {
+async function deleteSkurGroup(id) {
   const g = skurGroups.find(x => x.id === id); if (!g) return;
-  if (!confirm(`Delete group "${g.name}" (${g.members.length} VM${g.members.length===1?'':'s'})? VMs go back to ungrouped.`)) return;
+  if (!await skurConfirm(`Delete group "${g.name}" (${g.members.length} VM${g.members.length===1?'':'s'})? VMs go back to ungrouped.`, { okLabel: 'Delete group' })) return;
   const idx = skurGroups.indexOf(g); if (idx >= 0) skurGroups.splice(idx, 1);
   if (skurExceptionFilter && skurExceptionFilter.groupId === id) skurExceptionFilter = null;
   renderSkurGroups();
@@ -3933,10 +3963,10 @@ function saveSkurRule() {
   renderSkurGroups();
   renderSkurVmGrid();
 }
-function deleteSkurRule(id) {
+async function deleteSkurRule(id) {
   const idx = skurTagRules.findIndex(x => x.id === id);
   if (idx < 0) return;
-  if (!confirm(`Delete rule "${skurTagRules[idx].tagKey}:${skurTagRules[idx].tagValue}"?`)) return;
+  if (!await skurConfirm(`Delete rule "${skurTagRules[idx].tagKey}:${skurTagRules[idx].tagValue}"?`, { okLabel: 'Delete rule' })) return;
   skurTagRules.splice(idx, 1);
   renderSkurTagRules();
   renderSkurGroups();
@@ -4246,8 +4276,8 @@ function skurOnPlanChange(field, value) {
   // Phase 5 will listen for this and recompute recommendations.
   try { document.dispatchEvent(new CustomEvent('skurPlanChanged', { detail: { field, value, plan: { ...skurPlan } } })); } catch (_) {}
 }
-function skurResetPlan() {
-  if (!confirm('Reset plan settings to defaults?')) return;
+async function skurResetPlan() {
+  if (!await skurConfirm('Reset plan settings to defaults?', { okLabel: 'Reset' })) return;
   Object.assign(skurPlan, SKUR_PLAN_DEFAULTS, { asOfDate: new Date().toISOString().slice(0, 10) });
   syncSkurPlanBar();
   updateSkurDataPill();
@@ -4920,9 +4950,6 @@ function openSkurConstraintsModal(groupId) {
   // Processor radio
   const proc = c.processor || 'any';
   document.querySelectorAll('input[name=skurConstrProc]').forEach(r => { r.checked = (r.value === proc); });
-  // Sizing mode radio (lives on the group itself, not on constraints)
-  const mode = skurNormaliseMode(g.mode);
-  document.querySelectorAll('input[name=skurConstrModeR]').forEach(r => { r.checked = (r.value === mode); });
   document.getElementById('skurConstrExcludeBurstable').checked = !!c.excludeBurstable;
   document.getElementById('skurConstrRequirePremiumIo').checked = !!c.requirePremiumIo;
   document.getElementById('skurConstrMinVcpu').value = c.minVcpu == null ? '' : c.minVcpu;
@@ -4979,7 +5006,6 @@ function resetSkurConstraintsToDefaults() {
   const def = skurDefaultConstraints();
   document.querySelectorAll('#skurConstrFamilies input[type=checkbox]').forEach(cb => { cb.checked = def.families.includes(cb.value); });
   document.querySelectorAll('input[name=skurConstrProc]').forEach(r => { r.checked = (r.value === def.processor); });
-  document.querySelectorAll('input[name=skurConstrModeR]').forEach(r => { r.checked = (r.value === 'balanced'); });
   document.getElementById('skurConstrExcludeBurstable').checked = def.excludeBurstable;
   document.getElementById('skurConstrRequirePremiumIo').checked = def.requirePremiumIo;
   document.getElementById('skurConstrMinVcpu').value = '';
@@ -4992,11 +5018,37 @@ function saveSkurConstraints() {
   if (!draft.families.length) return;
   if (draft.minVcpu != null && draft.maxVcpu != null && draft.minVcpu > draft.maxVcpu) return;
   g.constraints = draft;
-  // Sizing mode lives on the group itself.
-  const modeEl = document.querySelector('input[name=skurConstrModeR]:checked');
-  if (modeEl) g.mode = skurNormaliseMode(modeEl.value);
   closeSkurConstraintsModal();
   renderSkurGroups();
+}
+function skurSetGroupMode(groupId, mode) {
+  const g = skurGroups.find(x => x.id === groupId); if (!g) return;
+  g.mode = skurNormaliseMode(mode);
+  renderSkurGroups();
+}
+
+// === Branded confirm modal (Stage 8) — Promise-based wrapper around #skurConfirmModal. ===
+let _skurConfirmResolver = null;
+function skurConfirm(message, opts = {}) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('skurConfirmModal');
+    if (!modal) { resolve(window.confirm(message)); return; }
+    document.getElementById('skurConfirmTitle').textContent = opts.title || 'Confirm';
+    document.getElementById('skurConfirmMessage').textContent = String(message || '');
+    const okBtn = document.getElementById('skurConfirmOkBtn');
+    const cancelBtn = document.getElementById('skurConfirmCancelBtn');
+    okBtn.textContent = opts.okLabel || 'OK';
+    cancelBtn.textContent = opts.cancelLabel || 'Cancel';
+    _skurConfirmResolver = resolve;
+    modal.classList.add('show');
+    setTimeout(() => { try { okBtn.focus(); } catch(_) {} }, 30);
+  });
+}
+function _skurConfirmDone(result) {
+  const modal = document.getElementById('skurConfirmModal');
+  if (modal) modal.classList.remove('show');
+  const r = _skurConfirmResolver; _skurConfirmResolver = null;
+  if (r) r(!!result);
 }
 
 function renderSkuRecStatCards() {
