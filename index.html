@@ -329,6 +329,17 @@ footer strong{opacity:1;}
 .crosstab-banner.show{transform:translateY(0);}
 .crosstab-banner .ct-close{margin-left:14px;background:transparent;border:1px solid #664d03;color:#664d03;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;font-weight:600;}
 .crosstab-banner .ct-close:hover{background:#664d03;color:#fff3cd;}
+/* Stage 9.5 M5 — pre-load autosave prompt (top banner shown on page load) */
+.autosave-prompt{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:1200;display:flex;align-items:center;gap:14px;background:#fff8e1;color:#5d4400;border:1px solid #f0c75e;border-radius:10px;padding:12px 16px;box-shadow:0 4px 18px rgba(0,0,0,.18);max-width:760px;width:calc(100% - 32px);font-size:14px;}
+.autosave-prompt[hidden]{display:none;}
+.autosave-prompt .ap-icon{font-size:22px;}
+.autosave-prompt .ap-text{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.autosave-prompt .ap-text strong{font-weight:700;}
+.autosave-prompt .ap-meta{font-size:12px;color:#7a5e00;}
+.autosave-prompt .ap-load{background:var(--brand-primary);color:#fff;border:1px solid var(--brand-primary);border-radius:6px;padding:6px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.autosave-prompt .ap-load:hover{background:var(--brand-secondary,var(--brand-primary));}
+.autosave-prompt .ap-close{background:transparent;border:1px solid #b8860b;color:#5d4400;border-radius:6px;padding:4px 8px;cursor:pointer;font:inherit;font-size:13px;line-height:1;}
+.autosave-prompt .ap-close:hover{background:#b8860b;color:#fff8e1;}
 /* ── Welcome modal ── */
 .welcome-card{max-width:540px;}
 .welcome-banner{background:linear-gradient(135deg,#0f6cbd 0%,#0e4a8a 100%);color:#fff;padding:28px 32px 20px;text-align:center;}
@@ -819,6 +830,16 @@ body.dark .skur-group-chip{color:#b794f4;}
 <div class="crosstab-banner" id="crossTabBanner" role="alert" aria-live="assertive" hidden>
   <span id="crossTabBannerMsg">⏸ Autosave paused — another tab is editing this workspace.</span>
   <button type="button" class="ct-close" onclick="hideCrossTabBanner()">Dismiss</button>
+</div>
+<!-- Stage 9.5 M5 — pre-load autosave prompt (shown on page load when an autosave exists but no data is loaded yet) -->
+<div class="autosave-prompt" id="autosavePrompt" role="region" aria-label="Autosaved workspace exists" hidden>
+  <span class="ap-icon">📋</span>
+  <div class="ap-text">
+    <strong>You have an autosaved workspace</strong>
+    <span class="ap-meta" id="autosavePromptMeta"></span>
+  </div>
+  <button type="button" class="ap-load" onclick="document.getElementById('autosavePrompt').hidden=true; activateTab('import');">📂 Go to Import</button>
+  <button type="button" class="ap-close" onclick="_skurDismissPreloadPrompt()" title="Dismiss">✕</button>
 </div>
 
 
@@ -2479,6 +2500,8 @@ async function skurDismissAutosave() {
 
 async function _skurMaybeResumeAutosave() {
   try {
+    // Stage 9.5 M5: pre-load prompt is no longer needed once a dataset is in hand.
+    const preloadEl = document.getElementById('autosavePrompt'); if (preloadEl) preloadEl.hidden = true;
     const cur = window.__rvtoolsCurrent;
     const saved = _readAutosave();
     if (!cur || !saved || !saved.workspace || !saved.dataset) return;
@@ -5144,6 +5167,39 @@ document.addEventListener('skurPlanChanged', (ev) => {
 });
 // Kick off live-data init once the DOM is ready (idempotent; no-op on file://).
 document.addEventListener('DOMContentLoaded', () => { skurInitLiveData(); });
+
+// Stage 9.5 M5 — pre-load autosave prompt: surface "you have an autosaved workspace" banner
+// on page load when an autosave exists but no dataset is loaded yet, so the user knows to
+// load the matching RVTools file (instead of being surprised by the post-load Resume banner).
+let _skurPreloadPromptDismissed = false;
+function _skurDismissPreloadPrompt(){
+  _skurPreloadPromptDismissed = true;
+  const el = document.getElementById('autosavePrompt'); if (el) el.hidden = true;
+}
+function _skurMaybeShowPreloadPrompt(){
+  try {
+    if (_skurPreloadPromptDismissed) return;
+    const el = document.getElementById('autosavePrompt'); if (!el) return;
+    if (window.__rvtoolsCurrent) { el.hidden = true; return; }
+    const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
+    if (!saved || !saved.workspace || !saved.dataset) { el.hidden = true; return; }
+    const meta = document.getElementById('autosavePromptMeta');
+    if (meta) {
+      const ws = saved.workspace || {};
+      const groups = (ws.groups || []).length;
+      const rules = (ws.tagRules || ws.rules || []).length;
+      const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
+      const ago = (typeof _skurFmtAgo === 'function') ? _skurFmtAgo(saved.savedAt) : '';
+      const fname = saved.dataset.sourceFilename || 'the same RVTools file';
+      meta.textContent = `${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}${ago ? ' · saved '+ago : ''} — load ${fname} to resume.`;
+    }
+    el.hidden = false;
+  } catch (_) {}
+}
+document.addEventListener('DOMContentLoaded', () => {
+  // Defer until autosave helpers are wired up.
+  setTimeout(_skurMaybeShowPreloadPrompt, 200);
+});
 
 // === Phase 5 slice 3: mode scorers (Balanced / Cost / Right-sized) ===
 // All scoring functions return a number where LOWER is better. Infinity = ineligible.
