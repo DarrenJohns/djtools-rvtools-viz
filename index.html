@@ -524,8 +524,35 @@ footer strong{opacity:1;}
 .skur-modal-preview.err{color:#d13438;background:rgba(209,52,56,.06);border-color:rgba(209,52,56,.3);}
 /* Sizing groups */
 .skur-groups-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 16px;background:var(--bg-layer1);}
-.skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
-.skur-groups-head h4{margin:0;font-size:.95rem;font-weight:700;color:var(--text);}
+.skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+.skur-groups-head h4{margin:0;font-size:.95rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;}
+.skur-groups-head h4 .skur-count-pill{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:18px;padding:0 7px;border-radius:999px;background:rgba(15,108,189,.14);color:var(--brand-primary);font-size:11px;font-weight:700;}
+.skur-overflow{position:relative;}
+.skur-overflow > summary{list-style:none;cursor:pointer;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-secondary);font-size:13px;font-weight:600;}
+.skur-overflow > summary::-webkit-details-marker{display:none;}
+.skur-overflow > summary:hover{background:var(--bg-layer2);color:var(--text-primary);}
+.skur-overflow[open] > summary{background:var(--bg-layer2);color:var(--text-primary);}
+.skur-overflow-menu{position:absolute;top:calc(100% + 4px);right:0;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);box-shadow:0 8px 24px rgba(0,0,0,.12);padding:6px;z-index:50;min-width:240px;display:flex;flex-direction:column;gap:4px;}
+.skur-overflow-menu > *{font:inherit;font-size:12px;text-align:left;}
+.skur-overflow-menu > button,.skur-overflow-menu > select,.skur-overflow-menu > a{padding:6px 10px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;}
+.skur-overflow-menu > button:hover,.skur-overflow-menu > select:hover,.skur-overflow-menu > a:hover{background:var(--bg-layer2);}
+/* Rail search + filters + sort (Stage 9) */
+.skur-rail-toolbar{display:flex;flex-direction:column;gap:6px;padding:6px 6px 4px;border-bottom:1px solid var(--border-subtle);margin:-8px -8px 6px;background:var(--bg-layer1);border-top-left-radius:var(--radius-md);border-top-right-radius:var(--radius-md);}
+.skur-rail-search{padding:0 4px;}
+.skur-rail-search input{width:100%;padding:5px 8px;font:inherit;font-size:11px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);}
+.skur-rail-pills{display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:0 4px 4px;}
+.skur-rail-pill{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);cursor:pointer;border:1px solid var(--border-subtle);font-weight:600;user-select:none;}
+.skur-rail-pill.is-on{background:rgba(15,108,189,.12);color:var(--brand-primary);border-color:rgba(15,108,189,.3);}
+.skur-rail-sort{margin-left:auto;font:inherit;font-size:10px;padding:2px 4px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-secondary);}
+/* Rail card cost + drag handle */
+.skur-group-rail-item .ri-handle{color:var(--text-tertiary);font-size:13px;cursor:grab;user-select:none;line-height:1;padding:0 2px;opacity:.5;}
+.skur-group-rail-item:hover .ri-handle{opacity:.9;}
+.skur-group-rail-item .ri-handle:active{cursor:grabbing;}
+.skur-group-rail-item .ri-cost{font-family:var(--font-mono,'Consolas',monospace);font-weight:600;color:var(--text-primary);font-size:11px;margin-left:auto;}
+.skur-group-rail-item.is-warn{background:rgba(188,75,9,.06);}
+.skur-group-rail-item.is-warn:hover{background:rgba(188,75,9,.10);}
+.skur-group-rail-empty.search-empty{font-size:11px;}
+/* OOS row (preserve dashed top-border + bottom anchor) */
 .skur-groups-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 10px;}
 .skur-groups-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
 .skur-groups-2col{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:stretch;margin-top:8px;}
@@ -1152,35 +1179,40 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="skur-section">
         <div class="skur-groups-card">
           <div class="skur-groups-head">
-            <h4>📂 Sizing groups</h4>
+            <h4>📁 VM Groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
             <div class="skur-view-toggle" role="group" aria-label="Groups view" style="margin-left:auto;display:inline-flex;border:1px solid var(--border-default);border-radius:var(--radius-sm);overflow:hidden;">
               <button type="button" class="skur-view-btn is-active" data-view="rail" onclick="skurSetGroupsView('rail')" title="Rail + detail panel view">▤ Rail</button>
               <button type="button" class="skur-view-btn" data-view="board" onclick="skurSetGroupsView('board')" title="Board overview (4-column card grid)">⊞ Board</button>
             </div>
-            <select id="skurAutoGroupSel" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';}">
-              <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
-            </select>
-            <button class="btn" onclick="newSkurGroup()">➕ New group</button>
-            <select id="skurExportSel" title="Download a CSV report of the recommendations" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportCsv(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📥 CSV report ▾</option>
-              <option value="active">Active group only</option>
-              <option value="pinned">Pinned groups only</option>
-              <option value="all">All groups (combined)</option>
-              <option value="oos">Out-of-scope only</option>
-              <option value="everything">Everything (groups + OOS + ungrouped)</option>
-            </select>
+            <details class="skur-overflow" id="skurGroupsOverflow">
+              <summary title="More actions">⋯</summary>
+              <div class="skur-overflow-menu" onclick="event.stopPropagation()">
+                <select id="skurAutoGroupSel" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}">
+                  <option value="" disabled selected hidden>✨ Auto-group by tag…</option>
+                </select>
+                <select id="skurExportSel" title="Download a CSV report of the recommendations" onchange="if(this.value){skurExportCsv(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}">
+                  <option value="" disabled selected hidden>📥 CSV report…</option>
+                  <option value="active">Active group only</option>
+                  <option value="pinned">Pinned groups only</option>
+                  <option value="all">All groups (combined)</option>
+                  <option value="oos">Out-of-scope only</option>
+                  <option value="everything">Everything (groups + OOS + ungrouped)</option>
+                </select>
+                <button type="button" onclick="exportScenarioBundle();document.getElementById('skurGroupsOverflow').open=false;" title="Save scenario (.rvz): the source RVTools data + your full workspace customisations in one file. Resume on this or another machine via the same upload field.">💾 Save scenario (.rvz)</button>
+                <select onchange="if(this.value){exportWorkspaceJson(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}" title="Save just your customisations as JSON (no source data). Re-apply via the same upload field, with reconciliation to whichever dataset is loaded.">
+                  <option value="" disabled selected hidden>📋 Save workspace (.json)…</option>
+                  <option value="full">Full workspace (groups + OOS + rules + settings)</option>
+                  <option value="rules">Rules template only (rules + plan settings)</option>
+                </select>
+              </div>
+            </details>
             <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📊 Excel report ▾</option>
+              <option value="" disabled selected hidden>📊 Excel ▾</option>
               <option value="all">All groups</option>
               <option value="pinned">Pinned groups only</option>
               <option value="active">Active group only</option>
             </select>
-            <button type="button" onclick="exportScenarioBundle()" title="Save scenario (.rvz): the source RVTools data + your full workspace customisations in one file. Resume on this or another machine via the same upload field." style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">💾 Save scenario (.rvz)</button>
-            <select onchange="if(this.value){exportWorkspaceJson(this.value);this.value='';}" title="Save just your customisations as JSON (no source data). Re-apply via the same upload field, with reconciliation to whichever dataset is loaded." style="font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;">
-              <option value="" disabled selected hidden>📋 Save workspace (.json) ▾</option>
-              <option value="full">Full workspace (groups + OOS + rules + settings)</option>
-              <option value="rules">Rules template only (rules + plan settings)</option>
-            </select>
+            <button class="btn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="newSkurGroup()">➕ New VM Group</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid below and use the bulk bar to add them to a group, or click <strong>New group</strong> to create an empty one.</p>
           <div class="skur-groups-2col" id="skurGroupsTwoCol" style="display:none;">
@@ -3351,6 +3383,19 @@ function skurDupVmKeys() {
 }
 // Phase 7: active-group state for rail/panel layout.
 let skurActiveGroupId = null; // group id, or '__oos__' for OOS view, or null
+// Stage 9 — rail filter/sort/search state
+let skurRailSearch = '';
+let skurRailFilter = 'all'; // 'all' | 'warn' | 'pinned'
+let skurRailSort = 'manual'; // 'manual' | 'name' | 'name-desc' | 'cost' | 'cost-asc'
+function skurSetRailFilter(f) { skurRailFilter = f; renderSkurGroups(); }
+function skurSetRailSort(s) { skurRailSort = s; renderSkurGroups(); }
+function skurSetRailSearch(v) { skurRailSearch = String(v || ''); renderSkurGroups(); }
+function _skurFmtCostK(n) {
+  if (n == null || !isFinite(n)) return '—';
+  const s = skurPlan && skurPlan.currency === 'USD' ? '$' : (skurPlan?.currency === 'AUD' ? 'A$' : '$');
+  if (Math.abs(n) >= 1000) return s + (n/1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return s + Math.round(n);
+}
 let skurGroupsView = (() => {
   try { const v = localStorage.getItem('skur.groupsView'); return (v === 'board' || v === 'rail') ? v : 'rail'; }
   catch (_) { return 'rail'; }
@@ -3498,10 +3543,25 @@ function renderSkurGroups() {
   const totalCat = skurCatalogForRegion(skurPlan.region).length;
   const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
   // Pinned groups float to top, preserving original creation order within each bucket.
-  const orderedGroups = skurGroups.map((g, i) => ({ g, i }))
+  const orderedGroupsBase = skurGroups.map((g, i) => ({ g, i }))
     .sort((a, b) => ((b.g.pinned?1:0) - (a.g.pinned?1:0)) || (a.i - b.i))
     .map(x => x.g);
-  const railItems = orderedGroups.map(g => {
+  // Stage 9: search + filter + sort
+  const railWarnSet = new Set(orderedGroupsBase.filter(g => {
+    const e = skurExceptionCountsForGroup(g);
+    return (e.noMatch + e.noEligible) > 0;
+  }).map(g => g.id));
+  const searchQ = skurRailSearch.trim().toLowerCase();
+  let railVisible = orderedGroupsBase.slice();
+  if (skurRailFilter === 'warn') railVisible = railVisible.filter(g => railWarnSet.has(g.id));
+  else if (skurRailFilter === 'pinned') railVisible = railVisible.filter(g => g.pinned);
+  if (searchQ) railVisible = railVisible.filter(g => String(g.name||'').toLowerCase().includes(searchQ));
+  if (skurRailSort === 'name') railVisible.sort((a,b) => String(a.name||'').localeCompare(String(b.name||''), undefined, { sensitivity:'base' }));
+  else if (skurRailSort === 'name-desc') railVisible.sort((a,b) => String(b.name||'').localeCompare(String(a.name||''), undefined, { sensitivity:'base' }));
+  else if (skurRailSort === 'cost') railVisible.sort((a,b) => (_skurGroupTotalMonthlyCost(b)||0) - (_skurGroupTotalMonthlyCost(a)||0));
+  else if (skurRailSort === 'cost-asc') railVisible.sort((a,b) => (_skurGroupTotalMonthlyCost(a)||0) - (_skurGroupTotalMonthlyCost(b)||0));
+  const orderedGroups = orderedGroupsBase; // board view + remainder still uses pinned-first order
+  const railItems = railVisible.map(g => {
     const isActive = skurActiveGroupId === g.id;
     const dupCount = dups.size ? g.members.reduce((n,k) => n + (dups.has(k) ? 1 : 0), 0) : 0;
     const eligibleCount = skurEligibleSkusForGroup(g).length;
@@ -3513,8 +3573,12 @@ function renderSkurGroups() {
     const mode = skurNormaliseMode(g.mode);
     const pinned = !!g.pinned;
     const pinTitle = pinned ? 'Pinned — click to unpin' : 'Pin to top';
-    return `<div class="skur-group-rail-item${isActive?' is-active':''}${pinned?' is-pinned':''}" onclick="skurSetActiveGroup('${escG(g.id)}')">
+    const cost = _skurGroupTotalMonthlyCost(g);
+    const costHtml = cost == null ? '<span class="ri-cost" style="color:var(--text-tertiary);">—</span>' : `<span class="ri-cost" title="Estimated monthly compute">${escG(_skurFmtCostK(cost))}</span>`;
+    const warnCls = railWarnSet.has(g.id) ? ' is-warn' : '';
+    return `<div class="skur-group-rail-item${isActive?' is-active':''}${pinned?' is-pinned':''}${warnCls}" onclick="skurSetActiveGroup('${escG(g.id)}')">
       <div class="ri-top">
+        <span class="ri-handle" title="Drag to reorder">⠿</span>
         <span class="ri-mode-emoji" title="Sizing mode: ${escG(mode)}">${modeEmoji(mode)}</span>
         <span class="ri-name" title="${escG(g.name)}">${escG(g.name)}</span>
         <button class="ri-pin${pinned?' is-pinned':''}" title="${pinTitle}" onclick="event.stopPropagation();skurTogglePin('${escG(g.id)}');">📌</button>
@@ -3523,14 +3587,44 @@ function renderSkurGroups() {
         <span>${g.members.length} VM${g.members.length===1?'':'s'}</span>
         <span>· 📦 ${eligibleCount}/${totalCat}</span>
         ${issuesHtml}${warnsHtml}
+        ${costHtml}
       </div>
     </div>`;
   }).join('');
   const oosRail = oosTotal
     ? `<div class="skur-group-rail-spacer"></div>
-       <div class="skur-group-rail-oos${skurActiveGroupId==='__oos__'?' is-active':''}" onclick="skurSetActiveGroup('__oos__')" title="View out-of-scope VMs">🚫 Out of scope · ${oosTotal} VM${oosTotal===1?'':'s'}</div>`
+       <div class="skur-group-rail-oos${skurActiveGroupId==='__oos__'?' is-active':''}" onclick="skurSetActiveGroup('__oos__')" title="View out-of-scope VMs">📦 Ungrouped · ${oosTotal} VM${oosTotal===1?'':'s'} · excl.</div>`
     : '';
-  rail.innerHTML = (hasGroups ? railItems : `<div class="skur-group-rail-empty">No groups yet</div>`) + oosRail;
+  const railToolbar = `
+    <div class="skur-rail-toolbar">
+      <div class="skur-rail-search"><input type="search" placeholder="🔍 Search groups…" value="${escG(skurRailSearch)}" oninput="skurSetRailSearch(this.value)"></div>
+      <div class="skur-rail-pills">
+        <span class="skur-rail-pill${skurRailFilter==='all'?' is-on':''}" onclick="skurSetRailFilter('all')">All <span>${orderedGroupsBase.length}</span></span>
+        <span class="skur-rail-pill${skurRailFilter==='warn'?' is-on':''}" onclick="skurSetRailFilter('warn')" title="Groups with sizing exceptions">⚠ <span>${railWarnSet.size}</span></span>
+        <span class="skur-rail-pill${skurRailFilter==='pinned'?' is-on':''}" onclick="skurSetRailFilter('pinned')" title="Pinned groups">📌 <span>${orderedGroupsBase.filter(g=>g.pinned).length}</span></span>
+        <select class="skur-rail-sort" onchange="skurSetRailSort(this.value)" title="Sort groups">
+          <option value="manual"${skurRailSort==='manual'?' selected':''}>Order</option>
+          <option value="name"${skurRailSort==='name'?' selected':''}>A → Z</option>
+          <option value="name-desc"${skurRailSort==='name-desc'?' selected':''}>Z → A</option>
+          <option value="cost"${skurRailSort==='cost'?' selected':''}>$ High → Low</option>
+          <option value="cost-asc"${skurRailSort==='cost-asc'?' selected':''}>$ Low → High</option>
+        </select>
+      </div>
+    </div>`;
+  const railEmpty = hasGroups
+    ? (railItems ? '' : `<div class="skur-group-rail-empty search-empty">No groups match the current filter${searchQ?` or "${escG(searchQ)}"`:''}.</div>`)
+    : `<div class="skur-group-rail-empty">No groups yet</div>`;
+  rail.innerHTML = railToolbar + (railItems || railEmpty) + oosRail;
+  // Restore search input focus + caret after re-render (common bug when innerHTML rebuilds the input)
+  if (skurRailSearch) {
+    const inp = rail.querySelector('.skur-rail-search input');
+    if (inp && document.activeElement !== inp) {
+      try { inp.focus(); const v = inp.value; inp.setSelectionRange(v.length, v.length); } catch (_) {}
+    }
+  }
+  // Update header count pill
+  const countPill = document.getElementById('skurGroupCountPill');
+  if (countPill) countPill.textContent = String(orderedGroupsBase.length);
 
   // === Render active panel ===
   if (skurActiveGroupId === '__oos__') {
