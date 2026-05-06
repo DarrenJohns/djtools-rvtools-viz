@@ -472,15 +472,20 @@ footer strong{opacity:1;}
 .skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 0;}
 .skur-tagrules .btn-disabled{opacity:.6;cursor:not-allowed;}
 /* Tag rules list + chips + modal */
-.skur-rules-list{margin:8px 0 10px;display:flex;flex-direction:column;gap:6px;}
-.skur-rule{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-primary);}
-.skur-rule .skur-rule-cond{font-family:'Cascadia Code','Consolas',monospace;color:var(--text-secondary);}
-.skur-rule .skur-rule-arrow{color:var(--text-tertiary);}
-.skur-rule .skur-rule-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:rgba(15,108,189,.12);color:var(--brand-primary);font-weight:600;font-size:11px;}
-.skur-rule .skur-rule-meta{margin-left:auto;color:var(--text-tertiary);font-size:11px;}
-.skur-rule .skur-rule-actions{display:inline-flex;gap:4px;}
-.skur-rule .skur-rule-actions button{background:transparent;border:1px solid transparent;color:var(--text-secondary);width:24px;height:24px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;}
-.skur-rule .skur-rule-actions button:hover{background:var(--bg-layer1);border-color:var(--border-default);color:var(--text-primary);}
+.skur-rules-list{margin:8px 0 10px;}
+/* Stage 9.5 Pass M2: tag rules inline table editor (mockup parity) */
+.skur-rules-table{width:100%;border-collapse:collapse;font-size:12px;}
+.skur-rules-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);padding:6px 10px;font-weight:700;border-bottom:1px solid var(--border-subtle);}
+.skur-rules-table td{padding:7px 10px;border-top:1px solid var(--border-subtle);vertical-align:middle;color:var(--text-primary);}
+.skur-rules-table tbody tr:hover{background:var(--bg-layer2);}
+.skur-rules-table .tr-cond{font-family:'Cascadia Code','Consolas',monospace;color:var(--text-secondary);}
+.skur-rules-table .tr-cond strong{color:var(--text-primary);}
+.skur-rules-table .tr-key,.skur-rules-table .tr-val{font-family:'Cascadia Code','Consolas',monospace;color:var(--brand-primary);font-weight:600;}
+.skur-rules-table .tr-matches{color:var(--text-tertiary);white-space:nowrap;}
+.skur-rules-table .tr-matches strong{color:var(--brand-primary);}
+.skur-rules-table .tr-actions{text-align:right;white-space:nowrap;}
+.skur-rules-table .tr-btn{background:transparent;border:1px solid transparent;color:var(--text-secondary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;margin-left:2px;}
+.skur-rules-table .tr-btn:hover{background:var(--bg-layer1);border-color:var(--border-default);color:var(--text-primary);}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
@@ -4195,20 +4200,21 @@ function renderSkurTagRules() {
   empty.style.display = 'none';
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const opLabel = { contains:'contains', equals:'equals', startsWith:'starts with', regex:'matches' };
-  list.innerHTML = skurTagRules.map(r => {
+  const rows = skurTagRules.map(r => {
     const fld = (SKUR_FIELD_DEFS[r.field] && SKUR_FIELD_DEFS[r.field].label) || r.field;
     const cnt = skurCountMatches(r);
-    return `<div class="skur-rule">
-      <span class="skur-rule-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></span>
-      <span class="skur-rule-arrow">→</span>
-      <span class="skur-rule-tag">${esc(r.tagKey)}:${esc(r.tagValue)}</span>
-      <span class="skur-rule-meta">${cnt} VM${cnt===1?'':'s'}</span>
-      <span class="skur-rule-actions">
-        <button title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')">✏</button>
-        <button title="Delete rule" onclick="deleteSkurRule('${esc(r.id)}')">🗑</button>
-      </span>
-    </div>`;
+    return `<tr data-rid="${esc(r.id)}">
+      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></td>
+      <td class="tr-key">${esc(r.tagKey)}</td>
+      <td class="tr-val">${esc(r.tagValue)}</td>
+      <td class="tr-matches"><strong>${cnt}</strong> VM${cnt===1?'':'s'}</td>
+      <td class="tr-actions">
+        <button class="tr-btn" title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')">✏</button>
+        <button class="tr-btn" title="Delete rule" onclick="deleteSkurRule('${esc(r.id)}')">🗑</button>
+      </td>
+    </tr>`;
   }).join('');
+  list.innerHTML = `<table class="skur-rules-table"><thead><tr><th>Condition</th><th>Tag key</th><th>Tag value</th><th>Matches</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 let _skurEditingRuleId = null;
 function openSkurRuleModal(ruleId) {
