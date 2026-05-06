@@ -3321,10 +3321,10 @@ function renderSkuRecommender() {
   const content = document.getElementById('skuRecContent');
   const pill = document.getElementById('skuRecVmCountPill');
   if (!empty || !content) return;
-  // Treat sample-mode as "no real data yet" so the recommender doesn't pretend
-  // to recommend SKUs against demo VMs. Easy to flip later if we choose to support sample.
-  const hasRealData = Array.isArray(allVMs) && allVMs.length > 0 && !window._isDemoMode;
-  if (!hasRealData) {
+  // Stage 9: demo data is fully usable — the recommender works against any
+  // VM list, real or sample. Empty state only shows if there are zero VMs.
+  const hasData = Array.isArray(allVMs) && allVMs.length > 0;
+  if (!hasData) {
     empty.style.display = 'block';
     content.style.display = 'none';
     if (pill) pill.style.display = 'none';
