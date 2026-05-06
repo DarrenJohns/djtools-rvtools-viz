@@ -537,6 +537,33 @@ footer strong{opacity:1;}
 .skur-modal-row select:focus,.skur-modal-row input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(0,120,212,.12);}
 .skur-modal-preview{margin:6px 0 14px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
 .skur-modal-preview.err{color:#d13438;background:rgba(209,52,56,.06);border-color:rgba(209,52,56,.3);}
+/* Stage 9.5: Auto-group by tag modal */
+.skur-ag-card{max-height:88vh;display:flex;flex-direction:column;}
+.skur-ag-body{display:flex;flex-direction:column;min-height:0;}
+.skur-ag-name{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:rgba(15,108,189,.04);}
+.skur-ag-name label{font-size:12px;font-weight:600;color:var(--brand-primary);white-space:nowrap;cursor:pointer;}
+.skur-ag-name input{flex:1;font:inherit;font-size:14px;padding:7px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);font-weight:500;}
+.skur-ag-name input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(0,120,212,.12);}
+.skur-ag-lead{font-size:12px;color:var(--text-secondary);margin-bottom:10px;line-height:1.45;}
+.skur-ag-filter{position:relative;margin-bottom:8px;flex-shrink:0;}
+.skur-ag-filter input{width:100%;font:inherit;font-size:12px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
+.skur-ag-list{overflow-y:auto;flex:1 1 auto;min-height:120px;max-height:42vh;padding-right:4px;margin-right:-4px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--bg-layer1);}
+.skur-ag-group{border-bottom:1px solid var(--border-subtle);}
+.skur-ag-group:last-child{border-bottom:none;}
+.skur-ag-group-head{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:12px;font-weight:700;background:var(--bg-layer2);color:var(--text-primary);position:sticky;top:0;z-index:1;}
+.skur-ag-group-head .skur-ag-key-meta{font-weight:500;color:var(--text-tertiary);font-size:11px;margin-left:auto;}
+.skur-ag-values{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;}
+.skur-ag-val{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border:1px solid var(--border-default);border-radius:999px;background:var(--bg-layer1);font-size:12px;color:var(--text-primary);cursor:pointer;user-select:none;transition:background .12s,border-color .12s;}
+.skur-ag-val:hover{background:var(--bg-layer2);}
+.skur-ag-val input{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+.skur-ag-val.checked{background:rgba(15,108,189,.12);border-color:var(--brand-primary);color:var(--brand-primary);font-weight:600;}
+.skur-ag-val.disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through;}
+.skur-ag-val .skur-ag-count{font-size:10px;color:var(--text-tertiary);background:var(--bg-layer2);padding:1px 6px;border-radius:999px;}
+.skur-ag-val.checked .skur-ag-count{background:var(--brand-primary);color:#fff;}
+.skur-ag-empty{padding:24px;text-align:center;color:var(--text-tertiary);font-size:12px;font-style:italic;}
+.skur-ag-preview{margin:10px 0 6px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
+.skur-ag-preview.is-ok{color:var(--brand-primary);border-color:rgba(15,108,189,.3);background:rgba(15,108,189,.06);}
+.skur-ag-preview.is-empty{color:#d13438;border-color:rgba(209,52,56,.3);background:rgba(209,52,56,.05);}
 /* Sizing groups */
 .skur-groups-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 16px;background:var(--bg-layer1);}
 .skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
@@ -1213,9 +1240,7 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="__restore__">↩ Restore to in-scope</option>
             </select>
             <span class="bb-sep">|</span>
-            <select id="skurAutoGroupHeaderSel" class="bb-autogroup" title="Auto-group all VMs by a chosen tag" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';}">
-              <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
-            </select>
+            <button class="bb-autogroup" id="skurAutoGroupBtn" title="Auto-group VMs by tag — pick specific tag values to include" onclick="skurOpenAutoGroupModal()">✨ Auto-group by tag</button>
           </div>
         </div>
         <div class="skur-exc-banner hidden" id="skurExcBanner"></div>
@@ -1332,6 +1357,29 @@ body.dark .skur-group-chip{color:#b794f4;}
       <button class="btn-outline" onclick="closeSkurRuleModal()">Cancel</button>
       <button class="btn-primary" id="skurRuleSaveBtn" onclick="saveSkurRule()">Save</button>
     </div>
+    </div>
+  </div>
+</div>
+
+<!-- Stage 9.5: Auto-group by tag modal -->
+<div class="modal-overlay" id="skurAutoGroupModal" onclick="if(event.target===this)skurCloseAutoGroupModal()">
+  <div class="modal-card is-lg skur-ag-card" role="dialog" aria-modal="true" aria-labelledby="skurAutoGroupTitle">
+    <div class="modal-banner"><h2 id="skurAutoGroupTitle">✨ Auto-group by tag</h2></div>
+    <div class="modal-body skur-ag-body">
+      <div class="skur-ag-name">
+        <label for="skurAgName">New VM Group name</label>
+        <input type="text" id="skurAgName" placeholder="e.g. Auckland Production Web" autocomplete="off">
+      </div>
+      <div class="skur-ag-lead">Pick the specific tag values to include. VMs matching <strong>any</strong> ticked value within each key (and <strong>every</strong> key with ticks) join the group.</div>
+      <div class="skur-ag-filter">
+        <input type="text" id="skurAgFilter" placeholder="🔍 Filter tag keys / values…" oninput="skurFilterAgList()" autocomplete="off">
+      </div>
+      <div class="skur-ag-list" id="skurAgList"></div>
+      <div class="skur-ag-preview" id="skurAgPreview">Tick at least one tag value to preview matches.</div>
+      <div class="modal-close-row">
+        <button class="btn-outline" onclick="skurCloseAutoGroupModal()">Cancel</button>
+        <button class="btn-primary" id="skurAgConfirmBtn" onclick="skurConfirmAutoGroup()">Create group</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3987,46 +4035,159 @@ function renderSkurGroups() {
   const oosBox = document.getElementById('skurOosSummary');
   if (oosBox) { oosBox.style.display = 'none'; oosBox.innerHTML = ''; }
 }
-async function skurAutoGroupByTag(key) {
-  if (!key) return;
-  // Gather { value -> [vmKey...] } from VMs that resolve a tag with this key.
-  const valueToKeys = new Map();
-  let untaggedSkipped = 0;
+// === Stage 9.5: Auto-group by tag — multi-key/multi-value picker (matches mockup) ===
+function _skurAgEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _skurAgBuildKeyMap() {
+  const km = {}; // { key: { value: count } }
   (allVMs || []).forEach(vm => {
-    const matches = skurTagsForVm(vm).filter(t => t.key === key);
-    if (!matches.length) { untaggedSkipped++; return; }
-    matches.forEach(t => {
-      if (!valueToKeys.has(t.value)) valueToKeys.set(t.value, []);
-      valueToKeys.get(t.value).push(skurVmKey(vm));
+    skurTagsForVm(vm).forEach(t => {
+      (km[t.key] = km[t.key] || {});
+      km[t.key][t.value] = (km[t.key][t.value] || 0) + 1;
     });
   });
-  if (!valueToKeys.size) { alert(`No VMs have a "${key}" tag. Add or adjust a tag rule first.`); return; }
-  const distinctValues = [...valueToKeys.keys()].sort();
-  const totalVms = [...new Set([].concat(...valueToKeys.values()))].length;
-  const msg = `Auto-group by "${key}":\n\n` +
-              `• ${distinctValues.length} distinct value${distinctValues.length===1?'':'s'} → up to ${distinctValues.length} group${distinctValues.length===1?'':'s'}\n` +
-              `• ${totalVms} VM${totalVms===1?'':'s'} will be grouped\n` +
-              (untaggedSkipped ? `• ${untaggedSkipped} untagged VM${untaggedSkipped===1?'':'s'} skipped\n` : '') +
-              `\nGroups named "${key}: <value>". Existing groups with the same name will be reused (additive).\n\nProceed?`;
-  if (!await skurConfirm(msg, { okLabel: 'Auto-group' })) return;
-  let created = 0, updated = 0, addedMembers = 0;
-  for (const [val, keys] of valueToKeys.entries()) {
-    const name = `${key}: ${val}`;
-    const dedup = [...new Set(keys)];
-    let g = skurGroups.find(x => x.name.toLowerCase() === name.toLowerCase());
-    if (!g) {
-      g = { id: skurNewGroupId(), name, mode: 'balanced', term: 'payg', ahub: false, members: dedup, pinned: false };
-      skurGroups.push(g);
-      created++; addedMembers += dedup.length;
-    } else {
-      const before = g.members.length;
-      dedup.forEach(k => { if (!g.members.includes(k)) g.members.push(k); });
-      const delta = g.members.length - before;
-      if (delta > 0) { updated++; addedMembers += delta; }
-    }
+  return km;
+}
+function _skurAgGetSelections() {
+  const sel = {};
+  document.querySelectorAll('#skurAgList .skur-ag-val input:checked').forEach(cb => {
+    const k = cb.dataset.key;
+    (sel[k] = sel[k] || new Set()).add(cb.dataset.val);
+  });
+  return sel;
+}
+function _skurAgBuildFilteredVms(sel) {
+  const keys = Object.keys(sel);
+  if (!keys.length) return [];
+  return (allVMs || []).filter(v => {
+    const tags = skurTagsForVm(v);
+    return keys.every(k => tags.some(t => t.key === k && sel[k].has(t.value)));
+  });
+}
+function skurOpenAutoGroupModal() {
+  const km = _skurAgBuildKeyMap();
+  const keys = Object.keys(km).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+  const list = document.getElementById('skurAgList');
+  if (!list) return;
+  if (!keys.length) {
+    alert('No tags match any VMs yet. Define tag rules first (🏷 Auto tag assignment) or apply manual tags.');
+    return;
   }
-  renderSkurGroups(); renderSkurVmGrid();
-  alert(`Auto-group complete:\n• ${created} new group${created===1?'':'s'} created\n• ${updated} existing group${updated===1?'':'s'} updated\n• ${addedMembers} membership${addedMembers===1?'':'s'} added`);
+  list.innerHTML = keys.map(k => {
+    const vals = Object.entries(km[k]).sort((a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: 'base' }));
+    const chips = vals.map(([val, cnt]) =>
+      `<label class="skur-ag-val" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}"><input type="checkbox" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}" onchange="skurOnAgValChange(this)"><span>${_skurAgEsc(val)}</span><span class="skur-ag-count">${cnt}</span></label>`
+    ).join('');
+    return `<div class="skur-ag-group"><div class="skur-ag-group-head"><span>${_skurAgEsc(k)}</span><span class="skur-ag-key-meta">${vals.length} value${vals.length===1?'':'s'}</span></div><div class="skur-ag-values">${chips}</div></div>`;
+  }).join('');
+  const flt = document.getElementById('skurAgFilter'); if (flt) flt.value = '';
+  const nm  = document.getElementById('skurAgName');   if (nm)  nm.value  = '';
+  _skurAgUpdatePreview();
+  document.getElementById('skurAutoGroupModal').classList.add('show');
+  setTimeout(() => { const n = document.getElementById('skurAgName'); if (n) n.focus(); }, 50);
+}
+function skurCloseAutoGroupModal() {
+  document.getElementById('skurAutoGroupModal').classList.remove('show');
+}
+function skurFilterAgList() {
+  const q = (document.getElementById('skurAgFilter')?.value || '').trim().toLowerCase();
+  let visibleGroups = 0;
+  document.querySelectorAll('#skurAgList .skur-ag-group').forEach(grp => {
+    const k = (grp.querySelector('.skur-ag-group-head span')?.textContent || '').toLowerCase();
+    const keyHit = !q || k.includes(q);
+    let valHits = 0;
+    grp.querySelectorAll('.skur-ag-val').forEach(chip => {
+      const v = (chip.dataset.val || '').toLowerCase();
+      const show = keyHit || (q && v.includes(q));
+      chip.style.display = show ? '' : 'none';
+      if (show) valHits++;
+    });
+    const showGrp = keyHit || valHits > 0;
+    grp.style.display = showGrp ? '' : 'none';
+    if (showGrp) visibleGroups++;
+  });
+  const list = document.getElementById('skurAgList');
+  let empty = document.getElementById('skurAgEmpty');
+  if (!visibleGroups) {
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.id = 'skurAgEmpty';
+      empty.className = 'skur-ag-empty';
+      empty.textContent = 'No tag keys or values match.';
+      list.appendChild(empty);
+    }
+  } else if (empty) { empty.remove(); }
+}
+function skurOnAgValChange(cb) {
+  cb.closest('.skur-ag-val').classList.toggle('checked', cb.checked);
+  _skurAgRefreshDisabled();
+  _skurAgUpdatePreview();
+}
+function _skurAgRefreshDisabled() {
+  const sel = _skurAgGetSelections();
+  document.querySelectorAll('#skurAgList .skur-ag-val').forEach(chip => {
+    const cb = chip.querySelector('input');
+    if (cb.checked) { chip.classList.remove('disabled'); cb.disabled = false; return; }
+    const k = cb.dataset.key, val = cb.dataset.val;
+    const trial = {};
+    Object.keys(sel).forEach(sk => { trial[sk] = new Set(sel[sk]); });
+    (trial[k] = trial[k] || new Set()).add(val);
+    const matched = _skurAgBuildFilteredVms(trial);
+    const disable = matched.length === 0;
+    chip.classList.toggle('disabled', disable);
+    cb.disabled = disable;
+  });
+}
+function _skurAgUpdatePreview() {
+  const prev = document.getElementById('skurAgPreview');
+  const btn = document.getElementById('skurAgConfirmBtn');
+  if (!prev) return;
+  const sel = _skurAgGetSelections();
+  const keys = Object.keys(sel);
+  if (!keys.length) {
+    prev.className = 'skur-ag-preview';
+    prev.textContent = 'Tick at least one tag value to preview matches.';
+    if (btn) btn.disabled = true;
+    return;
+  }
+  const matched = _skurAgBuildFilteredVms(sel);
+  const summary = keys.map(k => `${k} ∈ {${[...sel[k]].join(', ')}}`).join('  AND  ');
+  if (!matched.length) {
+    prev.className = 'skur-ag-preview is-empty';
+    prev.innerHTML = `⛔ <strong>No VMs match</strong> · ${_skurAgEsc(summary)}`;
+    if (btn) btn.disabled = true;
+  } else {
+    prev.className = 'skur-ag-preview is-ok';
+    prev.innerHTML = `✓ <strong>${matched.length} VM${matched.length===1?'':'s'}</strong> match · ${_skurAgEsc(summary)}`;
+    if (btn) btn.disabled = false;
+  }
+}
+function skurConfirmAutoGroup() {
+  const name = (document.getElementById('skurAgName')?.value || '').trim();
+  if (!name) { alert('Enter a group name.'); document.getElementById('skurAgName')?.focus(); return; }
+  if (skurGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+    alert('A group with that name already exists. Pick a different name.');
+    document.getElementById('skurAgName')?.focus(); return;
+  }
+  const sel = _skurAgGetSelections();
+  if (!Object.keys(sel).length) { alert('Tick at least one tag value.'); return; }
+  const matched = _skurAgBuildFilteredVms(sel);
+  if (!matched.length) { alert('No VMs match the selected tag values.'); return; }
+  const memberKeys = matched.map(v => skurVmKey(v));
+  // Strip these VMs from any existing group / OOS so they live in the new group cleanly.
+  skurGroups.forEach(g => { g.members = g.members.filter(k => !memberKeys.includes(k)); });
+  if (typeof skurOutOfScope !== 'undefined' && skurOutOfScope) {
+    memberKeys.forEach(k => { if (skurOutOfScope[k]) delete skurOutOfScope[k]; });
+  }
+  const g = { id: skurNewGroupId(), name, mode: 'balanced', term: 'payg', ahub: false, members: memberKeys, pinned: false };
+  skurGroups.push(g);
+  skurActiveGroupId = g.id;
+  skurCloseAutoGroupModal();
+  renderSkurGroups();
+  renderSkurVmGrid();
+}
+async function skurAutoGroupByTag(_key) {
+  // Stage 9.5: legacy entry point — superseded by the picker modal.
+  skurOpenAutoGroupModal();
 }
 async function newSkurGroup(prefilledMembers) {
   const name = ((await skurPrompt('Name for the new VM group:', { title: 'New VM Group', placeholder: 'e.g. Production web tier' })) || '').trim();
