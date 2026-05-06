@@ -347,6 +347,17 @@ footer strong{opacity:1;}
 .sku-rec-empty-icon{font-size:48px;margin-bottom:12px;}
 .sku-rec-empty h4{font-size:1.1rem;font-weight:700;color:var(--text);margin:6px 0 8px;}
 .sku-rec-empty p{font-size:.92rem;max-width:520px;margin:0 auto 18px;line-height:1.5;}
+/* Stage 9.5: yellow restore-previous-session banner (mockup parity) */
+.skur-restore-banner{display:none;align-items:center;gap:14px;margin:14px 0 0;padding:12px 20px;background:#fff7e0;border:1px solid #ffd166;border-left:4px solid #f59e0b;border-radius:var(--radius-md);box-shadow:var(--shadow-sm);}
+.skur-restore-banner.is-shown{display:flex;}
+.skur-restore-banner .rb-icon{font-size:22px;flex-shrink:0;}
+.skur-restore-banner .rb-text{flex:1;display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--text-primary);min-width:0;}
+.skur-restore-banner .rb-text strong{font-size:14px;}
+.skur-restore-banner .rb-meta{color:var(--text-secondary);font-size:11px;}
+.skur-restore-banner .rb-resume{font:inherit;font-size:13px;padding:7px 18px;border:1px solid var(--brand-primary);background:var(--brand-primary);color:#fff;border-radius:var(--radius-sm);cursor:pointer;font-weight:600;}
+.skur-restore-banner .rb-resume:hover{filter:brightness(.93);}
+.skur-restore-banner .rb-fresh{font:inherit;font-size:13px;padding:7px 16px;border:1px solid var(--border-default);background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-sm);cursor:pointer;}
+.skur-restore-banner .rb-fresh:hover{background:var(--bg-layer2);}
 .sku-rec-statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:8px 0 0;}
 .sku-rec-statcard{background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:var(--radius-md,10px);padding:14px 18px;box-shadow:var(--shadow-sm,var(--shadow));display:flex;align-items:center;gap:14px;min-width:0;}
 .sku-rec-statcard .sc-ico{font-size:26px;line-height:1;flex-shrink:0;}
@@ -1153,6 +1164,18 @@ body.dark .skur-group-chip{color:#b794f4;}
     </div>
     <!-- Live content when data is loaded -->
     <div id="skuRecContent" style="display:none;">
+
+      <!-- Stage 9.5: resume previous session banner -->
+      <div class="skur-restore-banner" id="skurRestoreBanner" role="region" aria-label="Resume previous session">
+        <span class="rb-icon">📋</span>
+        <div class="rb-text">
+          <strong>Resume previous session?</strong>
+          <span class="rb-meta" id="skurRestoreBannerMeta"></span>
+        </div>
+        <button type="button" class="rb-resume" onclick="skurResumeAutosave()">⚡ Resume</button>
+        <button type="button" class="rb-fresh" onclick="skurDismissAutosave()">Start fresh</button>
+      </div>
+
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
 
       <div class="skur-plan-bar" id="skurPlanBar">
@@ -2328,18 +2351,80 @@ function _skurStartAutosave() {
   });
 }
 
+// Stage 9.5: pending autosave snapshot for the restore banner. Populated by
+// _skurMaybeResumeAutosave when a fingerprint-matching autosave exists; consumed
+// by skurResumeAutosave() (apply) or skurDismissAutosave() (discard).
+let _skurPendingResume = null;
+
+function _skurFmtAgo(iso) {
+  try {
+    const t = new Date(iso).getTime();
+    if (!isFinite(t)) return '';
+    const diff = Math.max(0, Date.now() - t);
+    const m = Math.round(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m ago`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const d = Math.round(h / 24);
+    return `${d}d ago`;
+  } catch (_) { return ''; }
+}
+
+function _skurShowRestoreBanner(saved) {
+  const banner = document.getElementById('skurRestoreBanner');
+  const meta = document.getElementById('skurRestoreBannerMeta');
+  if (!banner) return;
+  _skurPendingResume = saved;
+  if (meta) {
+    const ws = saved.workspace || {};
+    const groups = (ws.groups || []).length;
+    const rules = (ws.tagRules || ws.rules || []).length;
+    const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
+    const ago = _skurFmtAgo(saved.savedAt);
+    meta.textContent = `${groups} group${groups === 1 ? '' : 's'} · ${rules} tag rule${rules === 1 ? '' : 's'} · ${tags} manual tag${tags === 1 ? '' : 's'}${ago ? ' · saved ' + ago : ''}`;
+  }
+  banner.classList.add('is-shown');
+}
+
+function _skurHideRestoreBanner() {
+  const banner = document.getElementById('skurRestoreBanner');
+  if (banner) banner.classList.remove('is-shown');
+  _skurPendingResume = null;
+}
+
+function skurResumeAutosave() {
+  const saved = _skurPendingResume;
+  _skurHideRestoreBanner();
+  if (!saved || !saved.workspace) return;
+  try {
+    const snap = migrateWorkspace(saved.workspace);
+    _applyWorkspaceSnapshot(snap);
+    if (typeof renderSkurGroups === 'function') renderSkurGroups();
+    if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+    if (typeof renderTagRules === 'function') renderTagRules();
+    if (typeof showToast === 'function') showToast(`↩ Resumed autosaved workspace from ${new Date(saved.savedAt).toLocaleString()}`);
+  } catch (e) { console.warn('[autosave] resume failed:', e && e.message); }
+}
+
+async function skurDismissAutosave() {
+  if (typeof skurConfirm === 'function') {
+    const ok = await skurConfirm('Discard the saved session and start fresh? This cannot be undone.', { okLabel: 'Start fresh', danger: true });
+    if (!ok) return;
+  }
+  _skurHideRestoreBanner();
+  try { localStorage.removeItem(RVTOOLS_AUTOSAVE_KEY); } catch (_) {}
+  _skurAutosaveLast = '';
+}
+
 async function _skurMaybeResumeAutosave() {
   try {
     const cur = window.__rvtoolsCurrent;
     const saved = _readAutosave();
     if (!cur || !saved || !saved.workspace || !saved.dataset) return;
     if (saved.dataset.fingerprint === cur.fingerprint) {
-      const snap = migrateWorkspace(saved.workspace);
-      _applyWorkspaceSnapshot(snap);
-      if (typeof renderSkurGroups === 'function') renderSkurGroups();
-      if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
-      if (typeof renderTagRules === 'function') renderTagRules();
-      showToast(`↩ Resumed autosaved workspace from ${new Date(saved.savedAt).toLocaleString()}`);
+      // Stage 9.5: surface restore banner (mockup parity); user picks Resume / Start fresh.
+      _skurShowRestoreBanner(saved);
     } else {
       const ok = await skurConfirm(
         `An autosaved workspace exists from ${new Date(saved.savedAt).toLocaleString()},\n` +
