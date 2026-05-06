@@ -2192,6 +2192,9 @@ async function _persistSourceBytes(xlsxBuffer, sourceFilename) {
       sourceFilename: sourceFilename || 'rvtools.xlsx',
       vmCount: window.__rvtoolsCurrent.vmCount,
     });
+    // Stage 9.5: hide the pre-load resume banner — data is now loaded so its
+    // "Go to Import" CTA is misleading.
+    try { const _ap = document.getElementById('autosavePrompt'); if (_ap) _ap.hidden = true; } catch(_) {}
   } catch (e) {
     console.warn('[rvtools] Could not persist source bytes:', e && e.message || e);
   }
@@ -2400,7 +2403,11 @@ function _skurAutosaveTick() {
     if (json === _skurAutosaveLast) return;
     const existing = _readAutosave();
     if (existing && existing.savedAt && existing.savedAt > payload.savedAt) return;
-    _writeAutosave(payload);
+    if (_writeAutosave(payload)) {
+      // Stage 9.5: data is loaded and a real workspace just got persisted, so
+      // ensure the pre-load resume banner isn't lingering with a misleading CTA.
+      try { const _ap = document.getElementById('autosavePrompt'); if (_ap) _ap.hidden = true; } catch(_) {}
+    }
     _skurAutosaveLast = json;
     if (_skurBroadcast) { try { _skurBroadcast.postMessage({ type: 'autosave', savedAt: payload.savedAt, fingerprint: cur.fingerprint }); } catch (_) {} }
   } catch (e) { console.warn('[autosave] tick failed:', e && e.message); }
