@@ -358,6 +358,16 @@ footer strong{opacity:1;}
 @media (max-width:900px){.sku-rec-statcards{grid-template-columns:repeat(2,1fr);}}
 /* SKU Recommender VM grid */
 .skur-section{margin-top:22px;}
+/* Stage 9: section header with inline actions area (mockup parity) */
+.skur-section-h{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--text-primary);padding:10px 14px;background:var(--bg-layer1);border:1px solid var(--border-default);border-bottom:none;border-radius:var(--radius-md) var(--radius-md) 0 0;}
+.skur-section-h .skur-section-actions{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:400;color:var(--text-secondary);}
+.skur-section-h .skur-section-actions .bb-count{color:var(--brand-primary);font-weight:700;}
+.skur-section-h .skur-section-actions .bb-clear{background:transparent;border:1px solid var(--border-default);color:var(--text-primary);cursor:pointer;font:inherit;font-size:11px;padding:3px 9px;border-radius:var(--radius-sm);}
+.skur-section-h .skur-section-actions .bb-clear:hover{background:var(--bg-layer2);}
+.skur-section-h .skur-section-actions .bb-sep{color:var(--border-default);margin:0 2px;}
+.skur-section-h .skur-section-actions select{font:inherit;font-size:11px;padding:3px 6px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);}
+.skur-section-h .skur-section-actions .bb-autogroup{font:inherit;font-size:11px;padding:5px 12px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:var(--brand-primary);color:#fff;cursor:pointer;font-weight:600;}
+.skur-section-h .skur-section-actions .bb-autogroup:hover{filter:brightness(1.08);}
 .skur-stat-grid-wrap{}
 .skur-plan-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 14px;margin:14px 0 0;}
 .skur-plan-bar .pb-title{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);margin-right:8px;}
@@ -1217,32 +1227,37 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
 
       <div class="skur-section">
-        <div class="skur-section-h">🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span></div>
-        <div class="skur-bulkbar hidden" id="skurBulkBar">
-          <span><strong class="bb-count" id="skurBulkCount">0</strong> selected</span>
-          <button class="bb-clear" onclick="skurClearSelection()">Clear selection</button>
-          <span class="bb-sep">|</span>
-          <select id="skurBulkAddTo" onchange="skurBulkAddToGroup(this.value);this.value='';">
-            <option value="" disabled selected hidden>➕ Add to group…</option>
-            <optgroup label="Existing groups" id="skurBulkGroupOpts"></optgroup>
-            <option value="__new__">+ New group…</option>
-            <option value="__remove__">↩ Remove from all groups</option>
-          </select>
-          <select id="skurBulkOos" onchange="skurBulkSetOos(this.value);this.value='';" title="Mark selected VMs as out of scope (excluded from cost roll-ups in Phase 5)">
-            <option value="" disabled selected hidden>🚫 Mark out of scope…</option>
-            <option value="decommission">Decommission</option>
-            <option value="retain">Retain on-prem</option>
-            <option value="migrated">Already migrated</option>
-            <option value="other">Other…</option>
-            <option value="__restore__">↩ Restore to in-scope</option>
-          </select>
+        <div class="skur-section-h">
+          🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span>
+          <div class="skur-section-actions" id="skurBulkBar">
+            <span><strong class="bb-count" id="skurBulkCount">0</strong> selected</span>
+            <button class="bb-clear" onclick="skurClearSelection()">Clear selection</button>
+            <span class="bb-sep">|</span>
+            <select id="skurBulkAddTo" onchange="skurBulkAddToGroup(this.value);this.value='';">
+              <option value="" disabled selected hidden>➕ Add to group…</option>
+              <optgroup label="Existing groups" id="skurBulkGroupOpts"></optgroup>
+              <option value="__new__">+ New VM group…</option>
+              <option value="__remove__">↩ Remove from all groups</option>
+            </select>
+            <select id="skurBulkOos" onchange="skurBulkSetOos(this.value);this.value='';" title="Mark selected VMs as out of scope (excluded from cost roll-ups)">
+              <option value="" disabled selected hidden>🚫 Out of scope…</option>
+              <option value="decommission">Decommission</option>
+              <option value="retain">Retain on-prem</option>
+              <option value="migrated">Already migrated</option>
+              <option value="other">Other…</option>
+              <option value="__restore__">↩ Restore to in-scope</option>
+            </select>
+            <span class="bb-sep">|</span>
+            <select id="skurAutoGroupHeaderSel" class="bb-autogroup" title="Auto-group all VMs by a chosen tag" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';}">
+              <option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>
+            </select>
+          </div>
         </div>
         <div class="skur-exc-banner hidden" id="skurExcBanner"></div>
         <div class="skur-table-wrap">
           <table class="skur-table" id="skurTable">
             <thead>
               <tr class="skur-filter-row">
-                <th style="width:28px;"></th>
                 <th style="width:32px;"><button class="skur-filter-clear" id="skurFilterClear" title="Clear all filters" onclick="skurClearFilters()" disabled>✕</button></th>
                 <th><input type="text" class="skur-filter" data-f="name" placeholder="Search name…" oninput="skurOnFilter()"></th>
                 <th><input type="text" class="skur-filter" data-f="size" placeholder="e.g. 4/16" oninput="skurOnFilter()"></th>
@@ -1251,11 +1266,9 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th><select class="skur-filter" data-f="cluster" onchange="skurOnFilter()"><option value="">All clusters</option></select></th>
                 <th><select class="skur-filter" data-f="group" onchange="skurOnFilter()"><option value="">All groups</option></select></th>
                 <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()"></th>
-                <th></th>
               </tr>
               <tr>
-                <th style="width:28px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
-                <th style="width:32px;">#</th>
+                <th style="width:32px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
                 <th class="skur-sortable" data-key="name" onclick="skurSort('name')">VM</th>
                 <th class="skur-sortable" data-key="cpus" onclick="skurSort('cpus')">vCPU/RAM</th>
                 <th class="skur-sortable" data-key="os" onclick="skurSort('os')">OS</th>
@@ -1263,7 +1276,6 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
                 <th class="skur-sortable" data-key="groups" onclick="skurSort('groups')">Group(s)</th>
                 <th class="skur-sortable" data-key="tags" onclick="skurSort('tags')">Tags</th>
-                <th style="width:36px;" title="Add this VM to a group"></th>
               </tr>
             </thead>
             <tbody id="skurRows"></tbody>
@@ -1282,9 +1294,6 @@ body.dark .skur-group-chip{color:#b794f4;}
             <details class="skur-overflow" id="skurGroupsOverflow">
               <summary title="More actions">⋯</summary>
               <div class="skur-overflow-menu" onclick="event.stopPropagation()">
-                <select id="skurAutoGroupSel" onchange="if(this.value){skurAutoGroupByTag(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}">
-                  <option value="" disabled selected hidden>✨ Auto-group by tag…</option>
-                </select>
                 <select id="skurExportSel" title="Download a CSV report of the recommendations" onchange="if(this.value){skurExportCsv(this.value);this.value='';document.getElementById('skurGroupsOverflow').open=false;}">
                   <option value="" disabled selected hidden>📥 CSV report…</option>
                   <option value="active">Active group only</option>
@@ -1319,10 +1328,6 @@ body.dark .skur-group-chip{color:#b794f4;}
         </div>
       </div>
 
-      <p class="sku-rec-coming-soon" style="margin-top:18px;color:var(--text-muted);font-size:.9rem;">
-        🚧 <strong>Next up:</strong> sizing groups now drive per-group recommendations — pick or create a group, then open it to see SKU + cost + headroom.
-        Working off your <span id="skuRecDataSource">loaded RVTools data</span>.
-      </p>
     </div>
   </div>
 </div>
@@ -3616,7 +3621,8 @@ function renderSkurGroups() {
     btn.classList.toggle('is-active', btn.getAttribute('data-view') === skurGroupsView);
   });
   // Refresh auto-group dropdown options whenever groups/rules might have changed.
-  const sel = document.getElementById('skurAutoGroupSel');
+  // Stage 9: select moved from Groups overflow into VM Inventory header (id = skurAutoGroupHeaderSel).
+  const sel = document.getElementById('skurAutoGroupHeaderSel') || document.getElementById('skurAutoGroupSel');
   if (sel) {
     const keys = [...new Set(skurTagRules.map(r => r.tagKey).filter(Boolean))].sort();
     const opts = ['<option value="" disabled selected hidden>✨ Auto-group by tag ▾</option>']
@@ -4052,9 +4058,9 @@ function skurClearSelection() {
   skurUpdateBulkBar();
 }
 function skurUpdateBulkBar() {
-  const bar = document.getElementById('skurBulkBar'); if (!bar) return;
+  // Stage 9: bulk bar lives inline in the section header and is always visible.
+  // No more hidden class — selection count just shows "0 selected" when empty.
   const n = skurSelectedKeys.size;
-  bar.classList.toggle('hidden', n === 0);
   // Breakdown: grouped / ungrouped / oos
   let grouped = 0, oos = 0;
   if (n) {
@@ -4383,7 +4389,7 @@ function renderSkurVmGrid() {
   }
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   if (!rows.length) {
-    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="10">No VMs match the current filters.</td></tr>`;
+    tb.innerHTML = `<tr><td class="skur-empty-row" colspan="8">No VMs match the current filters.</td></tr>`;
   } else {
     tb.innerHTML = rows.map((v,i) => {
       const k = skurVmKey(v);
@@ -4407,7 +4413,6 @@ function renderSkurVmGrid() {
       const trCls = [checked && 'checked', oos && 'oos-row'].filter(Boolean).join(' ');
       return `<tr${trCls?` class="${trCls}"`:''}>
         <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked ? ' checked' : ''}></td>
-        <td class="num" style="color:var(--text-tertiary);">${i+1}</td>
         <td><strong>${esc(v.name)||'<em>—</em>'}</strong></td>
         <td class="num">${v.cpus??'?'} / ${v.ram??'?'}</td>
         <td>${esc(v.os)||'—'}</td>
@@ -4415,7 +4420,6 @@ function renderSkurVmGrid() {
         <td>${esc(v.cluster)||'—'}</td>
         <td>${groupHtml}</td>
         <td>${tagsHtml}</td>
-        <td><button class="skur-row-add" title="Add this VM to a group" onclick="skurRowAddToGroup('${esc(k)}')">＋</button></td>
       </tr>`;
     }).join('');
   }
