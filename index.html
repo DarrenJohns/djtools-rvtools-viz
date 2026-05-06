@@ -2381,6 +2381,13 @@ function _skurAutosaveTick() {
     const cur = window.__rvtoolsCurrent;
     if (!cur || !cur.fingerprint) return;
     const ws = _collectWorkspaceSnapshot();
+    // Skip autosave when the workspace has nothing meaningful to persist — avoids
+    // writing empty-shell snapshots that later show up as "0 groups · 0 rules" prompts.
+    const _grp = (ws && ws.groups || []).length;
+    const _rul = (ws && (ws.tagRules || ws.rules) || []).length;
+    const _tag = (ws && ws.manualTags) ? Object.keys(ws.manualTags).length : 0;
+    const _oos = (ws && ws.outOfScope) ? Object.keys(ws.outOfScope).length : 0;
+    if ((_grp + _rul + _tag + _oos) === 0) return;
     const payload = {
       savedAt: new Date().toISOString(),
       appVersion: APP_VERSION,
@@ -2505,6 +2512,15 @@ async function _skurMaybeResumeAutosave() {
     const cur = window.__rvtoolsCurrent;
     const saved = _readAutosave();
     if (!cur || !saved || !saved.workspace || !saved.dataset) return;
+    // Skip if the saved workspace has nothing meaningful to restore (defensive — old empty-shell autosaves from before the write-time guard landed).
+    {
+      const ws = saved.workspace || {};
+      const _g = (ws.groups || []).length;
+      const _r = (ws.tagRules || ws.rules || []).length;
+      const _t = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
+      const _o = (ws.outOfScope ? Object.keys(ws.outOfScope).length : 0);
+      if ((_g + _r + _t + _o) === 0) { try { localStorage.removeItem(RVTOOLS_AUTOSAVE_KEY); } catch(_){} return; }
+    }
     if (saved.dataset.fingerprint === cur.fingerprint) {
       // Stage 9.5: surface restore banner (mockup parity); user picks Resume / Start fresh.
       _skurShowRestoreBanner(saved);
@@ -5183,12 +5199,15 @@ function _skurMaybeShowPreloadPrompt(){
     if (window.__rvtoolsCurrent) { el.hidden = true; return; }
     const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
     if (!saved || !saved.workspace || !saved.dataset) { el.hidden = true; return; }
+    const ws = saved.workspace || {};
+    const groups = (ws.groups || []).length;
+    const rules = (ws.tagRules || ws.rules || []).length;
+    const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
+    const oos = (ws.outOfScope ? Object.keys(ws.outOfScope).length : 0);
+    // Suppress the prompt when there's nothing meaningful to resume.
+    if ((groups + rules + tags + oos) === 0) { el.hidden = true; return; }
     const meta = document.getElementById('autosavePromptMeta');
     if (meta) {
-      const ws = saved.workspace || {};
-      const groups = (ws.groups || []).length;
-      const rules = (ws.tagRules || ws.rules || []).length;
-      const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
       const ago = (typeof _skurFmtAgo === 'function') ? _skurFmtAgo(saved.savedAt) : '';
       const fname = saved.dataset.sourceFilename || 'the same RVTools file';
       meta.textContent = `${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}${ago ? ' · saved '+ago : ''} — load ${fname} to resume.`;
