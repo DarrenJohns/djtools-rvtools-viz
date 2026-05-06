@@ -720,17 +720,19 @@ footer strong{opacity:1;}
 .skur-ap-filter-clear{background:transparent;border:1px solid var(--border-default);color:var(--text-tertiary);width:28px;height:28px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;}
 .skur-ap-filter-clear:not(:disabled):hover{background:var(--bg-layer2);color:var(--text-primary);}
 .skur-ap-filter-clear:disabled{opacity:.4;cursor:default;}
-.skur-ap-list{flex:1;overflow:auto;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--bg-layer1);}
-.skur-ap-row{display:grid;grid-template-columns:minmax(220px,2fr) 70px 90px 110px 90px 90px;gap:10px;align-items:center;padding:7px 10px;font-size:12px;border-top:1px solid var(--border-subtle);}
+.skur-ap-list{flex:1;overflow:auto;overflow-x:hidden;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);background:var(--bg-layer1);}
+.skur-ap-row{display:grid;grid-template-columns:minmax(0,1.7fr) 52px 72px minmax(70px,0.9fr) 78px 76px;gap:8px;align-items:center;padding:7px 10px;font-size:12px;border-top:1px solid var(--border-subtle);}
+.skur-ap-row > *{min-width:0;}
 .skur-ap-row:first-child{border-top:none;}
 .skur-ap-row.head{background:var(--bg-layer2);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);position:sticky;top:0;z-index:1;}
 .skur-ap-row.head .ap-sortable{cursor:pointer;user-select:none;}
 .skur-ap-row.head .ap-sortable:hover{color:var(--text-secondary);}
 .skur-ap-row .ap-num{text-align:right;font-variant-numeric:tabular-nums;}
-.skur-ap-row .ap-name{font-family:var(--font-mono,'Consolas',monospace);color:var(--brand-primary);font-weight:600;}
-.skur-ap-row .ap-rec{display:inline-block;font-size:9px;font-weight:700;color:var(--status-success,#107c10);background:rgba(16,124,16,.10);border:1px solid rgba(16,124,16,.30);padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;margin-left:6px;vertical-align:1px;}
-.skur-ap-row .ap-curr{display:inline-block;font-size:9px;font-weight:700;color:var(--brand-primary);background:rgba(15,108,189,.10);border:1px solid rgba(15,108,189,.30);padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;margin-left:6px;vertical-align:1px;}
-.skur-ap-row .ap-use{padding:4px 10px;font:inherit;font-size:11px;border:1px solid var(--brand-primary);background:var(--brand-primary);color:#fff;border-radius:var(--radius-sm);cursor:pointer;}
+.skur-ap-row .ap-name{font-family:var(--font-mono,'Consolas',monospace);color:var(--brand-primary);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;}
+.skur-ap-row .ap-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;align-items:center;}
+.skur-ap-row .ap-rec{display:inline-block;font-size:9px;font-weight:700;color:var(--status-success,#107c10);background:rgba(16,124,16,.10);border:1px solid rgba(16,124,16,.30);padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;}
+.skur-ap-row .ap-curr{display:inline-block;font-size:9px;font-weight:700;color:var(--brand-primary);background:rgba(15,108,189,.10);border:1px solid rgba(15,108,189,.30);padding:1px 6px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;}
+.skur-ap-row .ap-use{padding:4px 8px;font:inherit;font-size:11px;border:1px solid var(--brand-primary);background:var(--brand-primary);color:#fff;border-radius:var(--radius-sm);cursor:pointer;white-space:nowrap;}
 .skur-ap-row .ap-use:hover:not(:disabled){background:var(--brand-secondary,var(--brand-primary));}
 .skur-ap-row .ap-use:disabled{opacity:.5;cursor:default;background:var(--bg-layer2);color:var(--text-tertiary);border-color:var(--border-default);}
 .skur-ap-empty{padding:20px;text-align:center;color:var(--text-tertiary);font-style:italic;font-size:12px;}
@@ -5403,17 +5405,20 @@ function skurRenderApList(){
     const recPill = isRec ? '<span class="ap-rec">recommended</span>' : '';
     const currPill = (isCurr && !isRec) ? '<span class="ap-curr">current</span>' : '';
     const ret = _skurRetirementFor(sku.name);
-    const retPill = ret ? ` <span class="retire-tag">retiring ${_skurEsc(String(ret).slice(0,7))}</span>` : '';
+    const retPill = ret ? `<span class="retire-tag">retiring ${_skurEsc(String(ret).slice(0,7))}</span>` : '';
     const escName = (sku.name||'').replace(/'/g, "\\'");
     const btn = isCurr
       ? `<button class="ap-use" disabled>In use</button>`
       : `<button class="ap-use" onclick="skurApplyOverrideFromPicker('${escName}')">Use this</button>`;
     const costStr = (cost == null) ? '—' : skurFormatMoney(cost, cur);
+    const pillsLine = (recPill || currPill || retPill)
+      ? `<div class="ap-pills">${recPill}${currPill}${retPill}<span class="why-hint">+${headroom}% headroom</span></div>`
+      : `<div class="ap-pills"><span class="why-hint">+${headroom}% headroom</span></div>`;
     return `<div class="skur-ap-row">
-      <span><span class="ap-name">${_skurEsc(sku.name||'')}</span>${recPill}${currPill}${retPill}<div class="why-hint" style="margin-top:2px;">+${headroom}% headroom</div></span>
+      <span><span class="ap-name" title="${_skurEsc(sku.name||'')}">${_skurEsc(sku.name||'')}</span>${pillsLine}</span>
       <span class="ap-num">${sku.vcpu}</span>
       <span class="ap-num">${sku.ramGb} GB</span>
-      <span style="font-size:11px;color:var(--text-secondary);">${_skurEsc(sku.processor||'—')}</span>
+      <span style="font-size:11px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${_skurEsc(sku.processor||'')}">${_skurEsc(sku.processor||'—')}</span>
       <span class="ap-num">${_skurEsc(costStr)}</span>
       ${btn}
     </div>`;
