@@ -477,7 +477,7 @@ footer strong{opacity:1;}
    ==================================================================== */
 @keyframes modalFadeInUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 .modal-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);align-items:center;justify-content:center;}
-.modal-overlay.show,.modal-overlay.active{display:flex;}
+.modal-overlay.show,.modal-overlay.active{display:flex;opacity:1;pointer-events:auto;}
 .modal-card{background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-md);box-shadow:0 12px 32px rgba(0,0,0,.25);max-width:520px;width:92%;max-height:88vh;overflow:hidden;display:flex;flex-direction:column;animation:modalFadeInUp .2s ease;}
 .modal-card.is-sm{max-width:400px;}
 .modal-card.is-md{max-width:520px;}
@@ -1222,8 +1222,8 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th class="skur-sortable" data-key="os" onclick="skurSort('os')">OS</th>
                 <th class="skur-sortable" data-key="dc" onclick="skurSort('dc')">Datacenter</th>
                 <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
-                <th>Group(s)</th>
-                <th>Tags</th>
+                <th class="skur-sortable" data-key="groups" onclick="skurSort('groups')">Group(s)</th>
+                <th class="skur-sortable" data-key="tags" onclick="skurSort('tags')">Tags</th>
                 <th style="width:36px;" title="Add this VM to a group"></th>
               </tr>
             </thead>
@@ -4081,8 +4081,13 @@ function renderSkurVmGrid() {
   let rows = skurFilteredVms();
   const k = skurSortState.key, d = skurSortState.dir;
   if (k) {
+    const groupSortVal = (v) => { const gs = skurGroupsForVm(v); return gs.length ? gs.map(g => g.name).sort()[0].toLowerCase() : null; };
+    const tagsSortVal  = (v) => { const ts = skurTagsForVm(v); return ts.length ? ts.map(t => `${t.key}:${t.value}`).sort()[0].toLowerCase() : null; };
     rows = [...rows].sort((a,b) => {
-      let va = a[k], vb = b[k];
+      let va, vb;
+      if (k === 'groups')    { va = groupSortVal(a); vb = groupSortVal(b); }
+      else if (k === 'tags') { va = tagsSortVal(a);  vb = tagsSortVal(b); }
+      else                   { va = a[k];            vb = b[k]; }
       if (va==null||va==='') va=null; if (vb==null||vb==='') vb=null;
       if (va==null && vb==null) return 0;
       if (va==null) return 1; if (vb==null) return -1;
