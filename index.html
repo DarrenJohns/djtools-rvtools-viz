@@ -318,12 +318,12 @@ footer strong{opacity:1;}
 .kbd-shortcut-btn:hover{background:rgba(255,255,255,.25);}
 .nav-icon-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 14px;cursor:pointer;font-size:14px;backdrop-filter:blur(4px);transition:background .15s;font-family:inherit;}
 .nav-icon-btn:hover{background:rgba(255,255,255,.25);}
-.toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
-.toast{background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:10px 18px;font-size:13px;color:var(--text-primary);box-shadow:var(--shadow-md);transition:transform .3s,opacity .3s;opacity:0;transform:translateY(40px);pointer-events:auto;max-width:480px;}
-.toast.show{opacity:1;transform:translateY(0);}
-.toast.success{border-color:#a5d6a7;}
-.toast.error{border-color:#ef9a9a;color:var(--status-danger);}
-.toast.warning{border-color:#ffe0b2;color:var(--status-warning);}
+.toast-container{position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:1400;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;width:auto;max-width:min(640px,calc(100% - 32px));}
+.toast{background:var(--bg-layer1);border:1px solid var(--border-default);border-left:4px solid var(--brand-primary);border-radius:var(--radius-md);padding:14px 22px;font-size:14px;font-weight:500;color:var(--text-primary);box-shadow:0 8px 28px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .25s;opacity:0;transform:translateY(-24px) scale(.96);pointer-events:auto;max-width:100%;text-align:center;line-height:1.45;}
+.toast.show{opacity:1;transform:translateY(0) scale(1);}
+.toast.success{border-left-color:#2e7d32;}
+.toast.error{border-left-color:var(--status-danger);color:var(--status-danger);background:#fff5f5;}
+.toast.warning{border-left-color:var(--status-warning);color:#7a4a00;background:#fffaf0;}
 /* Cross-tab pause banner — prominent so the user notices */
 .crosstab-banner{position:fixed;top:0;left:0;right:0;z-index:1300;background:#fff3cd;color:#664d03;border-bottom:2px solid #ffc107;padding:10px 16px;text-align:center;font-size:14px;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.15);transform:translateY(-100%);transition:transform .25s ease-out;}
 .crosstab-banner.show{transform:translateY(0);}
