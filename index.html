@@ -470,6 +470,8 @@ footer strong{opacity:1;}
 .skur-table thead th.skur-sortable:hover{color:var(--brand-primary);}
 .skur-ungrouped{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 .skur-empty-row{padding:24px;text-align:center;color:var(--text-tertiary);font-style:italic;}
+.skur-inv-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;font-size:11px;color:var(--text-tertiary);border-top:1px solid var(--border-subtle);background:var(--bg-layer1);}
+.skur-inv-pager .pagination{display:flex;gap:4px;flex-wrap:wrap;}
 .skur-tagrules{border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-layer1);overflow:hidden;}
 .skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;font-weight:600;color:var(--text-primary);border-bottom:1px solid var(--border-subtle);}
 .skur-tagrules-summary .skur-tagrules-pill{background:var(--brand-primary);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em;}
@@ -4595,6 +4597,10 @@ async function deleteSkurRule(id) {
 // === SKU Recommender VM grid (Phase 2) ===
 const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'', group:'', tags:'' };
 const skurSortState = { key:'name', dir:1 };
+// Stage 9.5 M5: paginate inventory grid (25/page, parity with Inventory tab + active-group panel).
+const SKUR_INV_PAGE_SIZE = 25;
+let _skurInvPage = 1;
+function skurInvGotoPage(p){ _skurInvPage = Math.max(1, p|0); renderSkurVmGrid(); }
 // Exception filter (Phase 5 slice 5): when set, restrict grid to VMs matching a specific
 // recommendation exception kind. Optionally scoped to a single sizing group.
 //   { groupId: string|null, kind: 'noMatch'|'noEligible'|'noInput'|'oos' }
@@ -4748,10 +4754,17 @@ function renderSkurVmGrid() {
     });
   }
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  // Stage 9.5 M5: paginate at 25/page.
+  const _invTotal = rows.length;
+  const _invPages = Math.max(1, Math.ceil(_invTotal / SKUR_INV_PAGE_SIZE));
+  if (_skurInvPage > _invPages) _skurInvPage = _invPages;
+  if (_skurInvPage < 1) _skurInvPage = 1;
+  const _invStart = (_skurInvPage - 1) * SKUR_INV_PAGE_SIZE;
+  const _invSlice = rows.slice(_invStart, _invStart + SKUR_INV_PAGE_SIZE);
   if (!rows.length) {
     tb.innerHTML = `<tr><td class="skur-empty-row" colspan="8">No VMs match the current filters.</td></tr>`;
   } else {
-    tb.innerHTML = rows.map((v,i) => {
+    tb.innerHTML = _invSlice.map((v,i) => {
       const k = skurVmKey(v);
       const checked = skurSelectedKeys.has(k);
       const gs = skurGroupsForVm(v);
@@ -4790,19 +4803,42 @@ function renderSkurVmGrid() {
     const arrow = (skurSortState.key === th.dataset.key) ? (skurSortState.dir === 1 ? '↑' : '↓') : '↕';
     th.textContent = `${th.dataset.label} ${arrow}`;
   });
+  // Stage 9.5 M5: render/clear inventory pager footer below the table.
+  let pagerWrap = document.getElementById('skurInvPagerWrap');
+  if (_invTotal > SKUR_INV_PAGE_SIZE) {
+    if (!pagerWrap) {
+      const tw = document.querySelector('.skur-table-wrap');
+      if (tw) {
+        pagerWrap = document.createElement('div');
+        pagerWrap.id = 'skurInvPagerWrap';
+        pagerWrap.className = 'skur-inv-pager';
+        tw.appendChild(pagerWrap);
+      }
+    }
+    if (pagerWrap) {
+      const _e = (_invStart + SKUR_INV_PAGE_SIZE);
+      pagerWrap.innerHTML = `<span class="page-info">Showing ${_invStart+1}–${Math.min(_e, _invTotal)} of ${_invTotal} VMs</span><div class="pagination" id="skurInvPager"></div>`;
+      try { renderPagination('skurInvPager', _invPages, _skurInvPage, p => skurInvGotoPage(p)); } catch(_) {}
+    }
+  } else if (pagerWrap) {
+    pagerWrap.remove();
+  }
 }
 function skurOnFilter() {
   document.querySelectorAll('.skur-filter[data-f]').forEach(el => { skurFilters[el.dataset.f] = (el.value||'').trim(); });
+  _skurInvPage = 1;
   renderSkurVmGrid();
 }
 function skurClearFilters() {
   Object.keys(skurFilters).forEach(k => skurFilters[k]='');
   document.querySelectorAll('.skur-filter[data-f]').forEach(el => { el.value=''; });
+  _skurInvPage = 1;
   renderSkurVmGrid();
 }
 function skurSort(key) {
   if (skurSortState.key === key) skurSortState.dir *= -1;
   else { skurSortState.key = key; skurSortState.dir = 1; }
+  _skurInvPage = 1;
   renderSkurVmGrid();
 }
 // Per-row '+ add to group' shortcut: select just this VM and surface the bulk bar.
