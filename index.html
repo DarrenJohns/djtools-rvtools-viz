@@ -369,39 +369,26 @@ footer strong{opacity:1;}
 .skur-section-h .skur-section-actions .bb-autogroup{font:inherit;font-size:11px;padding:5px 12px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:var(--brand-primary);color:#fff;cursor:pointer;font-weight:600;}
 .skur-section-h .skur-section-actions .bb-autogroup:hover{filter:brightness(1.08);}
 .skur-stat-grid-wrap{}
-.skur-plan-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:12px 14px;margin:14px 0 0;}
-.skur-plan-bar .pb-title{display:flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);margin-right:8px;}
-.skur-plan-bar .pb-field{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.skur-plan-bar .pb-field label{font-size:11px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
-.skur-plan-bar .pb-field select,.skur-plan-bar .pb-field input[type="date"]{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);color:var(--text-primary);min-width:120px;}
-.skur-plan-bar .pb-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);font-size:13px;color:var(--text-primary);cursor:pointer;user-select:none;}
-.skur-plan-bar .pb-toggle input{margin:0;cursor:pointer;}
-.skur-plan-bar .pb-toggle.is-on{background:rgba(15,108,189,.15);border-color:rgba(15,108,189,.5);color:var(--brand-primary);}
-.skur-plan-bar .pb-spacer{flex:1;}
-.skur-plan-bar .pb-reset{background:transparent;border:none;color:var(--text-secondary);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;}
-.skur-data-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--bg-layer2);border:1px solid var(--border-default);font-size:12px;color:var(--text-secondary);cursor:help;}
-.skur-data-pill.is-warn{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.4);color:#f59e0b;}
-.skur-data-pill .dp-count{font-weight:700;color:var(--text-primary);}
-.skur-data-pill.is-warn .dp-count{color:#f59e0b;}
+.skur-plan-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin:14px 0 0;font-size:14px;}
+.skur-plan-bar .pb-flabel{font-size:14px;font-weight:600;color:var(--text-secondary);white-space:nowrap;}
+.skur-plan-bar .pb-select{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);color:var(--text-primary);}
+.skur-plan-bar .pb-select#skurPlanRegion{min-width:240px;}
+.skur-plan-bar .pb-workspace{position:relative;margin-left:auto;}
+.skur-plan-bar .pb-workspace>summary{list-style:none;cursor:pointer;}
+.skur-plan-bar .pb-workspace>summary::-webkit-details-marker{display:none;}
+.skur-plan-bar .pb-workspace[open]>summary{background:var(--bg-layer2);}
+.skur-plan-bar .pb-workspace-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:300px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px;z-index:50;}
+.skur-plan-bar .pb-workspace[open] .pb-workspace-menu{display:block;}
+.skur-plan-bar .pb-workspace-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;padding:8px 10px;border:none;background:transparent;color:var(--text-primary);font:inherit;font-size:13px;cursor:pointer;border-radius:var(--radius-sm);}
+.skur-plan-bar .pb-workspace-menu button:hover:not(:disabled){background:var(--bg-layer2);}
+.skur-plan-bar .pb-workspace-menu button:disabled{opacity:.55;cursor:not-allowed;}
+.skur-plan-bar .pb-workspace-menu .pb-ws-hint{font-size:11px;font-weight:400;color:var(--text-tertiary);}
+.skur-plan-bar .pb-workspace-menu .pb-ws-sep{height:1px;background:var(--border-subtle);margin:4px 0;}
 /* Stage 1: freshness pill (matches SPEC's "Updated May 2026" green badge) */
 .skur-freshness-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 11px;border-radius:12px;background:#e6f4ea;color:#137333;border:1px solid #a8dab5;cursor:pointer;white-space:nowrap;user-select:none;}
 .skur-freshness-pill:hover{filter:brightness(.96);}
 .skur-freshness-pill.is-warn{background:rgba(245,158,11,.14);color:#92510b;border-color:rgba(245,158,11,.5);}
 .skur-freshness-pill .fp-dot{font-size:10px;}
-/* Stage 1: advanced plan-bar disclosure */
-.skur-plan-bar .pb-advanced-toggle{font:inherit;font-size:12px;padding:6px 12px;border:1px solid var(--border-default);background:var(--bg-layer2);color:var(--text-secondary);border-radius:var(--radius-sm);cursor:pointer;margin-left:6px;}
-.skur-plan-bar .pb-advanced-toggle:hover{background:var(--bg-layer1);color:var(--text-primary);}
-.skur-plan-bar .pb-advanced-toggle.is-open{background:rgba(15,108,189,.10);border-color:rgba(15,108,189,.5);color:var(--brand-primary);}
-.skur-plan-advanced{display:none;flex-wrap:wrap;gap:14px;align-items:flex-end;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:12px 14px;margin:8px 0 0;}
-.skur-plan-advanced.is-open{display:flex;}
-.skur-plan-advanced .pb-field{display:flex;flex-direction:column;gap:3px;min-width:0;}
-.skur-plan-advanced .pb-field label{font-size:11px;color:var(--text-tertiary);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
-.skur-plan-advanced .pb-field select,
-.skur-plan-advanced .pb-field input[type="date"]{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);min-width:120px;}
-.skur-plan-advanced .pb-toggle{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);font-size:13px;color:var(--text-primary);cursor:pointer;user-select:none;}
-.skur-plan-advanced .pb-toggle input{margin:0;cursor:pointer;}
-.skur-plan-advanced .pb-spacer{flex:1;}
-.skur-plan-advanced .pb-reset{background:transparent;border:none;color:var(--text-secondary);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;}
 .skur-elig-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);border-radius:999px;color:var(--brand-primary);font-size:10px;font-weight:700;cursor:help;}
 .skur-rec-cell{font-family:var(--font-mono,'Consolas',monospace);font-size:12px;line-height:1.3;}
 .skur-rec-cell .rc-name{font-weight:700;color:var(--text-primary);}
@@ -1169,47 +1156,27 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="sku-rec-statcards" id="skuRecStatCards"></div>
 
       <div class="skur-plan-bar" id="skurPlanBar">
-        <div class="pb-field">
-          <label for="skurPlanRegion">Region</label>
-          <select id="skurPlanRegion" onchange="skurOnPlanChange('region',this.value)"></select>
-        </div>
-        <div class="pb-field">
-          <label for="skurPlanCurrency">Currency</label>
-          <select id="skurPlanCurrency" onchange="skurOnPlanChange('currency',this.value)">
-            <option value="USD">USD $</option>
-            <option value="AUD">AUD $</option>
-            <option value="NZD">NZD $</option>
-            <option value="EUR">EUR €</option>
-            <option value="GBP">GBP £</option>
-          </select>
-        </div>
-        <button type="button" class="pb-advanced-toggle" id="skurPlanAdvancedToggle" onclick="skurTogglePlanAdvanced()" aria-expanded="false" aria-controls="skurPlanAdvanced" title="Show term, AHUB and as-of-date controls">⚙ Advanced ▾</button>
-        <div class="pb-spacer"></div>
+        <label class="pb-flabel" for="skurPlanRegion">🌏 Azure Region:</label>
+        <select id="skurPlanRegion" class="pb-select" onchange="skurOnPlanChange('region',this.value)"></select>
+        <label class="pb-flabel" for="skurPlanCurrency">💱 Currency:</label>
+        <select id="skurPlanCurrency" class="pb-select" onchange="skurOnPlanChange('currency',this.value)">
+          <option value="USD">USD $</option>
+          <option value="AUD">AUD $</option>
+          <option value="NZD">NZD $</option>
+          <option value="EUR">EUR €</option>
+          <option value="GBP">GBP £</option>
+        </select>
+        <details class="pb-workspace" id="skurWorkspaceMenu">
+          <summary class="btn" title="Save or load your customisations (groups, rules, manual tags)">💾 Workspace ▾</summary>
+          <div class="pb-workspace-menu" onclick="event.stopPropagation()">
+            <button type="button" onclick="exportWorkspaceJson('full');document.getElementById('skurWorkspaceMenu').open=false;">⬇️ Export <strong>workspace</strong><span class="pb-ws-hint">rules, groups, tags · no VM data · for sharing across datasets</span></button>
+            <button type="button" onclick="document.getElementById('skurWorkspaceFile').click();document.getElementById('skurWorkspaceMenu').open=false;">⬆️ Apply <strong>workspace</strong><span class="pb-ws-hint">replaces customisations on current data</span></button>
+            <div class="pb-ws-sep"></div>
+            <button type="button" onclick="exportScenarioBundle();document.getElementById('skurWorkspaceMenu').open=false;" title="Save scenario (.rvz): the source RVTools data + your full workspace customisations in one file.">📦 Save <strong>scenario</strong> (.rvz)<span class="pb-ws-hint">data + workspace · resume later</span></button>
+          </div>
+        </details>
+        <input type="file" id="skurWorkspaceFile" accept=".json,application/json" style="display:none" onchange="(function(ev){const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;const r=new FileReader();r.onload=function(e){importWorkspaceJson(e.target.result,f);};r.readAsArrayBuffer(f);})(event)">
         <span class="skur-freshness-pill" id="skurFreshnessPill" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
-      </div>
-
-      <div class="skur-plan-advanced" id="skurPlanAdvanced" aria-hidden="true">
-        <div class="pb-field">
-          <label for="skurPlanTerm">Term</label>
-          <select id="skurPlanTerm" onchange="skurOnPlanChange('term',this.value)">
-            <option value="payg">Pay-as-you-go</option>
-            <option value="ri1">1-year reserved</option>
-            <option value="ri3">3-year reserved</option>
-            <option value="sp1">1-year savings plan</option>
-            <option value="sp3">3-year savings plan</option>
-          </select>
-        </div>
-        <div class="pb-field">
-          <label>&nbsp;</label>
-          <label class="pb-toggle" id="skurPlanAhubToggle" title="Apply Azure Hybrid Benefit to eligible Windows VMs"><input type="checkbox" id="skurPlanAhub" onchange="skurOnPlanChange('ahub',this.checked)"> AHUB (Windows)</label>
-        </div>
-        <div class="pb-field">
-          <label for="skurPlanAsOf">As-of date</label>
-          <input type="date" id="skurPlanAsOf" onchange="skurOnPlanChange('asOfDate',this.value)">
-        </div>
-        <div class="pb-spacer"></div>
-        <span id="skurDataPill" class="skur-data-pill" title="Click for catalog details" onclick="skurShowDataPillInfo()"><span>📦</span> <span class="dp-count" id="skurDataPillCount">…</span> <span id="skurDataPillLabel">SKUs</span></span>
-        <button class="pb-reset" onclick="skurResetPlan()" title="Restore default plan settings">Reset</button>
       </div>
 
       <div class="skur-section">
@@ -5370,9 +5337,10 @@ function renderSkuRecStatCards() {
   };
   const card = (ico, num, lbl, sub, cls) =>
     `<div class="sku-rec-statcard"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div></div>`;
+  const ungrouped = Math.max(0, vms.length - groupedSet.size);
   host.innerHTML = [
     card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
-    card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped`),
+    card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
     card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
     card('💰', fmtMoney(totalCost), 'Est. compute / mo', '+ storage / licensing — see Excel', 'is-money'),
   ].join('');
