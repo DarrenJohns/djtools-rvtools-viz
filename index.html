@@ -2715,10 +2715,11 @@ function parseLoadedWorkbook(buffer, file) {
     return;
   }
 
-  const onProgress = (stage, tab) => {
-    const labels = { 'loading-lib':'Loading parser…', 'parsing':'Parsing workbook…', 'extracting':`Extracting ${tab||''}…` };
-    showToast(`⏳ ${labels[stage] || stage} — ${file.name}`, false, true);
-  };
+  // Stage 9.5: keep the single "Parsing…" toast already shown by handleFile;
+  // the per-stage progress chatter caused multiple width-shifting toast
+  // updates that visibly jumped on the new top-center layout. Stages are
+  // logged for diagnostics only.
+  const onProgress = (stage, tab) => { /* no-op — single steady toast */ };
 
   // For zip buffers, peek inside to disambiguate xlsx from .rvz scenario.
   const dispatchPromise = (kind === 'zip')
@@ -2755,14 +2756,10 @@ function _loadXlsx(buffer, file, onProgress) {
 }
 
 async function _loadScenario(buffer, file) {
-  showToast(`📦 Opening scenario ${file.name}…`, false, true);
   const { manifest, workspace, xlsxBuffer } = await parseScenarioRvz(buffer);
   // Parse the embedded xlsx using the same pipeline. xlsxBuffer copy preserved for re-export.
   const xlsxClone = xlsxBuffer.slice(0);
-  const onProgress = (stage, tab) => {
-    const labels = { 'loading-lib':'Loading parser…', 'parsing':'Parsing embedded xlsx…', 'extracting':`Extracting ${tab||''}…` };
-    showToast(`⏳ ${labels[stage] || stage} — ${file.name}`, false, true);
-  };
+  const onProgress = (stage, tab) => { /* no-op — single steady toast */ };
   let parsed;
   try {
     parsed = await _parseSheetsViaWorker(xlsxBuffer, onProgress);
@@ -2849,7 +2846,7 @@ function _applyParsedSheets(parsed, file) {
       renderInvTable();
       renderSkuRecommender();
       hideToast();
-      showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`);
+      showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`, 'success');
       openAllPaneBodies();
       // Auto-navigate to the Overview tab after a successful import / resume
       // so the user lands on the summary instead of staring at the Import drop
