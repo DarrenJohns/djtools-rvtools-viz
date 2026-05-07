@@ -12,6 +12,15 @@ This is a **single-file HTML web application** (`index.html`). It runs as a stat
 ## Git & Deployment Workflow
 - **GitHub Flow**: Always create a feature branch → PR → merge to `main`
 - **Branch naming**: Use prefixes like `feature/`, `fix/`, `docs/`, `chore/`
+- **NEVER commit or push to `main` directly**. All work lands on a feature branch and merges via PR only with explicit user approval.
+- **State the branch on every git action**: before running `git commit` / `git push`, print the current branch and explicitly confirm it is *not* `main`. Use a guard like:
+  ```powershell
+  $b = git branch --show-current
+  if ($b -eq 'main') { Write-Host "ABORT: on main" -ForegroundColor Red; exit 1 }
+  Write-Host "Branch: $b (NOT main)" -ForegroundColor Green
+  ```
+  Always push with the branch name spelled out: `git push origin <branch>` (never bare `git push` when intent matters).
+- **In chat**, lead any commit/push action with a one-liner like *"Pushing to `feature/xxx` (NOT main)"* so the user can intervene before the action runs.
 - **CI/CD**: Push to `main` triggers `.github/workflows/deploy.yml` (GitHub-hosted `ubuntu-latest` runner) which deploys `index.html` to Azure Static Web Apps via `@azure/static-web-apps-cli`. The deployment token lives in the `production` GitHub Environment (branch-restricted to `main`).
 - **Validation**: `.github/workflows/validate.yml` runs HTML structural checks on PRs touching `*.html`. It uses `pull_request` (not `pull_request_target`), so PRs from forks run with **no secret access**.
 - **Pinning**: third-party actions are pinned to commit SHA — update the `# vX.Y.Z` comment beside each `@<sha>` when bumping.
