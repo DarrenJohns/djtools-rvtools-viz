@@ -5333,41 +5333,30 @@ function _skurMaybeShowPreloadPrompt(){
     const el = document.getElementById('autosavePrompt'); if (!el) return;
     if (window.__rvtoolsCurrent) { el.hidden = true; return; }
     const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
-    // Fallback: even without a workspace autosave, if we know about a
-    // recently-imported file, silently auto-restore it from IDB so refresh
-    // behaves the same as a still-open tab.
-    const lastRaw = (() => { try { return localStorage.getItem('rvtools.lastDataset.v1'); } catch(_) { return null; } })();
-    const last = lastRaw ? (() => { try { return JSON.parse(lastRaw); } catch(_) { return null; } })() : null;
-    const fingerprint = (saved && saved.dataset && saved.dataset.fingerprint) || (last && last.fingerprint) || null;
-    if (!fingerprint || typeof idbGetSourceBytes !== 'function') {
-      el.hidden = true; return;
-    }
-    el.hidden = true;
+    let lastDs = null;
+    try { const r = localStorage.getItem('rvtools.lastDataset.v1'); lastDs = r ? JSON.parse(r) : null; } catch(_) {}
+    const fingerprint = (saved && saved.dataset && saved.dataset.fingerprint) || (lastDs && lastDs.fingerprint) || null;
+    if (!fingerprint || typeof idbGetSourceBytes !== 'function') { el.hidden = true; return; }
+    // Verify cached bytes really exist before showing the prompt — otherwise
+    // Continue would just dead-end with a "bytes missing" message.
     idbGetSourceBytes(fingerprint).then(rec => {
-      if (rec && rec.buffer) {
-        // Bytes available — silently restore. _skurMaybeResumeAutosave will
-        // re-apply the workspace if one exists; otherwise it's a clean reload.
-        _skurContinueAutosave();
-        return;
-      }
-      // No cached bytes — only surface a prompt if there's a workspace worth
-      // pointing at. Pure source-only data with no bytes = nothing to do.
-      if (saved && saved.workspace) {
-        const ws = saved.workspace || {};
+      if (!rec || !rec.buffer) { el.hidden = true; return; }
+      const meta = document.getElementById('autosavePromptMeta');
+      if (meta) {
+        const ws = (saved && saved.workspace) || {};
         const groups = (ws.groups || []).length;
         const rules = (ws.tagRules || ws.rules || []).length;
         const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
-        const oos = (ws.outOfScope ? Object.keys(ws.outOfScope).length : 0);
-        if ((groups + rules + tags + oos) === 0) return;
-        const meta = document.getElementById('autosavePromptMeta');
-        if (meta) {
-          const ago = (typeof _skurFmtAgo === 'function') ? _skurFmtAgo(saved.savedAt) : '';
-          const fname = (saved.dataset && saved.dataset.sourceFilename) || (last && last.sourceFilename) || 'the same RVTools file';
-          meta.textContent = `${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}${ago ? ' · saved '+ago : ''} — re-load ${fname} to resume, or Start fresh.`;
-        }
-        el.hidden = false;
+        const ago = (typeof _skurFmtAgo === 'function' && saved && saved.savedAt) ? _skurFmtAgo(saved.savedAt) : (lastDs && lastDs.savedAt && typeof _skurFmtAgo === 'function' ? _skurFmtAgo(lastDs.savedAt) : '');
+        const fname = (saved && saved.dataset && saved.dataset.sourceFilename) || (lastDs && lastDs.sourceFilename) || 'the same RVTools file';
+        const vmN = (lastDs && lastDs.vmCount) || (saved && saved.dataset && saved.dataset.vmCount) || '?';
+        const wsBits = (groups + rules + tags) > 0
+          ? ` · ${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}`
+          : '';
+        meta.textContent = `${fname} · ${vmN} VMs${wsBits}${ago ? ' · saved '+ago : ''} — Continue to resume, or Start fresh.`;
       }
-    }).catch(() => {});
+      el.hidden = false;
+    }).catch(() => { el.hidden = true; });
   } catch (_) {}
 }
 
@@ -5420,6 +5409,21 @@ async function _skurContinueAutosave(){
 // Stage 9.5: "Start fresh" — drop the autosave entirely so the user can load
 // any new dataset without the resume prompt re-firing.
 function _skurStartFreshFromPrompt(){
+  // Clear cached source bytes too — otherwise the next refresh would
+  // re-discover them and re-show the prompt.
+  try {
+    const r = localStorage.getItem('rvtools.lastDataset.v1');
+    const last = r ? JSON.parse(r) : null;
+    if (last && last.fingerprint && typeof idbDeleteSourceBytes === 'function') {
+      idbDeleteSourceBytes(last.fingerprint).catch(() => {});
+    }
+  } catch(_) {}
+  try {
+    const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
+    if (saved && saved.dataset && saved.dataset.fingerprint && typeof idbDeleteSourceBytes === 'function') {
+      idbDeleteSourceBytes(saved.dataset.fingerprint).catch(() => {});
+    }
+  } catch(_) {}
   try { localStorage.removeItem(RVTOOLS_AUTOSAVE_KEY); } catch(_) {}
   try { localStorage.removeItem('rvtools.lastDataset.v1'); } catch(_) {}
   _skurAutosaveLast = '';
