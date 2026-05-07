@@ -507,7 +507,7 @@ footer strong{opacity:1;}
 .skur-tagrules{border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-layer1);overflow:hidden;}
 .skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:14px;font-weight:600;color:var(--text-primary);border-bottom:1px solid var(--border-subtle);}
 .skur-tagrules-summary .skur-tagrules-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;letter-spacing:0;}
-.skur-tagrules-summary .skur-tagrules-toggle{margin-left:auto;color:var(--brand-primary);cursor:pointer;font-weight:600;background:none;border:none;padding:0;font-family:inherit;font-size:13px;}
+.skur-tagrules-summary .skur-tagrules-toggle{color:var(--brand-primary);cursor:pointer;font-weight:600;background:none;border:none;padding:0;font-family:inherit;font-size:13px;}
 .skur-tagrules-summary .skur-tagrules-toggle:hover{text-decoration:underline;}
 .skur-tagrules.is-open .skur-tagrules-summary{border-bottom-color:var(--border-subtle);}
 .skur-tagrules:not(.is-open) .skur-tagrules-summary{border-bottom:none;}
@@ -1305,12 +1305,12 @@ body.dark .skur-group-chip{color:#b794f4;}
           <div class="skur-tagrules-summary">
             🏷️ <span>Auto tag assignment</span>
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
+            <button class="btn skur-tagrules-add" style="margin-left:auto;background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
             <button class="skur-tagrules-toggle" id="skurTagRulesToggle" onclick="skurToggleTagRules()" type="button">Edit ▾</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
             <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
             <div class="skur-rules-list" id="skurRulesList"></div>
-            <div class="skur-tagrules-actions"><button class="btn" onclick="openSkurRuleModal()" type="button">➕ Add rule</button></div>
           </div>
         </div>
       </div>
