@@ -2227,6 +2227,18 @@ async function _persistSourceBytes(xlsxBuffer, sourceFilename) {
       sourceFilename: sourceFilename || 'rvtools.xlsx',
       vmCount: window.__rvtoolsCurrent.vmCount,
     });
+    // Stage 9.5: remember the most recent import so a plain refresh can
+    // auto-restore the file even when no workspace customisations exist
+    // (groups/rules/tags). The full workspace autosave (if any) is still
+    // tracked separately under RVTOOLS_AUTOSAVE_KEY.
+    try {
+      localStorage.setItem('rvtools.lastDataset.v1', JSON.stringify({
+        fingerprint,
+        sourceFilename: sourceFilename || 'rvtools.xlsx',
+        vmCount: window.__rvtoolsCurrent.vmCount,
+        savedAt: new Date().toISOString(),
+      }));
+    } catch (_) {}
     // Stage 9.5: hide the pre-load resume banner — data is now loaded so its
     // "Go to Import" CTA is misleading.
     try { const _ap = document.getElementById('autosavePrompt'); if (_ap) _ap.hidden = true; } catch(_) {}
@@ -2555,7 +2567,23 @@ async function _skurMaybeResumeAutosave() {
     const preloadEl = document.getElementById('autosavePrompt'); if (preloadEl) preloadEl.hidden = true;
     const cur = window.__rvtoolsCurrent;
     const saved = _readAutosave();
-    if (!cur || !saved || !saved.workspace || !saved.dataset) return;
+    // Auto-resume path: even without a workspace autosave, if the user just
+    // came in via the silent refresh-restore (window._skurAutoResumeNext),
+    // we still need to release the toast suppression and emit a summary.
+    const inAutoResume = !!window._skurAutoResumeNext;
+    if (!cur) {
+      if (inAutoResume) { window._skurSuppressToasts = false; window._skurAutoResumeNext = false; }
+      return;
+    }
+    if (!saved || !saved.workspace || !saved.dataset) {
+      if (inAutoResume) {
+        window._skurAutoResumeNext = false;
+        window._skurSuppressToasts = false;
+        const _vmN = (typeof allVMs !== 'undefined' && Array.isArray(allVMs)) ? allVMs.length : '?';
+        showToast(`✅ Resumed — ${_vmN} VMs loaded`, 'success');
+      }
+      return;
+    }
     // Skip if the saved workspace has nothing meaningful to restore (defensive — old empty-shell autosaves from before the write-time guard landed).
     {
       const ws = saved.workspace || {};
@@ -5305,33 +5333,41 @@ function _skurMaybeShowPreloadPrompt(){
     const el = document.getElementById('autosavePrompt'); if (!el) return;
     if (window.__rvtoolsCurrent) { el.hidden = true; return; }
     const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
-    if (!saved || !saved.workspace || !saved.dataset) { el.hidden = true; return; }
-    const ws = saved.workspace || {};
-    const groups = (ws.groups || []).length;
-    const rules = (ws.tagRules || ws.rules || []).length;
-    const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
-    const oos = (ws.outOfScope ? Object.keys(ws.outOfScope).length : 0);
-    // Suppress the prompt when there's nothing meaningful to resume.
-    if ((groups + rules + tags + oos) === 0) { el.hidden = true; return; }
-    // Auto-resume: if the cached source bytes are available locally, skip the
-    // prompt entirely and silently restore. The single summary toast at the
-    // end of _skurMaybeResumeAutosave is the only visible feedback. Falls
-    // back to showing the prompt if bytes are missing (different browser,
-    // cleared storage, etc.) so the user can re-load the file manually.
+    // Fallback: even without a workspace autosave, if we know about a
+    // recently-imported file, silently auto-restore it from IDB so refresh
+    // behaves the same as a still-open tab.
+    const lastRaw = (() => { try { return localStorage.getItem('rvtools.lastDataset.v1'); } catch(_) { return null; } })();
+    const last = lastRaw ? (() => { try { return JSON.parse(lastRaw); } catch(_) { return null; } })() : null;
+    const fingerprint = (saved && saved.dataset && saved.dataset.fingerprint) || (last && last.fingerprint) || null;
+    if (!fingerprint || typeof idbGetSourceBytes !== 'function') {
+      el.hidden = true; return;
+    }
     el.hidden = true;
-    if (saved.dataset.fingerprint && typeof idbGetSourceBytes === 'function') {
-      idbGetSourceBytes(saved.dataset.fingerprint).then(rec => {
-        if (rec && rec.buffer) { _skurContinueAutosave(); return; }
-        // No cached bytes — surface the prompt so the user can re-import.
+    idbGetSourceBytes(fingerprint).then(rec => {
+      if (rec && rec.buffer) {
+        // Bytes available — silently restore. _skurMaybeResumeAutosave will
+        // re-apply the workspace if one exists; otherwise it's a clean reload.
+        _skurContinueAutosave();
+        return;
+      }
+      // No cached bytes — only surface a prompt if there's a workspace worth
+      // pointing at. Pure source-only data with no bytes = nothing to do.
+      if (saved && saved.workspace) {
+        const ws = saved.workspace || {};
+        const groups = (ws.groups || []).length;
+        const rules = (ws.tagRules || ws.rules || []).length;
+        const tags = (ws.manualTags ? Object.keys(ws.manualTags).length : 0);
+        const oos = (ws.outOfScope ? Object.keys(ws.outOfScope).length : 0);
+        if ((groups + rules + tags + oos) === 0) return;
         const meta = document.getElementById('autosavePromptMeta');
         if (meta) {
           const ago = (typeof _skurFmtAgo === 'function') ? _skurFmtAgo(saved.savedAt) : '';
-          const fname = saved.dataset.sourceFilename || 'the same RVTools file';
+          const fname = (saved.dataset && saved.dataset.sourceFilename) || (last && last.sourceFilename) || 'the same RVTools file';
           meta.textContent = `${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}${ago ? ' · saved '+ago : ''} — re-load ${fname} to resume, or Start fresh.`;
         }
         el.hidden = false;
-      }).catch(() => { el.hidden = false; });
-    }
+      }
+    }).catch(() => {});
   } catch (_) {}
 }
 
@@ -5343,22 +5379,27 @@ async function _skurContinueAutosave(){
   const btn = document.getElementById('autosavePromptContinue');
   try {
     const saved = (typeof _readAutosave === 'function') ? _readAutosave() : null;
-    if (!saved || !saved.dataset || !saved.dataset.fingerprint) {
+    // Fall back to the lastDataset marker so refresh works even when no
+    // workspace autosave was ever written (fresh import, no groups/rules).
+    let lastDs = null;
+    try { const r = localStorage.getItem('rvtools.lastDataset.v1'); lastDs = r ? JSON.parse(r) : null; } catch(_) {}
+    const ds = (saved && saved.dataset && saved.dataset.fingerprint) ? saved.dataset : lastDs;
+    if (!ds || !ds.fingerprint) {
       _skurDismissPreloadPrompt();
       return;
     }
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading…'; }
-    const rec = await idbGetSourceBytes(saved.dataset.fingerprint);
+    const rec = await idbGetSourceBytes(ds.fingerprint);
     if (!rec || !rec.buffer) {
       // No cached bytes locally — leave the banner up and prompt the user to
       // re-load the file manually. activateTab so the dropzone is visible.
       const meta = document.getElementById('autosavePromptMeta');
-      if (meta) meta.textContent = `Cached file isn't available in this browser — load ${saved.dataset.sourceFilename || 'the same RVTools file'} below to resume.`;
+      if (meta) meta.textContent = `Cached file isn't available in this browser — load ${ds.sourceFilename || 'the same RVTools file'} below to resume.`;
       try { activateTab('import'); } catch(_) {}
       if (btn) { btn.disabled = false; btn.textContent = '▶ Continue'; }
       return;
     }
-    const fakeFile = { name: saved.dataset.sourceFilename || 'rvtools.xlsx', size: rec.buffer.byteLength };
+    const fakeFile = { name: ds.sourceFilename || 'rvtools.xlsx', size: rec.buffer.byteLength };
     document.getElementById('autosavePrompt').hidden = true;
     // Tell the post-load probe to skip its own confirm banner — the user
     // already chose "Continue" so just apply the workspace silently.
@@ -5380,6 +5421,7 @@ async function _skurContinueAutosave(){
 // any new dataset without the resume prompt re-firing.
 function _skurStartFreshFromPrompt(){
   try { localStorage.removeItem(RVTOOLS_AUTOSAVE_KEY); } catch(_) {}
+  try { localStorage.removeItem('rvtools.lastDataset.v1'); } catch(_) {}
   _skurAutosaveLast = '';
   _skurDismissPreloadPrompt();
   try { activateTab('import'); } catch(_) {}
