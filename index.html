@@ -889,11 +889,11 @@ body.dark .skur-group-chip{color:#b794f4;}
 <nav class="tab-strip" id="tabStrip" role="tablist" aria-label="Dashboard sections">
   <button class="tab active" role="tab" data-tab="import"     onclick="activateTab('import')">📥 Import</button>
   <button class="tab"        role="tab" data-tab="overview"   onclick="activateTab('overview')">📊 Overview</button>
+  <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
   <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
   <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Health</button>
   <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Risks</button>
-  <button class="tab"        role="tab" data-tab="inventory"  onclick="activateTab('inventory')">🖥️ Inventory</button>
   <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">🎯 SKU Recommender</button>
 </nav>
 
@@ -1824,7 +1824,7 @@ document.addEventListener('keydown', (e) => {
   }
   else if (e.key === 't' || e.key === 'T') { toggleTheme(); }
   else if (/^[1-7]$/.test(e.key)) {
-    const keys = ['import','overview','infra','resources','ops','migration','inventory'];
+    const keys = ['import','overview','inventory','infra','resources','ops','migration'];
     const k = keys[parseInt(e.key,10)-1];
     if (k) activateTab(k);
   }
