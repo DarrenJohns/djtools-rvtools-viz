@@ -1933,11 +1933,13 @@ function handleFile(file) {
     showFileError(`"${esc(file.name)}" doesn't look like a supported file.`, 'Upload an RVTools <strong>.xlsx</strong> export, an <strong>.xls</strong> workbook, a saved <strong>.rvz</strong> scenario, or a workspace <strong>.json</strong> file.');
     return;
   }
-  showToast(`⏳ Parsing ${file.name} (${(file.size/1024/1024).toFixed(1)} MB) — this can take a moment for large estates…`, false, true);
+  // Stage 9.5: skip the upfront 'Parsing...' toast — users found the
+  // parse-then-success pair read as two separate toasts. Now we show only
+  // the final success toast at the end of _applyParsedSheets.
   const reader = new FileReader();
   reader.onerror = () => showFileError('Could not read the file.', 'The file may be locked or corrupt. Try re-exporting from RVTools.');
   reader.onload = e => {
-    // Yield once so the browser paints the toast before the synchronous parse work
+    // Yield once so the browser paints any pending UI before the synchronous parse work
     setTimeout(() => parseLoadedWorkbook(e.target.result, file), 0);
   };
   reader.readAsArrayBuffer(file);
@@ -2845,11 +2847,9 @@ function _applyParsedSheets(parsed, file) {
       renderWaveTable();
       renderInvTable();
       renderSkuRecommender();
-      // Update the persist 'Parsing...' toast in place to a success message
-      // (no fade-out + DOM swap), then auto-dismiss after a short window.
-      // This gives the user a single, smooth toast across import.
-      showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`, 'success', true);
-      setTimeout(() => { try { hideToast(); } catch(_) {} }, 3500);
+      // Single success toast — the upfront 'Parsing...' toast was removed
+      // so this is the only toast the user sees on import.
+      showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`, 'success');
       openAllPaneBodies();
       // Auto-navigate to the Overview tab after a successful import / resume
       // so the user lands on the summary instead of staring at the Import drop
