@@ -396,7 +396,9 @@ footer strong{opacity:1;}
 .skur-section > .skur-groups-card{box-shadow:var(--shadow-sm);}
 .skur-section > .skur-section-h{box-shadow:var(--shadow-sm);box-shadow:0 -1px 2px rgba(0,0,0,.04);}
 .skur-section > .skur-section-h + .skur-exc-banner + .skur-table-wrap,
-.skur-section > .skur-section-h + .skur-table-wrap{border-top:none;border-radius:0 0 var(--radius-md) var(--radius-md);box-shadow:0 1px 2px rgba(0,0,0,.05);}
+.skur-section > .skur-section-h + .skur-table-wrap{border-top:none;border-radius:0;box-shadow:none;}
+/* Pager visually attaches to the bottom of the table-wrap so they read as one card. */
+.skur-section > .skur-section-h ~ #skurInvPagerWrap.skur-inv-pager{margin-top:0;border-top:none;border-radius:0 0 var(--radius-md) var(--radius-md);box-shadow:0 1px 2px rgba(0,0,0,.05);}
 /* Stage 9: section header with inline actions area (mockup parity) */
 .skur-section-h{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--text-primary);padding:10px 14px;background:var(--bg-layer1);border:1px solid var(--border-default);border-bottom:none;border-radius:var(--radius-md) var(--radius-md) 0 0;}
 .skur-section-h .skur-section-actions{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:400;color:var(--text-secondary);}
@@ -471,7 +473,7 @@ footer strong{opacity:1;}
 .skur-modal-vcpu{display:flex;gap:8px;align-items:center;}
 .skur-modal-vcpu input{width:80px;padding:5px 8px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer2);color:var(--text-primary);font:inherit;font-size:13px;}
 .skur-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
-.skur-table-wrap{overflow:visible;border:1px solid var(--border-default);border-radius:var(--radius-md);}
+.skur-table-wrap{overflow:visible;border:1px solid var(--border-default);border-radius:var(--radius-md);background:var(--bg-layer1);}
 .skur-table{width:100%;border-collapse:collapse;font-size:12px;}
 .skur-table thead th{background:var(--bg-layer2);text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);padding:7px 10px;border-bottom:1px solid var(--border-default);position:sticky;top:0;z-index:1;}
 .skur-table thead tr.skur-filter-row th{padding:6px 8px;background:var(--bg-layer1);border-bottom:1px solid var(--border-subtle);text-transform:none;letter-spacing:0;font-weight:400;position:static;}
