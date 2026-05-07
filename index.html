@@ -1328,14 +1328,6 @@ body.dark .skur-group-chip{color:#b794f4;}
               <option value="__new__">+ New VM group…</option>
               <option value="__remove__">↩ Remove from all groups</option>
             </select>
-            <select id="skurBulkOos" onchange="skurBulkSetOos(this.value);this.value='';" title="Mark selected VMs as out of scope (excluded from cost roll-ups)">
-              <option value="" disabled selected hidden>🚫 Out of scope…</option>
-              <option value="decommission">Decommission</option>
-              <option value="retain">Retain on-prem</option>
-              <option value="migrated">Already migrated</option>
-              <option value="other">Other…</option>
-              <option value="__restore__">↩ Restore to in-scope</option>
-            </select>
             <span class="bb-sep">|</span>
             <button class="bb-autogroup" id="skurAutoGroupBtn" title="Auto-group VMs by tag — pick specific tag values to include" onclick="skurOpenAutoGroupModal()">✨ Auto-group by tag</button>
           </div>
