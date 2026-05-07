@@ -5313,13 +5313,25 @@ function _skurMaybeShowPreloadPrompt(){
     const oos = (ws.outOfScope ? Object.keys(ws.outOfScope).length : 0);
     // Suppress the prompt when there's nothing meaningful to resume.
     if ((groups + rules + tags + oos) === 0) { el.hidden = true; return; }
-    const meta = document.getElementById('autosavePromptMeta');
-    if (meta) {
-      const ago = (typeof _skurFmtAgo === 'function') ? _skurFmtAgo(saved.savedAt) : '';
-      const fname = saved.dataset.sourceFilename || 'the same RVTools file';
-      meta.textContent = `${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}${ago ? ' · saved '+ago : ''} — Continue to resume ${fname}, or Start fresh.`;
+    // Auto-resume: if the cached source bytes are available locally, skip the
+    // prompt entirely and silently restore. The single summary toast at the
+    // end of _skurMaybeResumeAutosave is the only visible feedback. Falls
+    // back to showing the prompt if bytes are missing (different browser,
+    // cleared storage, etc.) so the user can re-load the file manually.
+    el.hidden = true;
+    if (saved.dataset.fingerprint && typeof idbGetSourceBytes === 'function') {
+      idbGetSourceBytes(saved.dataset.fingerprint).then(rec => {
+        if (rec && rec.buffer) { _skurContinueAutosave(); return; }
+        // No cached bytes — surface the prompt so the user can re-import.
+        const meta = document.getElementById('autosavePromptMeta');
+        if (meta) {
+          const ago = (typeof _skurFmtAgo === 'function') ? _skurFmtAgo(saved.savedAt) : '';
+          const fname = saved.dataset.sourceFilename || 'the same RVTools file';
+          meta.textContent = `${groups} group${groups===1?'':'s'} · ${rules} rule${rules===1?'':'s'} · ${tags} manual tag${tags===1?'':'s'}${ago ? ' · saved '+ago : ''} — re-load ${fname} to resume, or Start fresh.`;
+        }
+        el.hidden = false;
+      }).catch(() => { el.hidden = false; });
     }
-    el.hidden = false;
   } catch (_) {}
 }
 
