@@ -528,8 +528,9 @@ footer strong{opacity:1;}
 .skur-rules-table .tr-key,.skur-rules-table .tr-val{font-family:'Cascadia Code','Consolas',monospace;color:var(--brand-primary);font-weight:600;}
 .skur-rules-table .tr-matches{color:var(--text-tertiary);white-space:nowrap;}
 .skur-rules-table .tr-matches strong{color:var(--brand-primary);}
-.skur-rules-table .tr-actions{text-align:right;white-space:nowrap;}
-.skur-rules-table .tr-btn{background:transparent;border:1px solid transparent;color:var(--text-secondary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;margin-left:2px;}
+.skur-rules-table .tr-actions{text-align:center;white-space:nowrap;width:1%;}
+.skur-rules-table th.tr-actions-h{text-align:center;}
+.skur-rules-table .tr-btn{background:transparent;border:1px solid transparent;color:var(--text-secondary);width:28px;height:28px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;font-family:inherit;margin:0 2px;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
 .skur-rules-table .tr-btn:hover{background:var(--bg-layer1);border-color:var(--border-default);color:var(--text-primary);}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
@@ -4612,12 +4613,13 @@ function renderSkurTagRules() {
       <td class="tr-val">${esc(r.tagValue)}</td>
       <td class="tr-matches"><strong>${cnt}</strong> VM${cnt===1?'':'s'}</td>
       <td class="tr-actions">
-        <button class="tr-btn" title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')">✏</button>
-        <button class="tr-btn" title="Delete rule" onclick="deleteSkurRule('${esc(r.id)}')">🗑</button>
+        <button class="tr-btn" title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')">✏️</button>
+        <button class="tr-btn" title="Duplicate rule" onclick="duplicateSkurRule('${esc(r.id)}')">📋</button>
+        <button class="tr-btn" title="Delete rule" onclick="deleteSkurRule('${esc(r.id)}')">🗑️</button>
       </td>
     </tr>`;
   }).join('');
-  list.innerHTML = `<table class="skur-rules-table"><thead><tr><th>Condition</th><th>Tag key</th><th>Tag value</th><th>Matches</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+  list.innerHTML = `<table class="skur-rules-table"><thead><tr><th>Condition</th><th>Tag key</th><th>Tag value</th><th>Matches</th><th class="tr-actions-h">Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 let _skurEditingRuleId = null;
 function openSkurRuleModal(ruleId) {
@@ -4693,6 +4695,21 @@ async function deleteSkurRule(id) {
   renderSkurTagRules();
   renderSkurGroups();
   renderSkurVmGrid();
+}
+
+function duplicateSkurRule(id) {
+  const src = skurTagRules.find(x => x.id === id);
+  if (!src) return;
+  const copy = Object.assign({}, src, {
+    id: 'rule_' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    tagValue: src.tagValue + ' (copy)'
+  });
+  const idx = skurTagRules.findIndex(x => x.id === id);
+  skurTagRules.splice(idx + 1, 0, copy);
+  renderSkurTagRules();
+  renderSkurGroups();
+  renderSkurVmGrid();
+  try { showToast(`Duplicated rule — edit to adjust.`, 'success'); } catch(_) {}
 }
 
 // === SKU Recommender VM grid (Phase 2) ===
