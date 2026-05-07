@@ -1205,6 +1205,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <h3>🖥️ Full VM Inventory</h3>
   </div>
   <div class="section-body" id="inventoryBody">
+    <div class="cards-grid" id="invCards" style="margin-bottom:14px;"></div>
     <div class="filters-bar" id="invFilters" style="margin-bottom:14px;">
       <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VMs</label><input type="search" class="search-input" id="invSearch" placeholder="🔍 Type to filter…" oninput="filterInvTable()"/></div>
       <div class="filter-group"><label>Datacenter</label><select id="fInvDC" onchange="filterInvTable()"><option value="">All</option></select></div>
@@ -1215,7 +1216,6 @@ body.dark .skur-group-chip{color:#b794f4;}
       <button id="invResetBtn" class="btn btn-outline" onclick="resetInvFilters()">✖ Reset</button>
       <button class="btn btn-primary" onclick="exportCSV('inv')" style="margin-left:auto;">📥 CSV Export</button>
     </div>
-  <div class="cards-grid" id="invCards" style="margin-bottom:14px;"></div>
   <div class="table-card">
     <div style="overflow-x:auto;"><table id="invTable"><thead><tr>
       <th onclick="sortTable('inv',0)">VM Name ↕</th>
