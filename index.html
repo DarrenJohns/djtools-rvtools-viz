@@ -320,9 +320,7 @@ footer strong{opacity:1;}
 .shortcut-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-sm);background:var(--bg-layer2);}
 .shortcut-key{min-width:36px;text-align:center;padding:4px 8px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);font-family:'Cascadia Code','Consolas',monospace;font-size:13px;font-weight:600;}
 .shortcut-desc{font-size:13px;color:var(--text-secondary);}
-.kbd-shortcut-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 12px;cursor:pointer;font-size:16px;line-height:1;backdrop-filter:blur(4px);transition:background .15s;}
-.kbd-shortcut-btn:hover{background:rgba(255,255,255,.25);}
-.nav-icon-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;padding:6px 14px;cursor:pointer;font-size:14px;backdrop-filter:blur(4px);transition:background .15s;font-family:inherit;}
+.nav-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:20px;cursor:pointer;font-size:16px;line-height:1;backdrop-filter:blur(4px);transition:background .15s;font-family:inherit;}
 .nav-icon-btn:hover{background:rgba(255,255,255,.25);}
 .toast-container{position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:1400;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;width:auto;max-width:min(640px,calc(100% - 32px));}
 .toast{background:var(--bg-layer1);border:1px solid var(--border-default);border-left:4px solid var(--brand-primary);border-radius:var(--radius-md);padding:14px 22px;font-size:14px;font-weight:500;color:var(--text-primary);box-shadow:0 8px 28px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.12);transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .25s;opacity:0;transform:translateY(-24px) scale(.96);pointer-events:auto;max-width:100%;text-align:center;line-height:1.45;}
@@ -877,7 +875,6 @@ body.dark .skur-group-chip{color:#b794f4;}
   <div class="nav-links"></div>
   <div class="nav-actions">
     <button id="exportHtmlBtn" class="nav-icon-btn" onclick="exportHTML()" aria-label="Save a self-contained offline copy of this dashboard" title="Save offline copy">💾</button>
-    <button class="kbd-shortcut-btn" onclick="openShortcutsModal()" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">⌨</button>
     <button id="themeBtn" class="nav-icon-btn" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
   </div>
 </nav>
