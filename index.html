@@ -530,6 +530,9 @@ footer strong{opacity:1;}
 .skur-rules-table .tr-matches strong{color:var(--brand-primary);}
 .skur-rules-table .tr-actions{text-align:center;white-space:nowrap;width:1%;}
 .skur-rules-table th.tr-actions-h{text-align:center;}
+.skur-rules-table .tr-check,.skur-rules-table th.tr-check-h{width:32px;text-align:center;padding-left:10px;padding-right:4px;}
+.skur-rules-table tbody tr.checked{background:rgba(15,108,189,.07);}
+.skur-rules-table tbody tr.checked:hover{background:rgba(15,108,189,.12);}
 .skur-rules-table .tr-btn{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0 3px;display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:background .15s,border-color .15s,color .15s;}
 .skur-rules-table .tr-btn:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-rules-table .tr-btn svg{display:block;}
@@ -1307,7 +1310,8 @@ body.dark .skur-group-chip{color:#b794f4;}
           <div class="skur-tagrules-summary">
             🏷️ <span>Auto tag assignment</span>
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
-            <button class="btn skur-tagrules-add" style="margin-left:auto;background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
+            <button class="btn skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;display:none;background:var(--bg-layer1);color:var(--danger,#d13438);border:1px solid var(--danger,#d13438);" onclick="skurDeleteSelectedRules()" type="button">🗑️ Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
+            <button class="btn skur-tagrules-add" id="skurRulesAddBtn" style="margin-left:auto;background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
             <button class="skur-tagrules-toggle" id="skurTagRulesToggle" onclick="skurToggleTagRules()" type="button">Edit ▾</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
@@ -4608,7 +4612,9 @@ function renderSkurTagRules() {
   const rows = skurTagRules.map(r => {
     const fld = (SKUR_FIELD_DEFS[r.field] && SKUR_FIELD_DEFS[r.field].label) || r.field;
     const cnt = skurCountMatches(r);
-    return `<tr data-rid="${esc(r.id)}">
+    const isChk = skurSelectedRuleIds.has(r.id);
+    return `<tr data-rid="${esc(r.id)}"${isChk ? ' class="checked"' : ''}>
+      <td class="tr-check"><input type="checkbox" class="skur-rule-check" data-rid="${esc(r.id)}" onclick="skurOnRuleCheck(this)"${isChk ? ' checked' : ''}></td>
       <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></td>
       <td class="tr-key">${esc(r.tagKey)}</td>
       <td class="tr-val">${esc(r.tagValue)}</td>
@@ -4620,7 +4626,56 @@ function renderSkurTagRules() {
       </td>
     </tr>`;
   }).join('');
-  list.innerHTML = `<table class="skur-rules-table"><thead><tr><th>Condition</th><th>Tag key</th><th>Tag value</th><th>Matches</th><th class="tr-actions-h">Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+  list.innerHTML = `<table class="skur-rules-table"><thead><tr><th class="tr-check-h"><input type="checkbox" id="skurRulesSelAll" onchange="skurToggleSelectAllRules(this.checked)" title="Select all rules"></th><th>Condition</th><th>Tag key</th><th>Tag value</th><th>Matches</th><th class="tr-actions-h">Actions</th></tr></thead><tbody>${rows}</tbody></table>`;
+  skurUpdateRulesBulkBar();
+}
+const skurSelectedRuleIds = new Set();
+function skurOnRuleCheck(cb) {
+  const id = cb.dataset.rid || '';
+  if (cb.checked) skurSelectedRuleIds.add(id); else skurSelectedRuleIds.delete(id);
+  const tr = cb.closest('tr'); if (tr) tr.classList.toggle('checked', cb.checked);
+  skurUpdateRulesBulkBar();
+}
+function skurToggleSelectAllRules(on) {
+  document.querySelectorAll('.skur-rule-check').forEach(cb => {
+    cb.checked = !!on;
+    const id = cb.dataset.rid || '';
+    if (on) skurSelectedRuleIds.add(id); else skurSelectedRuleIds.delete(id);
+    const tr = cb.closest('tr'); if (tr) tr.classList.toggle('checked', !!on);
+  });
+  skurUpdateRulesBulkBar();
+}
+function skurUpdateRulesBulkBar() {
+  // Prune stale ids (rules that no longer exist).
+  const live = new Set(skurTagRules.map(r => r.id));
+  [...skurSelectedRuleIds].forEach(id => { if (!live.has(id)) skurSelectedRuleIds.delete(id); });
+  const n = skurSelectedRuleIds.size;
+  const delBtn = document.getElementById('skurRulesBulkDelBtn');
+  const addBtn = document.getElementById('skurRulesAddBtn');
+  const cntEl = document.getElementById('skurRulesBulkCount');
+  if (cntEl) cntEl.textContent = n;
+  if (delBtn) delBtn.style.display = n ? '' : 'none';
+  if (addBtn) addBtn.style.marginLeft = n ? '8px' : 'auto';
+  const sa = document.getElementById('skurRulesSelAll');
+  if (sa) {
+    const total = skurTagRules.length;
+    sa.checked = total > 0 && n === total;
+    sa.indeterminate = n > 0 && n < total;
+  }
+}
+async function skurDeleteSelectedRules() {
+  const ids = [...skurSelectedRuleIds];
+  if (!ids.length) return;
+  if (!await skurConfirm(`Delete ${ids.length} selected rule${ids.length===1?'':'s'}?`, { okLabel: 'Delete rules' })) return;
+  for (const id of ids) {
+    const idx = skurTagRules.findIndex(x => x.id === id);
+    if (idx >= 0) skurTagRules.splice(idx, 1);
+  }
+  skurSelectedRuleIds.clear();
+  renderSkurTagRules();
+  renderSkurGroups();
+  renderSkurVmGrid();
+  try { showToast(`Deleted ${ids.length} rule${ids.length===1?'':'s'}.`, 'success'); } catch(_) {}
 }
 let _skurEditingRuleId = null;
 function openSkurRuleModal(ruleId) {
