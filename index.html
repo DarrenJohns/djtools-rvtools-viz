@@ -951,6 +951,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- OVERVIEW (Executive Summary + Filters + Analytics combined) -->
 <div class="section tab-pane" id="overview" data-tab="overview">
   <div class="section-title"><span class="icon">📊</span> Overview</div>
+  <div class="cards-grid" id="summaryCards"></div>
   <div class="filters-bar" id="filtersBar" style="margin-bottom:14px;">
     <div class="filter-group" style="flex:1;min-width:200px;"><label>Search VM / OS</label><input type="search" id="fSearch" placeholder="Type to filter…" oninput="applyFilters()"></div>
     <div class="filter-group"><label>Datacenter</label><select id="fDC" onchange="applyFilters()"><option value="">All</option></select></div>
@@ -959,7 +960,6 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="filter-group"><label>Readiness</label><select id="fWave" onchange="applyFilters()"><option value="">All</option><option value="1">Ready Now 🟢</option><option value="2">Light Prep 🟡</option><option value="3">Modernise 🟠</option><option value="4">Remediate 🔴</option></select></div>
     <button id="resetFilters" class="btn btn-outline" onclick="resetFilters()">✖ Reset Filters</button>
   </div>
-  <div class="cards-grid" id="summaryCards"></div>
   <div class="exec-summary" id="execSummaryText"></div>
   <div class="charts-grid" style="margin-top:14px;">
     <div class="chart-card"><h4>🍩 OS Family Distribution</h4><div class="chart-wrap"><canvas id="chartOSFamily"></canvas></div></div>
