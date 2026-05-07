@@ -143,6 +143,7 @@ body.dark .tab-strip,[data-theme="dark"] .tab-strip{background:rgba(30,33,40,0.5
 /* TAB PANES — sections inside a tab stay always-expanded; toggle chevrons hidden */
 .tab-pane{display:none;}
 .tab-pane.active{display:block;min-height:calc(100vh - 56px - 48px - 32px);}
+.tab-pane.active ~ .tab-pane.active{min-height:0;}
 #importPane.active{min-height:0;}
 .tab-pane .section-body{max-height:none!important;overflow:visible!important;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:18px!important;}
 .tab-pane .section-header{cursor:default;}
