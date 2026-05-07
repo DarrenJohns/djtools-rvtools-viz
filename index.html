@@ -148,8 +148,16 @@ body.dark .tab-strip,[data-theme="dark"] .tab-strip{background:rgba(30,33,40,0.5
    own top-level card (per spec), instead of wrapping everything in one big
    pane card. Lift the outer card chrome and let the inner .skur-section
    cards stand on their own. */
-#skuRecommenderPane.tab-pane .section-body{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;}
-#skuRecommenderPane.tab-pane .section-header{padding:6px 0 14px 0;}
+#skuRecommenderPane.tab-pane .section-body,
+.tab-pane[data-tab="inventory"] .section-body,
+.tab-pane[data-tab="infra"] .section-body,
+.tab-pane[data-tab="resources"] .section-body,
+.tab-pane[data-tab="ops"] .section-body{background:transparent!important;border:none!important;box-shadow:none!important;padding:0!important;}
+#skuRecommenderPane.tab-pane .section-header,
+.tab-pane[data-tab="inventory"] .section-header,
+.tab-pane[data-tab="infra"] .section-header,
+.tab-pane[data-tab="resources"] .section-header,
+.tab-pane[data-tab="ops"] .section-header{padding:6px 0 14px 0;}
 /* GROUP DIVIDERS */
 .section-group{max-width:1400px;margin:32px auto 8px;padding:0 24px;}
 .section-group-header{display:flex;align-items:center;gap:12px;padding-bottom:8px;border-bottom:2px solid var(--primary);}
