@@ -384,7 +384,7 @@ footer strong{opacity:1;}
 .skur-restore-banner .rb-resume:hover{filter:brightness(.93);}
 .skur-restore-banner .rb-fresh{font:inherit;font-size:13px;padding:7px 16px;border:1px solid var(--border-default);background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-sm);cursor:pointer;}
 .skur-restore-banner .rb-fresh:hover{background:var(--bg-layer2);}
-.sku-rec-statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:8px 0 0;}
+.sku-rec-statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 0;}
 .sku-rec-statcard{background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:var(--radius-md,10px);padding:14px 18px;box-shadow:var(--shadow-sm,var(--shadow));display:flex;align-items:center;gap:14px;min-width:0;}
 .sku-rec-statcard .sc-ico{font-size:26px;line-height:1;flex-shrink:0;}
 .sku-rec-statcard .sc-body{display:flex;flex-direction:column;min-width:0;}
@@ -394,7 +394,7 @@ footer strong{opacity:1;}
 .sku-rec-statcard .sc-sub{font-size:11px;color:var(--text-secondary);margin-top:2px;}
 @media (max-width:900px){.sku-rec-statcards{grid-template-columns:repeat(2,1fr);}}
 /* SKU Recommender VM grid */
-.skur-section{margin-top:22px;}
+.skur-section{margin-top:14px;}
 /* Stage 9.5 mockup parity: each section is its own top-level window. Inner
    cards (.skur-tagrules, .skur-section-h+.skur-table-wrap, .skur-groups-card)
    gain a subtle shadow so they pop off the page background. */
@@ -413,7 +413,8 @@ footer strong{opacity:1;}
 .skur-section-h .skur-section-actions .bb-clear:hover{background:var(--bg-layer2);}
 .skur-section-h .skur-section-actions .bb-sep{color:var(--border-default);margin:0 2px;}
 .skur-section-h .skur-section-actions select{font:inherit;font-size:11px;padding:3px 6px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);}
-.skur-section-h .skur-section-actions .bb-autogroup{font:inherit;font-size:11px;padding:5px 12px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:var(--brand-primary);color:#fff;cursor:pointer;font-weight:600;}
+.skur-section-h .skur-section-actions .bb-autogroup{font:inherit;font-size:11px;padding:5px 12px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--brand-primary);cursor:pointer;font-weight:600;}
+.skur-section-h .skur-section-actions .bb-autogroup:hover{background:var(--brand-primary);color:#fff;}
 .skur-section-h .skur-section-actions .bb-autogroup:hover{filter:brightness(1.08);}
 .skur-stat-grid-wrap{}
 .skur-plan-bar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 18px;margin:14px 0 0;font-size:14px;}
@@ -432,8 +433,8 @@ footer strong{opacity:1;}
 .skur-plan-bar .pb-workspace-menu .pb-ws-hint{font-size:11px;font-weight:400;color:var(--text-tertiary);}
 .skur-plan-bar .pb-workspace-menu .pb-ws-sep{height:1px;background:var(--border-subtle);margin:4px 0;}
 /* Stage 1: freshness pill (matches SPEC's "Updated May 2026" green badge) */
-.skur-freshness-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 11px;border-radius:12px;background:#e6f4ea;color:#137333;border:1px solid #a8dab5;cursor:pointer;white-space:nowrap;user-select:none;}
-.skur-freshness-pill:hover{filter:brightness(.96);}
+.skur-freshness-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 11px;border-radius:12px;background:var(--bg-layer2);color:var(--text-secondary);border:1px solid var(--border-default);cursor:pointer;white-space:nowrap;user-select:none;}
+.skur-freshness-pill:hover{background:var(--bg-layer1);border-color:var(--brand-primary);color:var(--text-primary);}
 .skur-freshness-pill.is-warn{background:rgba(245,158,11,.14);color:#92510b;border-color:rgba(245,158,11,.5);}
 .skur-freshness-pill .fp-dot{font-size:10px;}
 .skur-elig-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;background:rgba(15,108,189,.12);border:1px solid rgba(15,108,189,.3);border-radius:999px;color:var(--brand-primary);font-size:10px;font-weight:700;cursor:help;}
