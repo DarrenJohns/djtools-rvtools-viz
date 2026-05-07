@@ -2851,6 +2851,13 @@ function _applyParsedSheets(parsed, file) {
       hideToast();
       showToast(`✅ ${allVMs.length} VMs loaded from ${file.name}`);
       openAllPaneBodies();
+      // Auto-navigate to the Overview tab after a successful import / resume
+      // so the user lands on the summary instead of staring at the Import drop
+      // zone they just used.
+      try {
+        const onImport = document.querySelector('.tab-pane.active')?.dataset?.tab === 'import';
+        if (onImport && typeof activateTab === 'function') activateTab('overview');
+      } catch(_) {}
     } catch(err) {
       showFileError('Something went wrong while processing the file.', `Details: ${esc(err.message || String(err))}`);
     }
