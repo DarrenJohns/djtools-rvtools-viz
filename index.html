@@ -504,24 +504,25 @@ footer strong{opacity:1;}
 .skur-inv-pager .pagination{margin-top:0;}
 .skur-inv-pager .page-info{margin-top:0;}
 .skur-inv-pager .pagination{display:flex;gap:4px;flex-wrap:wrap;}
-.skur-tagrules{border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-layer1);overflow:hidden;}
-.skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:14px;font-weight:600;color:var(--text-primary);border-bottom:1px solid var(--border-subtle);}
+.skur-tagrules{border:1px solid var(--border-default);border-radius:var(--radius-md);background:var(--bg-layer1);overflow:hidden;box-shadow:var(--shadow-sm);}
+.skur-tagrules-summary{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:14px;font-weight:600;color:var(--text-primary);border-bottom:1px solid var(--border-default);}
 .skur-tagrules-summary .skur-tagrules-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;letter-spacing:0;}
 .skur-tagrules-summary .skur-tagrules-toggle{color:var(--brand-primary);cursor:pointer;font-weight:600;background:none;border:none;padding:0;font-family:inherit;font-size:13px;}
 .skur-tagrules-summary .skur-tagrules-toggle:hover{text-decoration:underline;}
 .skur-tagrules.is-open .skur-tagrules-summary{border-bottom-color:var(--border-subtle);}
 .skur-tagrules:not(.is-open) .skur-tagrules-summary{border-bottom:none;}
-.skur-tagrules-detail{display:block;padding:10px 14px 14px;background:var(--bg-layer1);}
+.skur-tagrules-detail{display:block;padding:0;background:var(--bg-layer1);}
 .skur-tagrules-actions{margin-top:10px;display:flex;justify-content:flex-start;}
-.skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:4px 0 0;}
+.skur-tagrules-empty{color:var(--text-tertiary);font-size:.85rem;font-style:italic;margin:0;padding:14px;}
 .skur-tagrules .btn-disabled{opacity:.6;cursor:not-allowed;}
 /* Tag rules list + chips + modal */
-.skur-rules-list{margin:8px 0 10px;}
+.skur-rules-list{margin:0;}
 /* Stage 9.5 Pass M2: tag rules inline table editor (mockup parity) */
-.skur-rules-table{width:100%;border-collapse:collapse;font-size:12px;}
-.skur-rules-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);padding:6px 10px;font-weight:700;border-bottom:1px solid var(--border-subtle);}
-.skur-rules-table td{padding:7px 10px;border-top:1px solid var(--border-subtle);vertical-align:middle;color:var(--text-primary);}
-.skur-rules-table tbody tr:hover{background:var(--bg-layer2);}
+.skur-rules-table{width:100%;border-collapse:collapse;}
+.skur-rules-table thead th{background:var(--bg-layer2);text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);padding:7px 10px;border-bottom:1px solid var(--border-default);}
+.skur-rules-table td{padding:7px 10px;border-bottom:1px solid var(--border-subtle);vertical-align:middle;color:var(--text-primary);}
+.skur-rules-table tbody tr:last-child td{border-bottom:none;}
+.skur-rules-table tbody tr:hover{background:rgba(15,108,189,.06);}
 .skur-rules-table .tr-cond{font-family:'Cascadia Code','Consolas',monospace;color:var(--text-secondary);}
 .skur-rules-table .tr-cond strong{color:var(--text-primary);}
 .skur-rules-table .tr-key,.skur-rules-table .tr-val{font-family:'Cascadia Code','Consolas',monospace;color:var(--brand-primary);font-weight:600;}
