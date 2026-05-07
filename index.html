@@ -1310,7 +1310,7 @@ body.dark .skur-group-chip{color:#b794f4;}
           <div class="skur-tagrules-summary">
             🏷️ <span>Auto tag assignment</span>
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
-            <button class="btn skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;display:none;background:#d13438;color:#fff;border:1px solid #d13438;" onclick="skurDeleteSelectedRules()" type="button">Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
+            <button class="btn skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;background:#d13438;color:#fff;border:1px solid #d13438;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
             <button class="btn skur-tagrules-add" id="skurRulesAddBtn" style="margin-left:auto;background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
             <button class="skur-tagrules-toggle" id="skurTagRulesToggle" onclick="skurToggleTagRules()" type="button">Edit ▾</button>
           </div>
@@ -4654,8 +4654,8 @@ function skurUpdateRulesBulkBar() {
   const addBtn = document.getElementById('skurRulesAddBtn');
   const cntEl = document.getElementById('skurRulesBulkCount');
   if (cntEl) cntEl.textContent = n;
-  if (delBtn) delBtn.style.display = n ? '' : 'none';
-  if (addBtn) addBtn.style.marginLeft = n ? '8px' : 'auto';
+  if (delBtn) { delBtn.disabled = n === 0; delBtn.style.opacity = n === 0 ? '0.55' : ''; delBtn.style.cursor = n === 0 ? 'not-allowed' : 'pointer'; }
+  if (addBtn) addBtn.style.marginLeft = '8px';
   const sa = document.getElementById('skurRulesSelAll');
   if (sa) {
     const total = skurTagRules.length;
