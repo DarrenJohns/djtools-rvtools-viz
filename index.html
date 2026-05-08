@@ -1757,6 +1757,8 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
+  &nbsp;·&nbsp;
+  <a href="#" onclick="event.preventDefault();showWelcomeAgain();" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Show welcome again</a>
   <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.3.0-beta</div>
 </footer>
 
@@ -1947,9 +1949,15 @@ function openShortcutsModal(){ document.getElementById('shortcutsModal').classLi
 function closeShortcutsModal(){ document.getElementById('shortcutsModal').classList.remove('active'); }
 function closeWelcome(){
   document.getElementById('welcomeModal').classList.remove('active');
+  try { localStorage.setItem('rvtools.welcomeSeen.v1', '1'); } catch(_) {}
   setTimeout(() => { try { bumpImportTiles(); } catch(_){} }, 250);
 }
 function maybeShowWelcome(){
+  try { if (localStorage.getItem('rvtools.welcomeSeen.v1') === '1') return; } catch(_) {}
+  document.getElementById('welcomeModal').classList.add('active');
+}
+function showWelcomeAgain(){
+  try { localStorage.removeItem('rvtools.welcomeSeen.v1'); } catch(_) {}
   document.getElementById('welcomeModal').classList.add('active');
 }
 
