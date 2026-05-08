@@ -545,6 +545,11 @@ footer strong{opacity:1;}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
+.skur-tag-chip.manual{background:rgba(124,58,237,.10);color:#7c3aed;border:1px dashed rgba(124,58,237,.45);padding:2px 2px 2px 7px;}
+.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:#7c3aed;cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;}
+.skur-tag-chip.manual .skur-tag-x:hover{background:rgba(124,58,237,.20);color:#5b21b6;}
+.skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:11px;font-weight:700;line-height:1;padding:0;margin:1px 2px 1px 4px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
+.skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 
 /* ====================================================================
@@ -1351,6 +1356,8 @@ body.dark .skur-group-chip{color:#b794f4;}
             </select>
             <span class="bb-sep">|</span>
             <button class="bb-autogroup" id="skurAutoGroupBtn" title="Auto-group VMs by tag — pick specific tag values to include" onclick="skurOpenAutoGroupModal()">✨ Auto-group by tag</button>
+            <span class="bb-sep">|</span>
+            <button class="bb-autogroup" id="skurBulkAddTagBtn" title="Add a manual tag to all selected VMs" onclick="skurOpenBulkAddTagModal()">🏷️ Tag selected</button>
           </div>
         </div>
         <div class="skur-exc-banner hidden" id="skurExcBanner"></div>
@@ -1569,6 +1576,51 @@ body.dark .skur-group-chip{color:#b794f4;}
       <button class="btn-outline" onclick="closeSkurConstraintsModal()">Cancel</button>
       <button class="btn-primary" id="skurConstraintsSaveBtn" onclick="saveSkurConstraints()">Save</button>
     </div>
+    </div>
+  </div>
+</div>
+
+<!-- Manual tag modals (Stage 9.5) — Add manual tag to one or more VMs, with conflict resolution. -->
+<div class="modal-overlay" id="skurAddTagModal" onclick="if(event.target===this)skurCloseAddTagModal()">
+  <div class="modal-card is-sm" role="dialog" aria-modal="true" aria-labelledby="skurAddTagTitle">
+    <div class="modal-banner"><h2 id="skurAddTagTitle">🏷️ Add manual tag</h2></div>
+    <div class="modal-body">
+      <p id="skurAddTagSubject" style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;"></p>
+      <label for="skurAddTagKeyInput" style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Tag key</label>
+      <input type="text" id="skurAddTagKeyInput" list="skurAddTagKeyList" placeholder="e.g. Environment" autocomplete="off"
+             style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);box-sizing:border-box;"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('skurAddTagValInput').focus();}else if(event.key==='Escape'){event.preventDefault();skurCloseAddTagModal();}">
+      <datalist id="skurAddTagKeyList"></datalist>
+      <label for="skurAddTagValInput" style="display:block;font-size:12px;color:var(--text-secondary);margin:10px 0 4px;">Tag value</label>
+      <input type="text" id="skurAddTagValInput" list="skurAddTagValList" placeholder="e.g. Production" autocomplete="off"
+             style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);box-sizing:border-box;"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();skurConfirmAddTag();}else if(event.key==='Escape'){event.preventDefault();skurCloseAddTagModal();}">
+      <datalist id="skurAddTagValList"></datalist>
+      <p id="skurAddTagError" style="color:var(--status-danger);font-size:12px;margin:6px 0 0;min-height:14px;"></p>
+      <div class="modal-close-row">
+        <button class="btn-outline" onclick="skurCloseAddTagModal()">Cancel</button>
+        <button class="btn-primary" onclick="skurConfirmAddTag()">Add tag</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="skurTagConflictModal" onclick="if(event.target===this)_skurResolveTagConflict('cancel')">
+  <div class="modal-card is-sm" role="dialog" aria-modal="true" aria-labelledby="skurTagConflictTitle">
+    <div class="modal-banner"><h2 id="skurTagConflictTitle">⚠ Tag conflict</h2></div>
+    <div class="modal-body">
+      <div id="skurTagConflictBody"></div>
+      <div id="skurTagConflictBulkSummary" style="display:none;"></div>
+      <div id="skurTagConflictDontAskRow" style="margin:12px 0 0;font-size:12px;color:var(--text-secondary);">
+        <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="skurTagConflictDontAsk"> Don't ask again this session
+        </label>
+      </div>
+      <div class="modal-close-row">
+        <button class="btn-outline" onclick="_skurResolveTagConflict('cancel')">Cancel</button>
+        <button class="btn-outline" id="skurTagConflictKeepBtn" onclick="_skurResolveTagConflict('keep')">Keep current</button>
+        <button class="btn-primary" id="skurTagConflictReplaceBtn" onclick="_skurResolveTagConflict('replace')">Replace</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2138,6 +2190,9 @@ function _collectWorkspaceSnapshot() {
   const planSettings = (typeof skurPlan !== 'undefined' && skurPlan)
     ? { ...skurPlan }
     : {};
+  const manualTags = (typeof skurManualTags !== 'undefined' && skurManualTags)
+    ? Object.fromEntries(Object.entries(skurManualTags).map(([k, arr]) => [k, (arr || []).map(t => ({ key: t.key, value: t.value }))]))
+    : {};
   return {
     schema: WORKSPACE_SCHEMA_VERSION,
     appVersion: APP_VERSION,
@@ -2146,6 +2201,7 @@ function _collectWorkspaceSnapshot() {
     outOfScope: oos,
     tagRules,
     planSettings,
+    manualTags,
   };
 }
 
@@ -2167,6 +2223,15 @@ function _applyWorkspaceSnapshot(ws) {
   }
   if (typeof skurPlan !== 'undefined' && ws.planSettings) {
     Object.assign(skurPlan, ws.planSettings);
+  }
+  if (typeof skurManualTags !== 'undefined') {
+    for (const k of Object.keys(skurManualTags)) delete skurManualTags[k];
+    const mt = ws.manualTags || {};
+    for (const [k, arr] of Object.entries(mt)) {
+      if (!Array.isArray(arr)) continue;
+      const cleaned = arr.filter(t => t && t.key != null && t.value != null).map(t => ({ key: String(t.key), value: String(t.value) }));
+      if (cleaned.length) skurManualTags[k] = cleaned;
+    }
   }
 }
 
@@ -3638,6 +3703,10 @@ const SKUR_OOS_REASONS = {
   migrated:     { label: 'Already migrated', emoji: '✅' },
   other:        { label: 'Other', emoji: '🚫' },
 };
+// Manual tags (Stage 9.5) — per-VM user-applied tags that override rule-derived tags by key.
+// Shape: { vmKey: [{ key, value }] }. Persisted in workspace snapshot.
+const skurManualTags = Object.create(null);
+let _skurSuppressTagConflictPrompt = false; // session-only "don't ask again"
 function skurIsOOS(vm) { return !!skurOutOfScope[skurVmKey(vm)]; }
 function skurOOSEntry(vm) { return skurOutOfScope[skurVmKey(vm)] || null; }
 function skurOOSCount() { return Object.keys(skurOutOfScope).length; }
@@ -4622,6 +4691,242 @@ function skurUpdateBulkBar() {
   }
   const opts = skurGroups.map(g => `<option value="${g.id}">${g.name} (${g.members.length})</option>`).join('');
   const ge = document.getElementById('skurBulkGroupOpts'); if (ge) ge.innerHTML = opts;
+  const tagBtn = document.getElementById('skurBulkAddTagBtn');
+  if (tagBtn) {
+    tagBtn.disabled = (n === 0);
+    tagBtn.style.opacity = n === 0 ? '0.55' : '';
+    tagBtn.style.cursor = n === 0 ? 'not-allowed' : '';
+  }
+}
+
+// === Manual tags (Stage 9.5) — modal-driven add/remove with conflict resolution. ===
+function _skurNormalizeTagPart(s) { return String(s == null ? '' : s).trim(); }
+function _skurAllTagSuggestions() {
+  const keys = new Set();
+  const valuesByKey = Object.create(null);
+  const add = (k, v) => {
+    if (!k) return;
+    keys.add(k);
+    if (!valuesByKey[k]) valuesByKey[k] = new Set();
+    if (v) valuesByKey[k].add(v);
+  };
+  for (const r of (skurTagRules || [])) add(r.tagKey, r.tagValue);
+  for (const arr of Object.values(skurManualTags)) {
+    for (const t of (arr || [])) add(t.key, t.value);
+  }
+  return { keys: [...keys].sort(), valuesByKey };
+}
+// Effective tag for a given (vm, key): manual wins, else first matching rule.
+function _skurEffectiveTagForKey(vm, key) {
+  const k = skurVmKey(vm);
+  const manual = (skurManualTags[k] || []).find(t => t.key === key);
+  if (manual) return { key, value: manual.value, origin: 'manual' };
+  for (const r of skurTagRules) {
+    if (r.tagKey === key && skurRuleMatchesVm(r, vm)) {
+      return { key, value: r.tagValue, origin: 'rule', ruleId: r.id };
+    }
+  }
+  return null;
+}
+function _skurApplyManualTag(vmKey, key, value) {
+  if (!skurManualTags[vmKey]) skurManualTags[vmKey] = [];
+  skurManualTags[vmKey] = skurManualTags[vmKey].filter(t => t.key !== key);
+  skurManualTags[vmKey].push({ key, value });
+}
+function skurRemoveManualTagFromBtn(btn) {
+  if (!btn || !btn.dataset) return;
+  skurRemoveManualTag(btn.dataset.vmkey, btn.dataset.tagkey, btn.dataset.tagval);
+}
+function skurRemoveManualTag(vmKey, key, value) {
+  const arr = skurManualTags[vmKey];
+  if (!arr) return;
+  const next = arr.filter(t => !(t.key === key && t.value === value));
+  if (next.length) skurManualTags[vmKey] = next; else delete skurManualTags[vmKey];
+  if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+  if (typeof renderSkurGroups === 'function') renderSkurGroups();
+  if (typeof renderSkuRecStatCards === 'function') { try { renderSkuRecStatCards(); } catch(_) {} }
+  if (typeof showToast === 'function') showToast(`🏷️ Removed manual tag ${key}:${value}`);
+}
+
+let _skurAddTagCtx = null; // { vmKeys: [...], single: boolean }
+function skurOpenAddTagModal(vmKey) {
+  if (!vmKey) return;
+  _skurAddTagCtx = { vmKeys: [vmKey], single: true };
+  _skurOpenAddTagModalInternal();
+}
+function skurOpenBulkAddTagModal() {
+  const keys = [...skurSelectedKeys];
+  if (!keys.length) return;
+  _skurAddTagCtx = { vmKeys: keys, single: false };
+  _skurOpenAddTagModalInternal();
+}
+function _skurOpenAddTagModalInternal() {
+  const modal = document.getElementById('skurAddTagModal');
+  if (!modal || !_skurAddTagCtx) return;
+  const escAttr = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const sub = document.getElementById('skurAddTagSubject');
+  if (sub) {
+    if (_skurAddTagCtx.single) {
+      const vm = (allVMs || []).find(v => skurVmKey(v) === _skurAddTagCtx.vmKeys[0]);
+      sub.textContent = `On VM: ${(vm && vm.name) || _skurAddTagCtx.vmKeys[0]}`;
+    } else {
+      sub.textContent = `On ${_skurAddTagCtx.vmKeys.length} selected VM${_skurAddTagCtx.vmKeys.length===1?'':'s'}`;
+    }
+  }
+  const { keys, valuesByKey } = _skurAllTagSuggestions();
+  const keyDl = document.getElementById('skurAddTagKeyList');
+  if (keyDl) keyDl.innerHTML = keys.map(k => `<option value="${escAttr(k)}">`).join('');
+  const valDl = document.getElementById('skurAddTagValList');
+  const keyInput = document.getElementById('skurAddTagKeyInput');
+  const valInput = document.getElementById('skurAddTagValInput');
+  const refreshVals = () => {
+    if (!valDl) return;
+    const k = (keyInput.value || '').trim();
+    const vs = valuesByKey[k] ? [...valuesByKey[k]].sort() : [];
+    valDl.innerHTML = vs.map(v => `<option value="${escAttr(v)}">`).join('');
+  };
+  keyInput.value = '';
+  valInput.value = '';
+  keyInput.oninput = refreshVals;
+  refreshVals();
+  const errEl = document.getElementById('skurAddTagError');
+  if (errEl) errEl.textContent = '';
+  modal.classList.add('show');
+  setTimeout(() => { try { keyInput.focus(); } catch(_) {} }, 30);
+}
+function skurCloseAddTagModal() {
+  const modal = document.getElementById('skurAddTagModal');
+  if (modal) modal.classList.remove('show');
+  _skurAddTagCtx = null;
+}
+async function skurConfirmAddTag() {
+  if (!_skurAddTagCtx) return;
+  const keyInput = document.getElementById('skurAddTagKeyInput');
+  const valInput = document.getElementById('skurAddTagValInput');
+  const errEl = document.getElementById('skurAddTagError');
+  const key = _skurNormalizeTagPart(keyInput.value);
+  const value = _skurNormalizeTagPart(valInput.value);
+  if (!key || !value) {
+    if (errEl) errEl.textContent = 'Both key and value are required.';
+    return;
+  }
+  const vmKeys = _skurAddTagCtx.vmKeys.slice();
+  const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+  // Conflict scan: same key, different value (rule or manual). Same value = no-op.
+  const conflicts = []; // { vmKey, vmName, existing }
+  let alreadySame = 0;
+  for (const k of vmKeys) {
+    const vm = byKey.get(k); if (!vm) continue;
+    const existing = _skurEffectiveTagForKey(vm, key);
+    if (!existing) continue;
+    if (existing.value === value) { alreadySame++; continue; }
+    conflicts.push({ vmKey: k, vmName: vm.name || k, existing });
+  }
+  let replaceConflicts = true;
+  if (conflicts.length && !_skurSuppressTagConflictPrompt) {
+    if (_skurAddTagCtx.single) {
+      const c = conflicts[0];
+      const choice = await _skurShowSingleConflictPrompt({ vmName: c.vmName, key, newValue: value, existing: c.existing });
+      if (choice === 'cancel') return;
+      if (choice === 'keep') { skurCloseAddTagModal(); return; }
+      replaceConflicts = true;
+    } else {
+      const choice = await _skurShowBulkConflictPrompt({ key, newValue: value, conflicts, total: vmKeys.length });
+      if (choice === 'cancel') return;
+      replaceConflicts = (choice === 'replace');
+    }
+  }
+  const conflictKeySet = new Set(conflicts.map(c => c.vmKey));
+  let applied = 0, skipped = 0;
+  for (const k of vmKeys) {
+    const vm = byKey.get(k); if (!vm) continue;
+    if (conflictKeySet.has(k) && !replaceConflicts) { skipped++; continue; }
+    // Same-value already-applied entries: only skip if it's already a manual tag (rule-only same value still gets a manual entry to "stick" through rule changes? -- no, skip — manual would just shadow with same value, no semantic change).
+    const existing = _skurEffectiveTagForKey(vm, key);
+    if (existing && existing.value === value) { continue; }
+    _skurApplyManualTag(k, key, value);
+    applied++;
+  }
+  skurCloseAddTagModal();
+  if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
+  if (typeof renderSkurGroups === 'function') renderSkurGroups();
+  if (typeof renderSkuRecStatCards === 'function') { try { renderSkuRecStatCards(); } catch(_) {} }
+  if (typeof showToast === 'function') {
+    if (vmKeys.length > 1) {
+      const parts = [`Applied ${key}:${value} to ${applied} VM${applied===1?'':'s'}`];
+      if (skipped) parts.push(`${skipped} kept existing`);
+      if (alreadySame) parts.push(`${alreadySame} already had it`);
+      showToast(`🏷️ ${parts.join(' · ')}`);
+    } else if (applied) {
+      showToast(`🏷️ Added ${key}:${value}`);
+    } else if (alreadySame) {
+      showToast(`🏷️ Tag already applied`);
+    }
+  }
+}
+
+let _skurConflictResolver = null;
+function _skurShowSingleConflictPrompt({ vmName, key, newValue, existing }) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('skurTagConflictModal');
+    if (!modal) { resolve('replace'); return; }
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const isRule = existing.origin === 'rule';
+    document.getElementById('skurTagConflictBody').innerHTML =
+      `<p style="margin:0 0 12px;font-size:13px;line-height:1.5;color:var(--text-primary);">Key <code style="background:var(--bg-layer2);padding:1px 5px;border-radius:3px;font-size:12px;">${esc(key)}</code> already has a value on <strong>${esc(vmName)}</strong>.</p>` +
+      `<div style="display:flex;gap:8px;font-size:12px;">` +
+        `<div style="flex:1;padding:10px;background:var(--bg-layer2);border:1px solid var(--border-default);border-radius:var(--radius-sm);">` +
+          `<div style="color:var(--text-tertiary);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Current ${isRule?'(from rule)':'(manual)'}</div>` +
+          `<div style="font-weight:600;color:var(--text-primary);">${esc(existing.value)}</div>` +
+        `</div>` +
+        `<div style="flex:1;padding:10px;background:rgba(15,108,189,.08);border:1px solid var(--brand-primary);border-radius:var(--radius-sm);">` +
+          `<div style="color:var(--brand-primary);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Replacement</div>` +
+          `<div style="font-weight:600;color:var(--text-primary);">${esc(newValue)}</div>` +
+        `</div>` +
+      `</div>` +
+      (isRule ? `<p style="margin:10px 0 0;font-size:11px;color:var(--text-tertiary);font-style:italic;">The rule still applies to other VMs — only this VM's tag is overridden.</p>` : '');
+    document.getElementById('skurTagConflictBulkSummary').style.display = 'none';
+    document.getElementById('skurTagConflictDontAskRow').style.display = '';
+    document.getElementById('skurTagConflictDontAsk').checked = false;
+    document.getElementById('skurTagConflictKeepBtn').textContent = 'Keep current';
+    document.getElementById('skurTagConflictReplaceBtn').textContent = 'Replace';
+    _skurConflictResolver = resolve;
+    modal.classList.add('show');
+  });
+}
+function _skurShowBulkConflictPrompt({ key, newValue, conflicts, total }) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('skurTagConflictModal');
+    if (!modal) { resolve('replace'); return; }
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    const ruleN = conflicts.filter(c => c.existing.origin === 'rule').length;
+    const manN = conflicts.length - ruleN;
+    document.getElementById('skurTagConflictBody').innerHTML =
+      `<p style="margin:0 0 8px;font-size:13px;line-height:1.5;color:var(--text-primary);"><strong>${conflicts.length}</strong> of <strong>${total}</strong> selected VM${total===1?'':'s'} already have a value for key <code style="background:var(--bg-layer2);padding:1px 5px;border-radius:3px;font-size:12px;">${esc(key)}</code>.</p>` +
+      `<p style="margin:0;font-size:12px;color:var(--text-secondary);">Apply <code style="background:var(--bg-layer2);padding:1px 5px;border-radius:3px;font-size:11px;">${esc(key)}=${esc(newValue)}</code> to selected VMs?</p>`;
+    const bs = document.getElementById('skurTagConflictBulkSummary');
+    bs.style.display = '';
+    bs.innerHTML =
+      `<ul style="margin:10px 0 0;padding-left:18px;font-size:12px;color:var(--text-secondary);line-height:1.6;">` +
+        (ruleN ? `<li>${ruleN} from auto-tag rule${ruleN===1?'':'s'} (rule unchanged · manual override applied per VM)</li>` : '') +
+        (manN ? `<li>${manN} existing manual tag${manN===1?'':'s'} will be replaced</li>` : '') +
+      `</ul>`;
+    document.getElementById('skurTagConflictDontAskRow').style.display = 'none';
+    document.getElementById('skurTagConflictReplaceBtn').textContent = `Replace all ${total}`;
+    document.getElementById('skurTagConflictKeepBtn').textContent = `Apply to ${total - conflicts.length} non-conflicting only`;
+    _skurConflictResolver = resolve;
+    modal.classList.add('show');
+  });
+}
+function _skurResolveTagConflict(choice) {
+  const modal = document.getElementById('skurTagConflictModal');
+  if (modal) modal.classList.remove('show');
+  const dontAsk = document.getElementById('skurTagConflictDontAsk');
+  if (dontAsk && dontAsk.checked) _skurSuppressTagConflictPrompt = true;
+  document.getElementById('skurTagConflictKeepBtn').textContent = 'Keep current';
+  document.getElementById('skurTagConflictReplaceBtn').textContent = 'Replace';
+  const r = _skurConflictResolver; _skurConflictResolver = null;
+  if (r) r(choice);
 }
 
 // === SKU Recommender Tag rules MVP (Phase 4 slice 1) ===
@@ -4655,15 +4960,26 @@ function skurRuleMatchesVm(rule, vm) {
   } catch (_) { return false; }
 }
 // Returns de-duped tags by key:value, preserving ruleIds for tooltip/diagnostic later.
+// Manual tags override rule-derived tags on the same key (one value per key per VM).
 function skurTagsForVm(vm) {
+  const vmKey = skurVmKey(vm);
+  const out = [];
+  const overriddenKeys = new Set();
+  // Manual tags first (precedence). Mark their keys so rule-derived entries on same key are skipped.
+  for (const t of (skurManualTags[vmKey] || [])) {
+    out.push({ key: t.key, value: t.value, origin: 'manual' });
+    overriddenKeys.add(t.key);
+  }
   const map = new Map();
   for (const r of skurTagRules) {
+    if (overriddenKeys.has(r.tagKey)) continue;
     if (!skurRuleMatchesVm(r, vm)) continue;
     const k = `${r.tagKey}\u0000${r.tagValue}`;
-    if (!map.has(k)) map.set(k, { key: r.tagKey, value: r.tagValue, ruleIds: [r.id] });
+    if (!map.has(k)) map.set(k, { key: r.tagKey, value: r.tagValue, origin: 'rule', ruleIds: [r.id] });
     else map.get(k).ruleIds.push(r.id);
   }
-  return [...map.values()];
+  for (const t of map.values()) out.push(t);
+  return out;
 }
 function skurCountMatches(rule) {
   let n = 0; for (const v of (allVMs || [])) if (skurRuleMatchesVm(rule, v)) n++; return n;
@@ -5073,9 +5389,15 @@ function renderSkurVmGrid() {
         ? gs.map(g => `<span class="skur-group-chip" title="In group ${esc(g.name)}">📂 ${esc(g.name)}</span>`).join('')
         : (oos ? '' : `<span class="skur-ungrouped">— ungrouped —</span>`));
       const tags = skurTagsForVm(v);
-      const tagsHtml = tags.length
-        ? tags.map(t => `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}</span>`).join('')
+      const tagsCore = tags.length
+        ? tags.map(t => {
+            if (t.origin === 'manual') {
+              return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}<button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
+            }
+            return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
+          }).join('')
         : `<span class="skur-tag-none">—</span>`;
+      const tagsHtml = tagsCore + `<button class="skur-tag-add" data-vmkey="${esc(k)}" onclick="skurOpenAddTagModal(this.dataset.vmkey)" title="Add manual tag">+</button>`;
       const trCls = [checked && 'checked', oos && 'oos-row'].filter(Boolean).join(' ');
       return `<tr${trCls?` class="${trCls}"`:''}>
         <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked ? ' checked' : ''}></td>
