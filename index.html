@@ -287,8 +287,8 @@ body.dark .empty-data-card,[data-theme="dark"] .empty-data-card{background:linea
 .btn-primary:hover{background:var(--brand-hover);}
 .btn-outline{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-primary);}
 .btn-outline:hover{background:var(--bg-layer2);border-color:var(--brand-primary);}
-.btn-danger{background:var(--status-danger,#bb2741);color:var(--text-on-brand,#fff);border-color:var(--status-danger,#bb2741);}
-.btn-danger:hover{background:#a8293f;}
+.btn-danger{background:#d13438;color:#fff;border-color:#d13438;}
+.btn-danger:hover{background:#b9292d;border-color:#b9292d;}
 .btn-sm{font-size:12px;padding:4px 10px;}
 table{width:100%;border-collapse:collapse;font-size:.82rem;}
 th{background:var(--bg-layer2);color:var(--text-secondary);padding:9px 12px;text-align:left;font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;white-space:nowrap;user-select:none;border-bottom:1px solid var(--border-default);}
@@ -1435,7 +1435,7 @@ body.dark .skur-group-chip{color:#b794f4;}
           <div class="skur-tagrules-summary">
             🏷️ <span>Auto tag assignment</span>
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
-            <button class="btn skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;background:#d13438;color:#fff;border:1px solid #d13438;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
+            <button class="btn btn-danger skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
             <button class="btn skur-tagrules-add" id="skurRulesAddBtn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
