@@ -544,11 +544,12 @@ footer strong{opacity:1;}
 .skur-rules-table .tr-btn svg{display:block;}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
-.skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
-.skur-tag-chip.manual{background:rgba(255,200,61,.16);color:var(--brand-primary);border:1px dashed rgba(255,200,61,.65);padding:2px 2px 2px 7px;}
-.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:var(--brand-primary);cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;opacity:.7;}
+.skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
+.skur-tag-chip.manual{background:rgba(255,200,61,.16);color:var(--brand-primary);border:1px dashed rgba(255,200,61,.65);padding:2px 2px 2px 7px;max-width:260px;}
+.skur-tag-chip.manual .skur-tag-text{display:inline-block;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;}
+.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:var(--brand-primary);cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;opacity:.7;flex-shrink:0;}
 .skur-tag-chip.manual .skur-tag-x:hover{background:rgba(15,108,189,.18);opacity:1;}
-.skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:11px;font-weight:700;line-height:1;padding:0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
+.skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:14px;font-weight:400;line-height:1;padding:0 0 2px 0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 
@@ -823,10 +824,10 @@ footer strong{opacity:1;}
 .skur-oos-summary .oos-label{color:#dc3545;font-weight:700;}
 .skur-oos-summary .oos-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.3);border-radius:999px;color:#dc3545;font-weight:600;font-size:11px;}
 .skur-oos-summary .oos-restore{background:transparent;border:none;color:var(--text-secondary);text-decoration:underline;cursor:pointer;font:inherit;font-size:11px;padding:0;margin-left:auto;}
-.skur-oos-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.35);border-radius:999px;color:#dc3545;font-weight:600;font-size:11px;margin-right:4px;}
+.skur-oos-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.35);border-radius:999px;color:#dc3545;font-weight:600;font-size:11px;margin-right:4px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skur-table tr.oos-row td{opacity:.55;}
 .skur-table tr.oos-row td:first-child,.skur-table tr.oos-row td:nth-child(2){opacity:1;}
-.skur-dup-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:999px;color:#f59e0b;font-weight:700;font-size:11px;margin-right:4px;}
+.skur-dup-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:999px;color:#f59e0b;font-weight:700;font-size:11px;margin-right:4px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skur-group-item .gi-dup{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.35);border-radius:999px;color:#f59e0b;font-size:10px;font-weight:700;}
 .skur-exc-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:999px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid transparent;user-select:none;}
 .skur-exc-chip:hover{filter:brightness(1.1);}
@@ -839,7 +840,7 @@ footer strong{opacity:1;}
 .skur-exc-banner.hidden{display:none;}
 .skur-exc-banner .eb-label{font-weight:700;color:var(--brand-primary);}
 .skur-exc-banner .eb-clear{background:transparent;border:none;color:var(--text-secondary);text-decoration:underline;cursor:pointer;font:inherit;font-size:11px;padding:0;margin-left:auto;}
-.skur-group-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:rgba(120,80,200,.12);color:#7d4ed6;font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(120,80,200,.25);}
+.skur-group-chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:rgba(120,80,200,.12);color:#7d4ed6;font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(120,80,200,.25);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 body.dark .skur-group-chip{color:#b794f4;}
 /* Bulk bar */
 /* Stage 9.5 Pass D: .skur-bulkbar removed (bulk bar lives inline in section header now) */
@@ -985,7 +986,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <div class="section tab-pane" id="overview" data-tab="overview">
   <div class="section-title"><span class="icon">📊</span> Overview</div>
   <div class="filters-bar" id="filtersBar" style="margin-bottom:14px;">
-    <div class="filter-group" style="flex:1;min-width:200px;"><label>Search VM / OS</label><input type="search" id="fSearch" placeholder="Type to filter…" oninput="applyFilters()"></div>
+    <div class="filter-group" style="flex:1;min-width:200px;"><label>Search VM / OS</label><input type="search" id="fSearch" placeholder="Type to filter…" oninput="applyFilters()" maxlength="100"></div>
     <div class="filter-group"><label>Datacenter</label><select id="fDC" onchange="applyFilters()"><option value="">All</option></select></div>
     <div class="filter-group"><label>OS Family</label><select id="fOS" onchange="applyFilters()"><option value="">All</option><option>Windows</option><option>Linux</option><option>Other</option></select></div>
     <div class="filter-group"><label>Power State</label><select id="fPower" onchange="applyFilters()"><option value="">All</option><option value="poweredOn">Powered On ✅</option><option value="poweredOff">Powered Off ❌</option></select></div>
@@ -1072,7 +1073,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   </div>
   <div class="section-body" id="diskBody">
     <div class="filters-bar" id="diskFilters" style="margin-bottom:16px;">
-      <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VM / Disk</label><input type="search" id="fDiskSearch" placeholder="Type to filter…" oninput="_applyDiskFilters()"></div>
+      <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VM / Disk</label><input type="search" id="fDiskSearch" placeholder="Type to filter…" oninput="_applyDiskFilters()" maxlength="100"></div>
       <div class="filter-group"><label>Datacenter</label><select id="fDiskDC" onchange="_applyDiskFilters()"><option value="">All Datacenters</option></select></div>
       <div class="filter-group"><label>Cluster</label><select id="fDiskCluster" onchange="_applyDiskFilters()"><option value="">All Clusters</option></select></div>
       <div class="filter-group"><label>Power</label><select id="fDiskPower" onchange="_applyDiskFilters()"><option value="">All</option><option value="poweredOn">Powered On ✅</option><option value="poweredOff">Powered Off ❌</option></select></div>
@@ -1101,7 +1102,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   </div>
   <div class="section-body" id="networkBody">
     <div class="filters-bar" id="networkFilters" style="margin-bottom:16px;">
-      <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VM / Network / IP</label><input type="search" id="fNetSearch" placeholder="Type to filter…" oninput="_applyNetworkFilters()"></div>
+      <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VM / Network / IP</label><input type="search" id="fNetSearch" placeholder="Type to filter…" oninput="_applyNetworkFilters()" maxlength="100"></div>
       <div class="filter-group"><label>Datacenter</label><select id="fNetDC" onchange="_applyNetworkFilters()"><option value="">All Datacenters</option></select></div>
       <div class="filter-group"><label>Adapter</label><select id="fNetAdapter" onchange="_applyNetworkFilters()"><option value="">All</option></select></div>
       <div class="filter-group"><label>Connected</label><select id="fNetConnected" onchange="_applyNetworkFilters()"><option value="">All</option><option value="yes">Connected</option><option value="no">Disconnected</option></select></div>
@@ -1130,7 +1131,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   </div>
   <div class="section-body" id="resourceBody">
     <div class="filters-bar" id="resourceFilters" style="margin-bottom:16px;">
-      <div class="filter-group" style="flex:1;min-width:240px;"><label>Search VM</label><input type="search" id="fResSearch" placeholder="Type to filter…" oninput="_applyResourceFilters()"></div>
+      <div class="filter-group" style="flex:1;min-width:240px;"><label>Search VM</label><input type="search" id="fResSearch" placeholder="Type to filter…" oninput="_applyResourceFilters()" maxlength="100"></div>
       <div class="filter-group"><label>Reservation</label><select id="fResReservation" onchange="_applyResourceFilters()"><option value="">Any</option><option value="cpu">CPU set</option><option value="mem">Memory set</option><option value="any">Any reservation</option><option value="none">None</option></select></div>
       <div class="filter-group"><label>Limit</label><select id="fResLimit" onchange="_applyResourceFilters()"><option value="">Any</option><option value="yes">Limit set</option><option value="no">No limit</option></select></div>
       <button id="resResetBtn" class="btn btn-outline" onclick="resetResourceFilters()">✖ Reset</button>
@@ -1214,7 +1215,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   </div>
   <div class="table-card">
     <div class="table-controls">
-      <input class="search-input" id="waveSearch" placeholder="🔍 Search VMs..." oninput="filterWaveTable()"/>
+      <input class="search-input" id="waveSearch" placeholder="🔍 Search VMs..." oninput="filterWaveTable()" maxlength="100"/>
       <button class="btn btn-primary" onclick="exportCSV('wave')">📥 CSV Export</button>
     </div>
     <div style="overflow-x:auto;"><table id="waveTable"><thead><tr>
@@ -1244,7 +1245,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   </div>
   <div class="section-body" id="inventoryBody">
     <div class="filters-bar" id="invFilters" style="margin-bottom:14px;">
-      <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VMs</label><input type="search" class="search-input" id="invSearch" placeholder="🔍 Type to filter…" oninput="filterInvTable()"/></div>
+      <div class="filter-group" style="flex:1;min-width:220px;"><label>Search VMs</label><input type="search" class="search-input" id="invSearch" placeholder="🔍 Type to filter…" oninput="filterInvTable()" maxlength="100"/></div>
       <div class="filter-group"><label>Datacenter</label><select id="fInvDC" onchange="filterInvTable()"><option value="">All</option></select></div>
       <div class="filter-group"><label>Cluster</label><select id="fInvCluster" onchange="filterInvTable()"><option value="">All</option></select></div>
       <div class="filter-group"><label>Power</label><select id="fInvPower" onchange="filterInvTable()"><option value="">All</option><option value="poweredOn">Powered On ✅</option><option value="poweredOff">Powered Off ❌</option></select></div>
@@ -1366,13 +1367,13 @@ body.dark .skur-group-chip{color:#b794f4;}
             <thead>
               <tr class="skur-filter-row">
                 <th style="width:32px;"><button class="skur-filter-clear" id="skurFilterClear" title="Clear all filters" onclick="skurClearFilters()" disabled>✕</button></th>
-                <th><input type="text" class="skur-filter" data-f="name" placeholder="Search name…" oninput="skurOnFilter()"></th>
-                <th><input type="text" class="skur-filter" data-f="size" placeholder="e.g. 4/16" oninput="skurOnFilter()"></th>
+                <th><input type="text" class="skur-filter" data-f="name" placeholder="Search name…" oninput="skurOnFilter()" maxlength="100"></th>
+                <th><input type="text" class="skur-filter" data-f="size" placeholder="e.g. 4/16" oninput="skurOnFilter()" maxlength="20"></th>
                 <th><select class="skur-filter" data-f="os" onchange="skurOnFilter()"><option value="">All OS</option></select></th>
                 <th><select class="skur-filter" data-f="dc" onchange="skurOnFilter()"><option value="">All DCs</option></select></th>
                 <th><select class="skur-filter" data-f="cluster" onchange="skurOnFilter()"><option value="">All clusters</option></select></th>
                 <th><select class="skur-filter" data-f="group" onchange="skurOnFilter()"><option value="">All groups</option></select></th>
-                <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()"></th>
+                <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()" maxlength="100"></th>
               </tr>
               <tr>
                 <th style="width:32px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
@@ -1459,15 +1460,15 @@ body.dark .skur-group-chip{color:#b794f4;}
     </div>
     <div class="skur-modal-row">
       <label>Value</label>
-      <input type="text" id="skurRuleValue" placeholder="e.g. prod, web, sql">
+      <input type="text" id="skurRuleValue" placeholder="e.g. prod, web, sql" maxlength="200">
     </div>
     <div class="skur-modal-row">
       <label>Then tag</label>
-      <input type="text" id="skurRuleTagKey" placeholder="key e.g. env">
+      <input type="text" id="skurRuleTagKey" placeholder="key e.g. env" maxlength="40">
     </div>
     <div class="skur-modal-row">
       <label>=</label>
-      <input type="text" id="skurRuleTagValue" placeholder="value e.g. prod">
+      <input type="text" id="skurRuleTagValue" placeholder="value e.g. prod" maxlength="80">
     </div>
     <div class="skur-modal-preview" id="skurRulePreview">— start typing —</div>
     <div class="modal-close-row">
@@ -1485,7 +1486,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="modal-body skur-ag-body">
       <div class="skur-ag-name">
         <label for="skurAgName">New VM Group name</label>
-        <input type="text" id="skurAgName" placeholder="e.g. Auckland Production Web" autocomplete="off">
+        <input type="text" id="skurAgName" placeholder="e.g. Auckland Production Web" autocomplete="off" maxlength="60">
       </div>
       <div class="skur-ag-lead">Pick tag values to include and choose how to combine keys. The preview updates as you tick.</div>
       <div class="skur-ag-mode" role="tablist" aria-label="Match mode">
@@ -1493,7 +1494,7 @@ body.dark .skur-group-chip{color:#b794f4;}
         <button type="button" class="skur-ag-mode-btn" data-mode="OR" onclick="skurAgSetMode('OR')" role="tab" aria-selected="false" title="VMs match if they hit any ticked value in any key (union)">Match any key (OR)</button>
       </div>
       <div class="skur-ag-filter">
-        <input type="text" id="skurAgFilter" placeholder="🔍 Filter tag keys / values…" oninput="skurFilterAgList()" autocomplete="off">
+        <input type="text" id="skurAgFilter" placeholder="🔍 Filter tag keys / values…" oninput="skurFilterAgList()" autocomplete="off" maxlength="100">
       </div>
       <div class="skur-ag-list" id="skurAgList"></div>
       <div class="skur-ag-preview" id="skurAgPreview">Tick at least one tag value to preview matches.</div>
@@ -1512,7 +1513,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="modal-body">
       <div class="skur-ap-sub" id="skurApSub"></div>
       <div class="skur-ap-filter-row">
-        <input type="text" id="skurApFilterName" placeholder="🔍 Search SKU name…" oninput="skurOnApFilter()" autocomplete="off">
+        <input type="text" id="skurApFilterName" placeholder="🔍 Search SKU name…" oninput="skurOnApFilter()" autocomplete="off" maxlength="100">
         <select id="skurApFilterFamily" onchange="skurOnApFilter()"><option value="">All families</option></select>
         <select id="skurApFilterProcessor" onchange="skurOnApFilter()"><option value="">All processors</option></select>
         <button class="skur-ap-filter-clear" id="skurApFilterClear" onclick="skurClearApFilters()" disabled title="Clear filters">✕</button>
@@ -1587,12 +1588,12 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="modal-body">
       <p id="skurAddTagSubject" style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;"></p>
       <label for="skurAddTagKeyInput" style="display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Tag key</label>
-      <input type="text" id="skurAddTagKeyInput" placeholder="e.g. Environment" autocomplete="off"
+      <input type="text" id="skurAddTagKeyInput" placeholder="e.g. Environment" autocomplete="off" maxlength="40"
              style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);box-sizing:border-box;"
              onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('skurAddTagValInput').focus();}else if(event.key==='Escape'){event.preventDefault();skurCloseAddTagModal();}">
       <p id="skurAddTagKeyHint" style="margin:4px 0 0;font-size:11px;color:var(--text-tertiary);line-height:1.4;"></p>
       <label for="skurAddTagValInput" style="display:block;font-size:12px;color:var(--text-secondary);margin:10px 0 4px;">Tag value</label>
-      <input type="text" id="skurAddTagValInput" placeholder="e.g. Production" autocomplete="off"
+      <input type="text" id="skurAddTagValInput" placeholder="e.g. Production" autocomplete="off" maxlength="80"
              style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);box-sizing:border-box;"
              onkeydown="if(event.key==='Enter'){event.preventDefault();skurConfirmAddTag();}else if(event.key==='Escape'){event.preventDefault();skurCloseAddTagModal();}">
       <p id="skurAddTagValHint" style="margin:4px 0 0;font-size:11px;color:var(--text-tertiary);line-height:1.4;"></p>
@@ -2360,7 +2361,7 @@ async function exportScenarioBundle() {
     { okLabel: 'Save scenario' }
   );
   if (!ok) return;
-  const label = ((await skurPrompt('Optional label for this scenario (shown in manifest):', { title: 'Save scenario', placeholder: 'e.g. Q3 baseline' })) || '').trim();
+  const label = ((await skurPrompt('Optional label for this scenario (shown in manifest):', { title: 'Save scenario', placeholder: 'e.g. Q3 baseline', maxLength: 80 })) || '').trim();
   try {
     const { blob, manifest } = await buildScenarioRvz({
       xlsxBuffer: cur.xlsxBuffer,
@@ -3734,7 +3735,7 @@ async function skurBulkSetOos(reason) {
   }
   let note = '';
   if (reason === 'other') {
-    note = ((await skurPrompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, { title: 'Out-of-scope reason', placeholder: 'e.g. decommissioning Q3' })) || '').trim();
+    note = ((await skurPrompt(`Mark ${keys.length} VM${keys.length===1?'':'s'} as out of scope.\n\nReason note (optional):`, { title: 'Out-of-scope reason', placeholder: 'e.g. decommissioning Q3', maxLength: 200 })) || '').trim();
   } else if (keys.length > 5) {
     const r = SKUR_OOS_REASONS[reason];
     if (!await skurConfirm(`Mark ${keys.length} VMs as out of scope (${r ? r.label : reason})?\n\nThey will be excluded from cost roll-ups and recommendations.`, { okLabel: 'Mark out of scope' })) return;
@@ -4122,7 +4123,7 @@ function renderSkurGroups() {
     : '';
   const railToolbar = `
     <div class="skur-rail-toolbar">
-      <div class="skur-rail-search"><input type="search" placeholder="🔍 Search groups…" value="${escG(skurRailSearch)}" oninput="skurSetRailSearch(this.value)"></div>
+      <div class="skur-rail-search"><input type="search" placeholder="🔍 Search groups…" value="${escG(skurRailSearch)}" oninput="skurSetRailSearch(this.value)" maxlength="100"></div>
       <div class="skur-rail-pills">
         <span class="skur-rail-pill${skurRailFilter==='all'?' is-on':''}" onclick="skurSetRailFilter('all')">All <span>${orderedGroupsBase.length}</span></span>
         <span class="skur-rail-pill${skurRailFilter==='warn'?' is-on':''}" onclick="skurSetRailFilter('warn')" title="Groups with sizing exceptions">⚠ <span>${railWarnSet.size}</span></span>
@@ -4583,7 +4584,7 @@ async function skurAutoGroupByTag(_key) {
   skurOpenAutoGroupModal();
 }
 async function newSkurGroup(prefilledMembers) {
-  const name = ((await skurPrompt('Name for the new VM group:', { title: 'New VM Group', placeholder: 'e.g. Production web tier' })) || '').trim();
+  const name = ((await skurPrompt('Name for the new VM group:', { title: 'New VM Group', placeholder: 'e.g. Production web tier', maxLength: 60 })) || '').trim();
   if (!name) return null;
   if (skurGroups.some(g => g.name.toLowerCase() === name.toLowerCase())) {
     alert('A group with that name already exists.'); return null;
@@ -4596,7 +4597,7 @@ async function newSkurGroup(prefilledMembers) {
 }
 async function renameSkurGroup(id) {
   const g = skurGroups.find(x => x.id === id); if (!g) return;
-  const name = ((await skurPrompt('Rename group:', { title: 'Rename group', defaultValue: g.name })) || '').trim();
+  const name = ((await skurPrompt('Rename group:', { title: 'Rename group', defaultValue: g.name, maxLength: 60 })) || '').trim();
   if (!name || name === g.name) return;
   if (skurGroups.some(x => x !== g && x.name.toLowerCase() === name.toLowerCase())) { alert('A group with that name already exists.'); return; }
   g.name = name;
@@ -5408,7 +5409,7 @@ function renderSkurVmGrid() {
       const addBtn = `<button class="skur-tag-add" data-vmkey="${esc(k)}" onclick="skurOpenAddTagModal(this.dataset.vmkey)" title="Add manual tag">+</button>`;
       const tagsCore = tags.map(t => {
         if (t.origin === 'manual') {
-          return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}">${esc(t.key)}:${esc(t.value)}<button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
+          return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}"><span class="skur-tag-text">${esc(t.key)}:${esc(t.value)}</span><button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
         }
         return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
       }).join('');
@@ -6694,6 +6695,8 @@ function skurPrompt(message, opts = {}) {
     const input = document.getElementById('skurPromptInput');
     input.value = opts.defaultValue || '';
     input.placeholder = opts.placeholder || '';
+    const maxLen = (opts.maxLength != null && Number.isFinite(+opts.maxLength)) ? +opts.maxLength : 200;
+    input.maxLength = maxLen;
     document.getElementById('skurPromptOkBtn').textContent = opts.okLabel || 'OK';
     document.getElementById('skurPromptCancelBtn').textContent = opts.cancelLabel || 'Cancel';
     _skurPromptResolver = resolve;
