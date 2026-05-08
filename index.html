@@ -128,7 +128,8 @@ body.dark .ic-tile-tip strong,[data-theme="dark"] .ic-tile-tip strong{color:#fff
 body.dark .ic-tile-tip a,[data-theme="dark"] .ic-tile-tip a{color:#79bdf5;}
 .ic-tile-tip ol,.ic-tile-tip ul{margin:6px 0 0;padding-left:18px;}
 .ic-tile-tip li{margin:2px 0;}
-.ic-tile-help:hover + .ic-tile-tip,.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile-tip:hover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
+.ic-tile-help:hover + .ic-tile-tip,.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile-tip:hover,.ic-tile.tip-open .ic-tile-tip{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
+.ic-tile.tip-open .ic-tile-help{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 body.dark .ic-tile,[data-theme="dark"] .ic-tile{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 .ic-tile-clickable{cursor:pointer;}
 .ic-tile-clickable:hover,.ic-tile-clickable:focus-visible{border-color:var(--brand-primary);background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);box-shadow:0 4px 16px rgba(15,108,189,.12);outline:none;}
@@ -1021,7 +1022,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="ic-tiles">
       <!-- Tile 1 — Demo -->
       <div class="ic-tile ic-tile-demo">
-        <button type="button" class="ic-tile-help" aria-label="About demo data" tabindex="0">?</button>
+        <button type="button" class="ic-tile-help" aria-label="About demo data" tabindex="0" onclick="toggleTileTip(this, event)">?</button>
         <div class="ic-tile-tip" role="tooltip">
           <strong>Demo data</strong> — a synthetic 500-VM estate so you can explore the app without uploading anything.
           <ul>
@@ -1040,7 +1041,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 
       <!-- Tile 2 — Load RVTools export -->
       <div class="ic-tile ic-tile-clickable" onclick="document.getElementById('fileInputXlsx').click()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInputXlsx').click();}">
-        <button type="button" class="ic-tile-help" aria-label="How to export from RVTools" tabindex="0" onclick="event.stopPropagation()">?</button>
+        <button type="button" class="ic-tile-help" aria-label="How to export from RVTools" tabindex="0" onclick="toggleTileTip(this, event)">?</button>
         <div class="ic-tile-tip" role="tooltip">
           <strong>How to export from RVTools</strong>
           <ol>
@@ -1058,7 +1059,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 
       <!-- Tile 3 — Resume saved workspace -->
       <div class="ic-tile ic-tile-clickable" onclick="document.getElementById('fileInputRvz').click()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInputRvz').click();}">
-        <button type="button" class="ic-tile-help" aria-label="About saved workspaces" tabindex="0" onclick="event.stopPropagation()">?</button>
+        <button type="button" class="ic-tile-help" aria-label="About saved workspaces" tabindex="0" onclick="toggleTileTip(this, event)">?</button>
         <div class="ic-tile-tip" role="tooltip">
           <strong>Saved workspace (.rvz)</strong> — your RVTools data + groups, manual tags, auto-tag rules and plan settings, all in one file.
           <ul>
@@ -1985,6 +1986,30 @@ function maybeShowWelcome(){
 function showWelcomeAgain(){
   document.getElementById('welcomeModal').classList.add('active');
 }
+
+// Touch-friendly tile-tip toggle. The CSS-only :hover/:focus-visible path
+// doesn't fire on tap, so for touch devices we add an explicit tap-to-toggle
+// on the tile's '?' button. Tapping outside or pressing Escape closes any
+// open tip, and only one tip stays open at a time.
+function toggleTileTip(btn, ev){
+  if (ev) { try { ev.stopPropagation(); ev.preventDefault(); } catch(_){} }
+  const tile = btn && btn.closest && btn.closest('.ic-tile');
+  if (!tile) return;
+  const isOpen = tile.classList.contains('tip-open');
+  document.querySelectorAll('.ic-tile.tip-open').forEach(t => t.classList.remove('tip-open'));
+  if (!isOpen) tile.classList.add('tip-open');
+}
+document.addEventListener('click', (ev) => {
+  const open = document.querySelector('.ic-tile.tip-open');
+  if (!open) return;
+  if (open.contains(ev.target)) return;
+  open.classList.remove('tip-open');
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Escape') return;
+  const open = document.querySelector('.ic-tile.tip-open');
+  if (open) open.classList.remove('tip-open');
+});
 
 let _persistToastEl = null;
 function showToast(msg, typeOrErr, persist){
