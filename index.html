@@ -128,7 +128,7 @@ body.dark .ic-tile-tip strong,[data-theme="dark"] .ic-tile-tip strong{color:#fff
 body.dark .ic-tile-tip a,[data-theme="dark"] .ic-tile-tip a{color:#79bdf5;}
 .ic-tile-tip ol,.ic-tile-tip ul{margin:6px 0 0;padding-left:18px;}
 .ic-tile-tip li{margin:2px 0;}
-.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile.tip-open .ic-tile-tip{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
+.ic-tile.tip-open .ic-tile-tip{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
 .ic-tile.tip-open .ic-tile-help{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 body.dark .ic-tile,[data-theme="dark"] .ic-tile{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 .ic-tile-clickable{cursor:pointer;}
@@ -2009,7 +2009,7 @@ function toggleTileTip(btn, ev){
     tile.dataset.tipSticky = '1';
   }
 }
-// Bind hover behavior in JS so it respects the sticky tap flag.
+// Bind hover/focus behavior in JS so it respects the sticky tap flag.
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.ic-tile-help').forEach(btn => {
     const tile = btn.closest('.ic-tile');
@@ -2018,6 +2018,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (tile.dataset.tipSticky !== '1') tile.classList.add('tip-open');
     });
     btn.addEventListener('mouseleave', () => {
+      if (tile.dataset.tipSticky !== '1') tile.classList.remove('tip-open');
+    });
+    btn.addEventListener('focus', () => {
+      if (tile.dataset.tipSticky !== '1') tile.classList.add('tip-open');
+    });
+    btn.addEventListener('blur', () => {
       if (tile.dataset.tipSticky !== '1') tile.classList.remove('tip-open');
     });
   });
@@ -2032,9 +2038,14 @@ document.addEventListener('click', (ev) => {
 document.addEventListener('keydown', (ev) => {
   if (ev.key !== 'Escape') return;
   const open = document.querySelector('.ic-tile.tip-open');
-  if (open) {
-    open.classList.remove('tip-open');
-    delete open.dataset.tipSticky;
+  if (!open) return;
+  open.classList.remove('tip-open');
+  delete open.dataset.tipSticky;
+  // Drop focus from the help button so it doesn't immediately re-open the
+  // tip via the JS focus handler.
+  const ae = document.activeElement;
+  if (ae && ae.classList && ae.classList.contains('ic-tile-help')) {
+    try { ae.blur(); } catch(_){}
   }
 });
 
