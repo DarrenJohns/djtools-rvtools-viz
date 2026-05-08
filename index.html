@@ -7228,16 +7228,16 @@ function showDemoSplash(mode){
   ov.setAttribute('aria-live','polite');
   ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:10000;animation:demoSplashFade .18s ease-out;';
   ov.innerHTML = `
-    <div style="background:#fff;border-radius:14px;padding:28px 36px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:demoSplashPop .25s cubic-bezier(.2,.9,.3,1.2);">
+    <div class="demo-splash-card" style="border-radius:14px;padding:28px 36px;max-width:420px;text-align:center;animation:demoSplashPop .25s cubic-bezier(.2,.9,.3,1.2);">
       <div style="font-size:42px;line-height:1;margin-bottom:8px;">🎯</div>
-      <div style="font-size:18px;font-weight:600;color:#0f172a;margin-bottom:4px;">Great choice — here we go…</div>
-      <div style="font-size:13px;color:#475569;margin-bottom:18px;">Loading the ${label}.</div>
+      <div class="demo-splash-title" style="font-size:18px;font-weight:600;margin-bottom:4px;">Great choice — here we go…</div>
+      <div class="demo-splash-sub" style="font-size:13px;margin-bottom:18px;">Loading the ${label}.</div>
       <button type="button" id="demoSplashDismiss" style="background:#0078d4;color:#fff;border:0;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;">Dismiss</button>
     </div>`;
   if (!document.getElementById('demoSplashKeyframes')){
     const st = document.createElement('style');
     st.id = 'demoSplashKeyframes';
-    st.textContent = '@keyframes demoSplashFade{from{opacity:0}to{opacity:1}}@keyframes demoSplashPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}';
+    st.textContent = '@keyframes demoSplashFade{from{opacity:0}to{opacity:1}}@keyframes demoSplashPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}.demo-splash-card{background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.35);}.demo-splash-title{color:#0f172a;}.demo-splash-sub{color:#475569;}body.dark .demo-splash-card,[data-theme="dark"] .demo-splash-card{background:#1f2937;box-shadow:0 20px 60px rgba(0,0,0,.55);}body.dark .demo-splash-title,[data-theme="dark"] .demo-splash-title{color:#f1f5f9;}body.dark .demo-splash-sub,[data-theme="dark"] .demo-splash-sub{color:#94a3b8;}';
     document.head.appendChild(st);
   }
   document.body.appendChild(ov);
