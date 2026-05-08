@@ -1281,6 +1281,14 @@ body.dark .skur-group-chip{color:#b794f4;}
   <div class="section-header" onclick="toggleSection('skuRecommender')">
     <span class="section-toggle" id="skuRecommenderToggle">▶</span>
     <h3>☁️ Azure VMs &amp; Pricing</h3>
+    <details class="pb-workspace" id="skurWorkspaceMenu" onclick="event.stopPropagation()" style="margin-left:auto;">
+      <summary class="btn" title="Save or load your customisations (groups, rules, manual tags)">💾 Workspace ▾</summary>
+      <div class="pb-workspace-menu" onclick="event.stopPropagation()">
+        <button type="button" onclick="exportWorkspaceJson('full');document.getElementById('skurWorkspaceMenu').open=false;">⬇️ Export <strong>workspace</strong><span class="pb-ws-hint">rules, groups, tags · no VM data · for sharing across datasets</span></button>
+        <button type="button" onclick="document.getElementById('skurWorkspaceFile').click();document.getElementById('skurWorkspaceMenu').open=false;">⬆️ Apply <strong>workspace</strong><span class="pb-ws-hint">replaces customisations on current data</span></button>
+      </div>
+    </details>
+    <input type="file" id="skurWorkspaceFile" accept=".json,application/json" style="display:none" onchange="(function(ev){const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;const r=new FileReader();r.onload=function(e){importWorkspaceJson(e.target.result,f);};r.readAsArrayBuffer(f);})(event)">
   </div>
   <div class="section-body" id="skuRecommenderBody">
     <!-- Empty state shown when no RVTools data is loaded -->
@@ -1317,14 +1325,6 @@ body.dark .skur-group-chip{color:#b794f4;}
           <option value="EUR">EUR €</option>
           <option value="GBP">GBP £</option>
         </select>
-        <details class="pb-workspace" id="skurWorkspaceMenu">
-          <summary class="btn" title="Save or load your customisations (groups, rules, manual tags)">💾 Workspace ▾</summary>
-          <div class="pb-workspace-menu" onclick="event.stopPropagation()">
-            <button type="button" onclick="exportWorkspaceJson('full');document.getElementById('skurWorkspaceMenu').open=false;">⬇️ Export <strong>workspace</strong><span class="pb-ws-hint">rules, groups, tags · no VM data · for sharing across datasets</span></button>
-            <button type="button" onclick="document.getElementById('skurWorkspaceFile').click();document.getElementById('skurWorkspaceMenu').open=false;">⬆️ Apply <strong>workspace</strong><span class="pb-ws-hint">replaces customisations on current data</span></button>
-          </div>
-        </details>
-        <input type="file" id="skurWorkspaceFile" accept=".json,application/json" style="display:none" onchange="(function(ev){const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;const r=new FileReader();r.onload=function(e){importWorkspaceJson(e.target.result,f);};r.readAsArrayBuffer(f);})(event)">
         <span class="skur-freshness-pill" id="skurFreshnessPill" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
       </div>
 
