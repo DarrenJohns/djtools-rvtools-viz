@@ -1346,8 +1346,7 @@ body.dark .skur-group-chip{color:#b794f4;}
         <div class="skur-section-h">
           🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span>
           <div class="skur-section-actions" id="skurBulkBar">
-            <span><strong class="bb-count" id="skurBulkCount">0</strong> selected</span>
-            <button class="bb-clear" onclick="skurClearSelection()">Clear selection</button>
+            <button class="bb-clear" onclick="skurClearSelection()">Clear selection (<span id="skurBulkCount">0</span>)</button>
             <span class="bb-sep">|</span>
             <select id="skurBulkAddTo" onchange="skurBulkAddToGroup(this.value);this.value='';">
               <option value="" disabled selected hidden>➕ Add to group…</option>
