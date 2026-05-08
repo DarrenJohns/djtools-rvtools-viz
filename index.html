@@ -1889,6 +1889,7 @@ function openShortcutsModal(){ document.getElementById('shortcutsModal').classLi
 function closeShortcutsModal(){ document.getElementById('shortcutsModal').classList.remove('active'); }
 function closeWelcome(){
   document.getElementById('welcomeModal').classList.remove('active');
+  setTimeout(() => { try { bumpImportTiles(); } catch(_){} }, 250);
 }
 function maybeShowWelcome(){
   document.getElementById('welcomeModal').classList.add('active');
@@ -6026,8 +6027,6 @@ function _skurStartFreshFromPrompt(){
 document.addEventListener('DOMContentLoaded', () => {
   // Defer until autosave helpers are wired up.
   setTimeout(_skurMaybeShowPreloadPrompt, 200);
-  // Bump the three Start-here tiles on first paint to draw the eye.
-  setTimeout(() => { try { bumpImportTiles(); } catch(_){} }, 600);
 });
 
 function bumpImportTiles(){
