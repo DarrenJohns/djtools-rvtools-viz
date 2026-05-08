@@ -2041,7 +2041,7 @@ function _setEmptyPaneContent(mode, key){
       .map(s => `<code>${s}</code>`).join(', ');
     icon.textContent = '🧩';
     title.textContent = 'This tab needs more RVTools data';
-    msg.innerHTML = `Your current import doesn't include ${sheets || 'the required sheets'}. Re-export from RVTools with <strong>File → Export all to Excel</strong> (all tabs) and load it again to unlock this view.`;
+    msg.innerHTML = `Your current import doesn't include ${sheets || 'the required sheets'}. Either pick <strong>📊 Full export</strong> on the demo tile, or re-export from RVTools using <strong>File → Export all to Excel</strong> (all tabs) and load it again.`;
     cta.innerHTML = '🚀 Go to Start here';
   } else {
     icon.textContent = '📭';
