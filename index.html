@@ -1949,10 +1949,14 @@ function closeWelcome(){
   document.getElementById('welcomeModal').classList.remove('active');
   try { localStorage.setItem('rvtools.welcomeSeen.v1', '1'); } catch(_) {}
   setTimeout(() => { try { bumpImportTiles(); } catch(_){} }, 250);
+  // Stage 9.5: the pre-load autosave banner is deferred while the welcome
+  // modal is up so it doesn't sit blurred in the background. Run it now.
+  setTimeout(() => { try { _skurMaybeShowPreloadPrompt(); } catch(_){} }, 300);
 }
 function maybeShowWelcome(){
-  try { if (localStorage.getItem('rvtools.welcomeSeen.v1') === '1') return; } catch(_) {}
+  try { if (localStorage.getItem('rvtools.welcomeSeen.v1') === '1') return false; } catch(_) {}
   document.getElementById('welcomeModal').classList.add('active');
+  return true;
 }
 function showWelcomeAgain(){
   try { localStorage.removeItem('rvtools.welcomeSeen.v1'); } catch(_) {}
@@ -6176,8 +6180,16 @@ function _skurStartFreshFromPrompt(){
   try { showWelcomeAgain(); } catch(_) {}
 }
 document.addEventListener('DOMContentLoaded', () => {
-  // Defer until autosave helpers are wired up.
-  setTimeout(_skurMaybeShowPreloadPrompt, 200);
+  // Defer until autosave helpers are wired up. If the welcome modal is up,
+  // skip — closeWelcome() will fire the prompt itself once dismissed so the
+  // banner doesn't sit blurred behind the welcome backdrop.
+  setTimeout(() => {
+    try {
+      const wm = document.getElementById('welcomeModal');
+      if (wm && wm.classList.contains('active')) return;
+      _skurMaybeShowPreloadPrompt();
+    } catch(_) {}
+  }, 200);
 });
 
 function bumpImportTiles(){
