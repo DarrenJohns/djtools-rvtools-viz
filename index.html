@@ -1066,7 +1066,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
   <div id="resetBtnWrap" style="margin-top:10px;text-align:center;display:none;">
     <button id="importAnotherBtn" class="btn btn-primary" onclick="document.getElementById('fileInput').click()" style="margin-right:8px;">📥 Import another file</button>
-    <button id="resetBtn" class="btn btn-outline" onclick="clearLoadedData()">✖ Back to demo</button>
+    <button id="resetBtn" class="btn btn-outline" onclick="clearLoadedData()">✖ Clear &amp; reset</button>
   </div>
 </div>
 
@@ -2149,9 +2149,14 @@ function showFileError(title, helpText) {
 }
 
 function clearLoadedData() {
+  // Hard reset: drop in-memory data, dataset identity, demo flag, UI chrome.
+  // Then delegate the storage wipe + welcome re-open to the same path used by
+  // the yellow banner's "Discard saved" button so both routes are identical.
   allVMs = [];
   allData = {};
   filteredVMs = [];
+  try { window.__rvtoolsCurrent = null; } catch(_) {}
+  window._isDemoMode = false;
   const fi = document.getElementById('fileInfo');
   fi.style.display = 'none'; fi.className = 'file-info'; fi.innerHTML = '';
   const heroInfo = document.getElementById('heroFileInfo');
@@ -2159,8 +2164,11 @@ function clearLoadedData() {
   document.getElementById('resetBtnWrap').style.display = 'none';
   const fileInput = document.getElementById('fileInput');
   if (fileInput) fileInput.value = '';
-  showDemoIndicators();
-  loadSampleData('full');
+  try { hideSampleIndicators(); } catch(_) {}
+  try { _skurStartFreshFromPrompt(); } catch(_) {
+    // Fallback if the helper isn't loaded yet — still surface welcome.
+    try { showWelcomeAgain(); } catch(_) {}
+  }
 }
 
 function handleFile(file) {
@@ -7096,7 +7104,7 @@ function hideSampleIndicators() {
   if (bar) bar.style.display = 'none';
   if (dropZone) { dropZone.classList.remove('demo-active'); dropZone.style.display = 'none'; }
   if (howTo) howTo.style.display = 'none';
-  if (resetBtn) resetBtn.textContent = '× Back to demo';
+  if (resetBtn) resetBtn.textContent = '✖ Clear & reset';
   if (dtb) dtb.style.display = 'none';
 }
 
@@ -7111,7 +7119,7 @@ function showDemoIndicators() {
   if (bar) bar.style.display = '';
   if (dropZone) { dropZone.classList.add('demo-active'); dropZone.style.display = ''; }
   if (howTo) howTo.style.display = '';
-  if (resetBtn) resetBtn.textContent = '× Reset demo';
+  if (resetBtn) resetBtn.textContent = '✖ Clear & reset';
   // Re-evaluate banner visibility for the currently active tab
   const dtb = document.getElementById('demoTabBanner');
   const activeKey = document.querySelector('.tab-strip .tab.active')?.dataset.tab || 'import';
