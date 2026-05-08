@@ -4641,12 +4641,28 @@ async function skurBulkAddToGroup(target) {
   renderSkurGroups();
   renderSkurVmGrid();
 }
-function skurOnVmCheck(cb) {
-  const k = cb.dataset.vmkey || '';
-  if (cb.checked) skurSelectedKeys.add(k); else skurSelectedKeys.delete(k);
-  cb.closest('tr').classList.toggle('checked', cb.checked);
+function skurOnVmCheck(cb, ev) {
+  const all = Array.from(document.querySelectorAll('.skur-vm-check'));
+  const idx = all.indexOf(cb);
+  if (ev && ev.shiftKey && _skurLastCheckIdx >= 0 && _skurLastCheckIdx !== idx && all[_skurLastCheckIdx]) {
+    const [lo, hi] = idx < _skurLastCheckIdx ? [idx, _skurLastCheckIdx] : [_skurLastCheckIdx, idx];
+    const target = cb.checked;
+    for (let i = lo; i <= hi; i++) {
+      const c = all[i];
+      c.checked = target;
+      const kk = c.dataset.vmkey || '';
+      if (target) skurSelectedKeys.add(kk); else skurSelectedKeys.delete(kk);
+      const tr = c.closest('tr'); if (tr) tr.classList.toggle('checked', target);
+    }
+  } else {
+    const k = cb.dataset.vmkey || '';
+    if (cb.checked) skurSelectedKeys.add(k); else skurSelectedKeys.delete(k);
+    cb.closest('tr').classList.toggle('checked', cb.checked);
+  }
+  _skurLastCheckIdx = idx;
   skurUpdateBulkBar();
 }
+let _skurLastCheckIdx = -1;
 function skurToggleSelectAll(on) {
   document.querySelectorAll('.skur-vm-check').forEach(cb => {
     cb.checked = !!on;
@@ -4660,6 +4676,7 @@ function skurClearSelection() {
   skurSelectedKeys.clear();
   document.querySelectorAll('.skur-vm-check').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('checked'); });
   const sa = document.getElementById('skurSelAll'); if (sa) sa.checked = false;
+  _skurLastCheckIdx = -1;
   skurUpdateBulkBar();
 }
 function skurUpdateBulkBar() {
@@ -5415,7 +5432,7 @@ function renderSkurVmGrid() {
       const tagsHtml = addBtn + tagsCore;
       const trCls = [checked && 'checked', oos && 'oos-row'].filter(Boolean).join(' ');
       return `<tr${trCls?` class="${trCls}"`:''}>
-        <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this)"${checked ? ' checked' : ''}></td>
+        <td><input type="checkbox" class="skur-vm-check" data-vmkey="${esc(k)}" onclick="skurOnVmCheck(this,event)" title="Tip: Shift-click to select a range"${checked ? ' checked' : ''}></td>
         <td><strong>${esc(v.name)||'<em>—</em>'}</strong></td>
         <td class="num">${v.cpus??'?'} / ${v.ram??'?'}</td>
         <td>${esc(v.os)||'—'}</td>
