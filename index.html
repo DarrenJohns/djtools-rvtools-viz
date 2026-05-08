@@ -142,6 +142,9 @@ body.dark .ic-tile-clickable:hover,[data-theme="dark"] .ic-tile-clickable:hover{
 .ic-demo-btn.is-active{background:var(--brand-primary);color:#fff;}
 .ic-demo-btn:hover:not(.is-active){background:rgba(15,108,189,.08);}
 .ic-privacy{text-align:center;font-size:.78rem;color:var(--text-muted);margin:0;}
+.ic-welcome{text-align:center;margin:0 0 18px;padding:0 8px;}
+.ic-welcome h2{font-size:1.35rem;font-weight:700;color:var(--primary);margin:0 0 6px;}
+.ic-welcome p{font-size:.9rem;color:var(--text-muted);margin:0 auto;max-width:720px;line-height:1.5;}
 .drop-zone:hover,.drop-zone.dragover{background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);border-color:var(--brand-primary);box-shadow:0 0 20px rgba(15,108,189,.1);}
 body.dark .drop-zone,[data-theme="dark"] .drop-zone{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linear-gradient(180deg,rgba(71,158,245,.12) 0%,rgba(71,158,245,.04) 100%);border-color:var(--brand-primary);}
@@ -980,6 +983,10 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- IMPORT (3-tile chooser: demo / new RVTools / saved workspace) -->
 <div class="section tab-pane upload-section active" id="importPane" data-tab="import">
   <div class="import-chooser" id="dropZone">
+    <div class="ic-welcome">
+      <h2>👋 Welcome to RVTools Visualiser</h2>
+      <p>Kickstart your Azure migration: turn an RVTools export into a live view of your on-prem estate, group VMs into a plan, and match them to Azure VM SKUs with indicative pricing — all in your browser.</p>
+    </div>
     <!-- Hidden file inputs — one per intent, plus a generic one used by 'Import another file' -->
     <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz,.json" onchange="handleFile(this.files[0])" hidden/>
     <input type="file" id="fileInputXlsx" accept=".xlsx,.xls" onchange="if(this.files[0]){handleFile(this.files[0]);}this.value='';" hidden/>
