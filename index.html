@@ -2853,40 +2853,45 @@ async function _skurMaybeResumeAutosave() {
       }
       _skurShowRestoreBanner(saved);
     } else {
-      // Friendly description of the saved dataset (avoid double-parens for demo).
-      const _sf = (saved.dataset.sourceFilename || '').trim();
-      const _vmN = saved.dataset.vmCount || '?';
-      const _isDemoSaved = (_sf.indexOf('(demo') === 0) || (typeof saved.dataset.fingerprint === 'string' && saved.dataset.fingerprint.indexOf('demo-') === 0);
+      // Saved-dataset label (friendly demo handling, no double-parens).
+      const _ssf = (saved.dataset.sourceFilename || '').trim();
+      const _svmN = saved.dataset.vmCount || '?';
+      const _isDemoSaved = (_ssf.indexOf('(demo') === 0) || (typeof saved.dataset.fingerprint === 'string' && saved.dataset.fingerprint.indexOf('demo-') === 0);
       const savedLabel = _isDemoSaved
-        ? `${_sf || 'the demo dataset'} — ${_vmN} VMs`
-        : `${_sf || 'an unknown file'} (${_vmN} VMs)`;
+        ? `${_ssf || 'the demo dataset'} · ${_svmN} VMs`
+        : `${_ssf || 'an unknown file'} · ${_svmN} VMs`;
+      // Current-dataset label for the comparison.
+      const _csf = (cur.sourceFilename || '').trim();
+      const _cvmN = (typeof allVMs !== 'undefined' && Array.isArray(allVMs)) ? allVMs.length : (cur.vmCount || '?');
+      const _isDemoCur = !!cur.isDemo || (typeof cur.fingerprint === 'string' && cur.fingerprint.indexOf('demo-') === 0);
+      const curLabel = _isDemoCur
+        ? `${_csf || 'the demo dataset'} · ${_cvmN} VMs`
+        : `${_csf || 'this dataset'} · ${_cvmN} VMs`;
       const when = new Date(saved.savedAt).toLocaleString();
       const ok = await skurConfirm(
-        `You set up groups, rules and tags on a different dataset earlier ` +
-        `(saved ${when} — ${savedLabel}).\n\n` +
-        `The data you've just loaded looks different. Want to try and reuse that saved work here?`,
+        `You earlier set up groups, rules and tags on a different dataset, ` +
+        `but the data you've just loaded isn't the same.\n\n` +
+        `• Saved workspace: ${savedLabel} (saved ${when})\n` +
+        `• Loaded now: ${curLabel}\n\n` +
+        `Reusing groups across datasets isn't safe — VM names like "db01" or "web01" ` +
+        `often repeat across estates, so matches can be wrong without you noticing.`,
         {
-          title: 'Reuse your saved workspace?',
-          okLabel: 'Reuse it',
-          cancelLabel: 'Discard saved',
+          title: '⚠️ Different dataset detected',
+          okLabel: 'Start fresh',
+          cancelLabel: 'Cancel',
           hint:
-            '<strong>Reuse it</strong> — match your saved groups, rules and tags onto the current data by VM name/ID. ' +
-            'Anything that matches comes back; anything that doesn\'t is listed so you can review it.<br><br>' +
-            '<strong>Discard saved</strong> — throw the earlier workspace away and start fresh on this dataset. ' +
-            'You won\'t be asked again.'
+            '<strong>Start fresh</strong> — discard the saved workspace and continue on this dataset clean.<br><br>' +
+            '<strong>Cancel</strong> — keep the saved workspace untouched. It will resume automatically next time you load the matching dataset. ' +
+            'Tip: to carry a workspace across datasets deliberately, use <strong>💾 Save workspace</strong> to export a <code>.rvz</code> bundle and re-import it.'
         }
       );
       if (ok) {
-        const snap = migrateWorkspace(saved.workspace);
-        const summary = _reconcileWorkspaceMembers(snap);
-        _applyWorkspaceSnapshot(snap);
-        if (typeof renderSkurGroups === 'function') renderSkurGroups();
-        if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
-        if (typeof renderTagRules === 'function') renderTagRules();
-        showToast(`↩ Reconciled autosave — ${summary.matchedVmIds.length} matched, ${summary.unmatchedVmIds.length} unresolved`);
-      } else {
+        // Start fresh — drop the autosave so we don't ask again on this dataset.
         try { localStorage.removeItem(RVTOOLS_AUTOSAVE_KEY); } catch(_){}
+        _skurAutosaveLast = '';
+        showToast('🧹 Saved workspace cleared — starting fresh on this dataset.');
       }
+      // Cancel: do nothing. Saved autosave stays intact for next matching load.
     }
   } catch (e) { console.warn('[autosave] resume probe failed:', e && e.message); }
 }
