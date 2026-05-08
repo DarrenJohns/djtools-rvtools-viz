@@ -161,6 +161,9 @@ body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linea
 .drop-zone h3{font-size:1.1rem;font-weight:700;color:var(--primary);margin-bottom:6px;}
 .drop-zone p{color:var(--text-muted);font-size:.9rem;}
 .file-info{margin-top:14px;padding:18px 22px;background:linear-gradient(135deg,rgba(16,124,16,.12),rgba(0,120,212,.08));border:1px solid rgba(16,124,16,.35);border-radius:12px;font-size:.92rem;color:var(--text);font-weight:600;display:none;line-height:1.5;}
+.file-status-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;}
+.file-status-bar .file-info{margin-top:0;flex:1;min-width:240px;}
+.file-status-bar #resetBtnWrap{margin-top:0 !important;}
 .file-info.error{background:rgba(209,52,56,.08);color:var(--danger);border:1px solid rgba(209,52,56,.3);}
 .file-info.error .help-line{display:block;margin-top:6px;font-weight:500;color:var(--text);opacity:.85;font-size:.82rem;}
 #resetBtn:hover{background:var(--card-bg);color:var(--text);border-color:var(--text-muted);}
@@ -1063,10 +1066,11 @@ body.dark .skur-group-chip{color:#b794f4;}
 
     <p class="ic-privacy" style="display:none;">🔒 Parses 100% in your browser — nothing is uploaded</p>
   </div>
-  <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
-  <div id="resetBtnWrap" style="margin-top:10px;text-align:center;display:none;">
-    <button id="importAnotherBtn" class="btn btn-primary" onclick="document.getElementById('fileInput').click()" style="margin-right:8px;">📥 Import another file</button>
-    <button id="resetBtn" class="btn btn-outline" onclick="clearLoadedData()">✖ Clear &amp; reset</button>
+  <div class="file-status-bar">
+    <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
+    <div id="resetBtnWrap" style="display:none;">
+      <button id="resetBtn" class="btn btn-outline" onclick="clearLoadedData()">✖ Clear &amp; reset</button>
+    </div>
   </div>
 </div>
 
