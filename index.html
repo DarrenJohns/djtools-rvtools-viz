@@ -142,11 +142,9 @@ body.dark .ic-tile:hover,[data-theme="dark"] .ic-tile:hover,body.dark .ic-tile-c
 @keyframes icTileBump{0%{transform:translateY(0);box-shadow:0 0 0 0 rgba(15,108,189,0);}30%{transform:translateY(-6px);box-shadow:0 10px 24px rgba(15,108,189,.22);}60%{transform:translateY(0);box-shadow:0 4px 12px rgba(15,108,189,.12);}100%{transform:translateY(0);box-shadow:0 0 0 0 rgba(15,108,189,0);}}
 .ic-tile.ic-bump{animation:icTileBump 2.2s cubic-bezier(.2,.8,.3,1.2) both;}
 @media (prefers-reduced-motion:reduce){.ic-tile.ic-bump{animation:none;}}
-.ic-tile-actions{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--brand-primary);margin-top:auto;}
-.ic-demo-btn{padding:7px 14px;border:none;cursor:pointer;font-weight:600;background:transparent;color:var(--brand-primary);font:inherit;font-size:.78rem;transition:background .15s,color .15s;}
-.ic-demo-btn.is-active{background:var(--brand-primary);color:#fff;}
-.ic-demo-btn:hover:not(.is-active),.ic-tile-demo:hover .ic-demo-btn:not(.is-active){background:rgba(15,108,189,.08);}
-.ic-demo-btn.is-active:hover{background:#0a4f8a;}
+.ic-tile-actions{display:flex;gap:10px;margin-top:auto;}
+.ic-demo-btn{padding:8px 14px;border:none;cursor:pointer;font-weight:600;background:rgba(15,108,189,.08);color:var(--brand-primary);font:inherit;font-size:.78rem;border-radius:6px;transition:background .15s,color .15s;}
+.ic-demo-btn:hover,.ic-tile-demo:hover .ic-demo-btn{background:var(--brand-primary);color:#fff;}
 .ic-privacy{text-align:center;font-size:.78rem;color:var(--text-muted);margin:0;}
 .ic-welcome{text-align:center;margin:0 0 22px;padding:0 8px;}
 .ic-welcome h2{font-size:1.35rem;font-weight:700;color:var(--primary);margin:0 0 6px;}
@@ -1036,7 +1034,7 @@ body.dark .skur-group-chip{color:#b794f4;}
         <p>Explore the app with sample data — no upload needed.</p>
         <div class="ic-tile-actions">
           <button id="sampleBtnVinfo" class="ic-demo-btn" onclick="event.stopPropagation();loadSampleData('vinfo')" type="button">📄 vInfo only</button>
-          <button id="sampleBtnFull"  class="ic-demo-btn is-active" onclick="event.stopPropagation();loadSampleData('full')" type="button">📊 Full demo</button>
+          <button id="sampleBtnFull"  class="ic-demo-btn" onclick="event.stopPropagation();loadSampleData('full')" type="button">📊 Full demo</button>
         </div>
       </div>
 
