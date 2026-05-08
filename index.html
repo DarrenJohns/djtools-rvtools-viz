@@ -118,7 +118,7 @@ body.dark nav,[data-theme="dark"] nav{background:linear-gradient(135deg,#1a1d24 
 .ic-tile-help{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:1px solid rgba(15,108,189,.35);background:rgba(255,255,255,.7);color:var(--brand-primary);font-size:12px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:help;padding:0;transition:background .15s,border-color .15s,transform .15s;z-index:2;}
 .ic-tile-help:hover,.ic-tile-help:focus-visible{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);transform:scale(1.08);outline:none;}
 body.dark .ic-tile-help,[data-theme="dark"] .ic-tile-help{background:rgba(15,23,42,.6);border-color:rgba(71,158,245,.5);color:#79bdf5;}
-.ic-tile-tip{position:absolute;bottom:38px;top:auto;left:8px;right:8px;background:#ffffff;color:#0f172a;border:1px solid rgba(15,23,42,.10);border-radius:8px;padding:10px 12px;font-size:.78rem;line-height:1.45;text-align:left;box-shadow:0 10px 28px rgba(15,23,42,.18);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .18s,transform .18s,visibility .18s;z-index:3;pointer-events:none;}
+.ic-tile-tip{position:absolute;bottom:calc(100% + 10px);top:auto;left:8px;right:8px;background:#ffffff;color:#0f172a;border:1px solid rgba(15,23,42,.10);border-radius:8px;padding:10px 12px;font-size:.78rem;line-height:1.45;text-align:left;box-shadow:0 10px 28px rgba(15,23,42,.18);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .18s,transform .18s,visibility .18s;z-index:3;pointer-events:none;}
 .ic-tile-tip::before{content:"";position:absolute;bottom:-6px;top:auto;right:14px;width:10px;height:10px;background:#ffffff;border-right:1px solid rgba(15,23,42,.10);border-bottom:1px solid rgba(15,23,42,.10);transform:rotate(45deg);}
 .ic-tile-tip strong{color:#0f172a;}
 .ic-tile-tip a{color:var(--brand-primary);font-weight:600;}
@@ -128,7 +128,7 @@ body.dark .ic-tile-tip strong,[data-theme="dark"] .ic-tile-tip strong{color:#fff
 body.dark .ic-tile-tip a,[data-theme="dark"] .ic-tile-tip a{color:#79bdf5;}
 .ic-tile-tip ol,.ic-tile-tip ul{margin:6px 0 0;padding-left:18px;}
 .ic-tile-tip li{margin:2px 0;}
-.ic-tile-help:hover + .ic-tile-tip,.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile-tip:hover,.ic-tile.tip-open .ic-tile-tip{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
+.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile.tip-open .ic-tile-tip{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
 .ic-tile.tip-open .ic-tile-help{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 body.dark .ic-tile,[data-theme="dark"] .ic-tile{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 .ic-tile-clickable{cursor:pointer;}
@@ -1987,28 +1987,55 @@ function showWelcomeAgain(){
   document.getElementById('welcomeModal').classList.add('active');
 }
 
-// Touch-friendly tile-tip toggle. The CSS-only :hover/:focus-visible path
-// doesn't fire on tap, so for touch devices we add an explicit tap-to-toggle
-// on the tile's '?' button. Tapping outside or pressing Escape closes any
-// open tip, and only one tip stays open at a time.
+// Touch-friendly tile-tip toggle. The tip is now opened/closed via JS so a
+// tap on the '?' can reliably toggle it off — relying on CSS :hover meant
+// that after a tap removed .tip-open the still-hovered button would
+// re-show the tip. Mouse hover is emulated below with explicit
+// mouseenter/leave that respects a sticky tap flag.
 function toggleTileTip(btn, ev){
   if (ev) { try { ev.stopPropagation(); ev.preventDefault(); } catch(_){} }
   const tile = btn && btn.closest && btn.closest('.ic-tile');
   if (!tile) return;
-  const isOpen = tile.classList.contains('tip-open');
-  document.querySelectorAll('.ic-tile.tip-open').forEach(t => t.classList.remove('tip-open'));
-  if (!isOpen) tile.classList.add('tip-open');
+  const wasSticky = tile.dataset.tipSticky === '1';
+  // Close any other open/sticky tip so only one shows at a time.
+  document.querySelectorAll('.ic-tile').forEach(t => {
+    if (t !== tile) { t.classList.remove('tip-open'); delete t.dataset.tipSticky; }
+  });
+  if (wasSticky) {
+    tile.classList.remove('tip-open');
+    delete tile.dataset.tipSticky;
+  } else {
+    tile.classList.add('tip-open');
+    tile.dataset.tipSticky = '1';
+  }
 }
+// Bind hover behavior in JS so it respects the sticky tap flag.
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.ic-tile-help').forEach(btn => {
+    const tile = btn.closest('.ic-tile');
+    if (!tile) return;
+    btn.addEventListener('mouseenter', () => {
+      if (tile.dataset.tipSticky !== '1') tile.classList.add('tip-open');
+    });
+    btn.addEventListener('mouseleave', () => {
+      if (tile.dataset.tipSticky !== '1') tile.classList.remove('tip-open');
+    });
+  });
+});
 document.addEventListener('click', (ev) => {
   const open = document.querySelector('.ic-tile.tip-open');
   if (!open) return;
   if (open.contains(ev.target)) return;
   open.classList.remove('tip-open');
+  delete open.dataset.tipSticky;
 });
 document.addEventListener('keydown', (ev) => {
   if (ev.key !== 'Escape') return;
   const open = document.querySelector('.ic-tile.tip-open');
-  if (open) open.classList.remove('tip-open');
+  if (open) {
+    open.classList.remove('tip-open');
+    delete open.dataset.tipSticky;
+  }
 });
 
 let _persistToastEl = null;
