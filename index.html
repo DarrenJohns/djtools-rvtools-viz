@@ -1073,7 +1073,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="file-status-bar">
       <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
       <div id="resetBtnWrap" style="display:none;">
-        <button id="resetBtn" class="btn btn-danger" onclick="clearLoadedData()">✖ Clear &amp; reset</button>
+        <button id="resetBtn" class="btn btn-danger" onclick="confirmClearLoadedData()">✖ Clear &amp; reset</button>
       </div>
     </div>
   </div>
@@ -2178,6 +2178,24 @@ function clearLoadedData() {
     // Fallback if the helper isn't loaded yet — still surface welcome.
     try { showWelcomeAgain(); } catch(_) {}
   }
+}
+
+// Confirmation wrapper for the destructive 'Clear & reset' button. Mirrors
+// the pattern used by 'Delete selected' on the rules table — skurConfirm
+// shows a styled modal so the user can't trigger a full wipe by accident.
+async function confirmClearLoadedData() {
+  let ok = true;
+  try {
+    if (typeof skurConfirm === 'function') {
+      ok = await skurConfirm('Clear loaded data and reset to the welcome screen?', {
+        okLabel: 'Clear & reset',
+        hint: '💡 Tip: save your work first via <strong>💾 Save workspace</strong> (Azure VMs &amp; Pricing tab) so you can resume later.',
+      });
+    } else {
+      ok = window.confirm('Clear loaded data and reset to the welcome screen?');
+    }
+  } catch(_) { ok = false; }
+  if (ok) clearLoadedData();
 }
 
 function handleFile(file) {
