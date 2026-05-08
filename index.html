@@ -1591,11 +1591,13 @@ body.dark .skur-group-chip{color:#b794f4;}
              style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);box-sizing:border-box;"
              onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('skurAddTagValInput').focus();}else if(event.key==='Escape'){event.preventDefault();skurCloseAddTagModal();}">
       <datalist id="skurAddTagKeyList"></datalist>
+      <p id="skurAddTagKeyHint" style="margin:4px 0 0;font-size:11px;color:var(--text-tertiary);line-height:1.4;"></p>
       <label for="skurAddTagValInput" style="display:block;font-size:12px;color:var(--text-secondary);margin:10px 0 4px;">Tag value</label>
       <input type="text" id="skurAddTagValInput" list="skurAddTagValList" placeholder="e.g. Production" autocomplete="off"
              style="width:100%;padding:8px 10px;font:inherit;font-size:13px;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-sm);color:var(--text-primary);box-sizing:border-box;"
              onkeydown="if(event.key==='Enter'){event.preventDefault();skurConfirmAddTag();}else if(event.key==='Escape'){event.preventDefault();skurCloseAddTagModal();}">
       <datalist id="skurAddTagValList"></datalist>
+      <p id="skurAddTagValHint" style="margin:4px 0 0;font-size:11px;color:var(--text-tertiary);line-height:1.4;"></p>
       <p id="skurAddTagError" style="color:var(--status-danger);font-size:12px;margin:6px 0 0;min-height:14px;"></p>
       <div class="modal-close-row">
         <button class="btn-outline" onclick="skurCloseAddTagModal()">Cancel</button>
@@ -4779,11 +4781,32 @@ function _skurOpenAddTagModalInternal() {
   const valDl = document.getElementById('skurAddTagValList');
   const keyInput = document.getElementById('skurAddTagKeyInput');
   const valInput = document.getElementById('skurAddTagValInput');
+  const keyHint = document.getElementById('skurAddTagKeyHint');
+  const valHint = document.getElementById('skurAddTagValHint');
+  const fmtList = (arr, max=8) => {
+    if (!arr || !arr.length) return '';
+    const shown = arr.slice(0, max).join(', ');
+    return arr.length > max ? `${shown}, +${arr.length - max} more` : shown;
+  };
+  if (keyHint) {
+    keyHint.textContent = keys.length
+      ? `Existing keys: ${fmtList(keys)} — or type a new one`
+      : 'No keys yet — type a new one (e.g. Environment, CostCenter).';
+  }
   const refreshVals = () => {
     if (!valDl) return;
     const k = (keyInput.value || '').trim();
     const vs = valuesByKey[k] ? [...valuesByKey[k]].sort() : [];
     valDl.innerHTML = vs.map(v => `<option value="${escAttr(v)}">`).join('');
+    if (valHint) {
+      if (!k) {
+        valHint.textContent = 'Tip: pick a key above to see existing values.';
+      } else if (vs.length) {
+        valHint.textContent = `Existing values for "${k}": ${fmtList(vs)} — or type a new one`;
+      } else {
+        valHint.textContent = `No values yet for "${k}" — type a new one.`;
+      }
+    }
   };
   keyInput.value = '';
   valInput.value = '';
