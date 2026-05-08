@@ -114,7 +114,17 @@ body.dark nav,[data-theme="dark"] nav{background:linear-gradient(135deg,#1a1d24 
 .import-chooser.dragover{outline:2px dashed var(--brand-primary);outline-offset:6px;border-radius:var(--radius-lg);background:rgba(15,108,189,.04);}
 .ic-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
 @media (max-width:900px){.ic-tiles{grid-template-columns:1fr;}}
-.ic-tile{background:linear-gradient(180deg,#f0f7ff 0%,#fafcff 100%);border:2px dashed #a0c4e8;border-radius:var(--radius-lg);padding:24px 20px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .15s ease,border-color .2s,box-shadow .2s,background .2s;min-height:200px;}
+.ic-tile{background:linear-gradient(180deg,#f0f7ff 0%,#fafcff 100%);border:2px dashed #a0c4e8;border-radius:var(--radius-lg);padding:24px 20px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .15s ease,border-color .2s,box-shadow .2s,background .2s;min-height:200px;position:relative;}
+.ic-tile-help{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;border:1px solid rgba(15,108,189,.35);background:rgba(255,255,255,.7);color:var(--brand-primary);font-size:12px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;cursor:help;padding:0;transition:background .15s,border-color .15s,transform .15s;z-index:2;}
+.ic-tile-help:hover,.ic-tile-help:focus-visible{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);transform:scale(1.08);outline:none;}
+body.dark .ic-tile-help,[data-theme="dark"] .ic-tile-help{background:rgba(15,23,42,.6);border-color:rgba(71,158,245,.5);color:#79bdf5;}
+.ic-tile-tip{position:absolute;top:38px;left:8px;right:8px;background:#1f2937;color:#f1f5f9;border-radius:8px;padding:10px 12px;font-size:.78rem;line-height:1.45;text-align:left;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .18s,transform .18s,visibility .18s;z-index:3;pointer-events:none;}
+.ic-tile-tip::before{content:"";position:absolute;top:-6px;left:14px;width:10px;height:10px;background:#1f2937;transform:rotate(45deg);}
+.ic-tile-tip strong{color:#fff;}
+.ic-tile-tip a{color:#79bdf5;font-weight:600;}
+.ic-tile-tip ol,.ic-tile-tip ul{margin:6px 0 0;padding-left:18px;}
+.ic-tile-tip li{margin:2px 0;}
+.ic-tile-help:hover + .ic-tile-tip,.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile-tip:hover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
 body.dark .ic-tile,[data-theme="dark"] .ic-tile{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 .ic-tile-clickable{cursor:pointer;}
 .ic-tile-clickable:hover,.ic-tile-clickable:focus-visible{border-color:var(--brand-primary);background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);box-shadow:0 4px 16px rgba(15,108,189,.12);transform:translateY(-2px);outline:none;}
@@ -978,6 +988,14 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="ic-tiles">
       <!-- Tile 1 — Demo -->
       <div class="ic-tile ic-tile-demo">
+        <button type="button" class="ic-tile-help" aria-label="About demo data" tabindex="0">?</button>
+        <div class="ic-tile-tip" role="tooltip">
+          <strong>Demo data</strong> — a synthetic 500-VM estate so you can explore the app without uploading anything.
+          <ul>
+            <li><strong>vInfo only</strong> — single-tab demo (basic dashboards)</li>
+            <li><strong>Full export</strong> — all tabs, richer dashboards</li>
+          </ul>
+        </div>
         <div class="ic-tile-icon">🎯</div>
         <h4>Try a demo</h4>
         <p>Explore the app with sample data — no upload needed.</p>
@@ -989,6 +1007,16 @@ body.dark .skur-group-chip{color:#b794f4;}
 
       <!-- Tile 2 — Load RVTools export -->
       <div class="ic-tile ic-tile-clickable" onclick="document.getElementById('fileInputXlsx').click()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInputXlsx').click();}">
+        <button type="button" class="ic-tile-help" aria-label="How to export from RVTools" tabindex="0" onclick="event.stopPropagation()">?</button>
+        <div class="ic-tile-tip" role="tooltip">
+          <strong>How to export from RVTools</strong>
+          <ol>
+            <li>Connect RVTools to your vCenter or ESXi host.</li>
+            <li><strong>File → Export all to Excel</strong>, save as <strong>.xlsx</strong>.</li>
+            <li>Drop the file on this tile (all tabs = richer analysis).</li>
+          </ol>
+          🆕 New to RVTools? <a href="https://www.dell.com/support/kbdoc/en-nz/000325532/rvtools" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">Download from Dell ↗</a>
+        </div>
         <div class="ic-tile-icon">📥</div>
         <h4>Load RVTools export</h4>
         <p>Upload your <strong>.xlsx</strong> RVTools export to analyse your own environment.</p>
@@ -997,6 +1025,14 @@ body.dark .skur-group-chip{color:#b794f4;}
 
       <!-- Tile 3 — Resume saved workspace -->
       <div class="ic-tile ic-tile-clickable" onclick="document.getElementById('fileInputRvz').click()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInputRvz').click();}">
+        <button type="button" class="ic-tile-help" aria-label="About saved workspaces" tabindex="0" onclick="event.stopPropagation()">?</button>
+        <div class="ic-tile-tip" role="tooltip">
+          <strong>Saved workspace (.rvz)</strong> — your RVTools data + groups, manual tags, auto-tag rules and plan settings, all in one file.
+          <ul>
+            <li>Save from the <strong>💾 Save workspace</strong> button on the Azure VMs &amp; Pricing tab.</li>
+            <li>Reopen here to pick up exactly where you left off.</li>
+          </ul>
+        </div>
         <div class="ic-tile-icon">📂</div>
         <h4>Resume saved workspace</h4>
         <p>Open a <strong>.rvz</strong> to pick up where you left off — RVTools data + groups + tags + rules.</p>
@@ -1011,16 +1047,6 @@ body.dark .skur-group-chip{color:#b794f4;}
     <button id="importAnotherBtn" class="btn btn-primary" onclick="document.getElementById('fileInput').click()" style="margin-right:8px;">📥 Import another file</button>
     <button id="resetBtn" class="btn btn-outline" onclick="clearLoadedData()">✖ Back to demo</button>
   </div>
-  <details id="howToExport" class="import-help">
-    <summary>📖 How do I export from RVTools?</summary>
-    <ol>
-      <li>Open RVTools and connect to your vCenter or ESXi host.</li>
-      <li>Go to <strong>File → Export all to Excel</strong> and save as <strong>.xlsx</strong>.</li>
-      <li>Drop the exported file above — include all tabs for maximum analysis depth.</li>
-    </ol>
-    <p style="margin:6px 0 0;opacity:.75;">Exporting individual tabs (e.g. vInfo only) will still work but with reduced analysis.</p>
-    <p style="margin:8px 0 0;">🆕 New to RVTools? <a href="https://www.dell.com/support/kbdoc/en-nz/000325532/rvtools" target="_blank" rel="noopener noreferrer" style="color:var(--primary);font-weight:600;">Download from Dell ↗</a></p>
-  </details>
 </div>
 
 <!-- TAB STRIP DUPLICATE REMOVED -->
