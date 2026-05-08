@@ -1579,6 +1579,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="modal-banner"><h2 id="skurConfirmTitle">Confirm</h2></div>
     <div class="modal-body">
       <p id="skurConfirmMessage" style="white-space:pre-line;font-size:13px;line-height:1.5;color:var(--text-primary);margin:0;"></p>
+      <p id="skurConfirmHint" style="display:none;font-size:12px;line-height:1.45;color:var(--text-secondary);margin:10px 0 0;padding:8px 10px;background:var(--bg-layer2);border-left:3px solid var(--brand-primary);border-radius:0 var(--radius-sm) var(--radius-sm) 0;"></p>
       <div class="modal-close-row">
         <button class="btn-outline" id="skurConfirmCancelBtn" onclick="_skurConfirmDone(false)">Cancel</button>
         <button class="btn-primary" id="skurConfirmOkBtn" onclick="_skurConfirmDone(true)">OK</button>
@@ -4535,7 +4536,7 @@ async function renameSkurGroup(id) {
 }
 async function deleteSkurGroup(id) {
   const g = skurGroups.find(x => x.id === id); if (!g) return;
-  if (!await skurConfirm(`Delete group "${g.name}" (${g.members.length} VM${g.members.length===1?'':'s'})? VMs go back to ungrouped.`, { okLabel: 'Delete group' })) return;
+  if (!await skurConfirm(`Delete group "${g.name}" (${g.members.length} VM${g.members.length===1?'':'s'})? VMs go back to ungrouped.`, { okLabel: 'Delete group', hint: '💡 Tip: you can restore groups later by importing a saved <strong>Workspace</strong> (💾 menu, top-right).' })) return;
   const idx = skurGroups.indexOf(g); if (idx >= 0) skurGroups.splice(idx, 1);
   if (skurExceptionFilter && skurExceptionFilter.groupId === id) skurExceptionFilter = null;
   renderSkurGroups();
@@ -4769,7 +4770,7 @@ function skurUpdateRulesBulkBar() {
 async function skurDeleteSelectedRules() {
   const ids = [...skurSelectedRuleIds];
   if (!ids.length) return;
-  if (!await skurConfirm(`Delete ${ids.length} selected rule${ids.length===1?'':'s'}?`, { okLabel: 'Delete rules' })) return;
+  if (!await skurConfirm(`Delete ${ids.length} selected rule${ids.length===1?'':'s'}?`, { okLabel: 'Delete rules', hint: '💡 Tip: you can restore rules later by importing a saved <strong>Workspace</strong> (💾 menu, top-right).' })) return;
   for (const id of ids) {
     const idx = skurTagRules.findIndex(x => x.id === id);
     if (idx >= 0) skurTagRules.splice(idx, 1);
@@ -4864,7 +4865,7 @@ function saveSkurRule() {
 async function deleteSkurRule(id) {
   const idx = skurTagRules.findIndex(x => x.id === id);
   if (idx < 0) return;
-  if (!await skurConfirm(`Delete rule "${skurTagRules[idx].tagKey}:${skurTagRules[idx].tagValue}"?`, { okLabel: 'Delete rule' })) return;
+  if (!await skurConfirm(`Delete rule "${skurTagRules[idx].tagKey}:${skurTagRules[idx].tagValue}"?`, { okLabel: 'Delete rule', hint: '💡 Tip: you can restore rules later by importing a saved <strong>Workspace</strong> (💾 menu, top-right).' })) return;
   skurTagRules.splice(idx, 1);
   renderSkurTagRules();
   renderSkurGroups();
@@ -6324,6 +6325,11 @@ function skurConfirm(message, opts = {}) {
     if (!modal) { resolve(window.confirm(message)); return; }
     document.getElementById('skurConfirmTitle').textContent = opts.title || 'Confirm';
     document.getElementById('skurConfirmMessage').textContent = String(message || '');
+    const hintEl = document.getElementById('skurConfirmHint');
+    if (hintEl) {
+      if (opts.hint) { hintEl.innerHTML = opts.hint; hintEl.style.display = ''; }
+      else { hintEl.innerHTML = ''; hintEl.style.display = 'none'; }
+    }
     const okBtn = document.getElementById('skurConfirmOkBtn');
     const cancelBtn = document.getElementById('skurConfirmCancelBtn');
     okBtn.textContent = opts.okLabel || 'OK';
