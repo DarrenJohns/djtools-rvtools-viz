@@ -1376,13 +1376,13 @@ body.dark .skur-group-chip{color:#b794f4;}
               </tr>
               <tr>
                 <th style="width:32px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
-                <th class="skur-sortable" data-key="name" onclick="skurSort('name')">VM</th>
-                <th class="skur-sortable" data-key="cpus" onclick="skurSort('cpus')">vCPU/RAM</th>
-                <th class="skur-sortable" data-key="os" onclick="skurSort('os')">OS</th>
-                <th class="skur-sortable" data-key="dc" onclick="skurSort('dc')">Datacenter</th>
-                <th class="skur-sortable" data-key="cluster" onclick="skurSort('cluster')">Cluster</th>
-                <th class="skur-sortable" data-key="groups" onclick="skurSort('groups')">Group(s)</th>
-                <th class="skur-sortable" data-key="tags" onclick="skurSort('tags')">Tags</th>
+                <th class="skur-sortable" data-key="name" style="width:140px;" onclick="skurSort('name')">VM</th>
+                <th class="skur-sortable" data-key="cpus" style="width:90px;white-space:nowrap;" onclick="skurSort('cpus')">vCPU/RAM</th>
+                <th class="skur-sortable" data-key="os" style="width:240px;" onclick="skurSort('os')">OS</th>
+                <th class="skur-sortable" data-key="dc" style="width:130px;" onclick="skurSort('dc')">Datacenter</th>
+                <th class="skur-sortable" data-key="cluster" style="width:140px;" onclick="skurSort('cluster')">Cluster</th>
+                <th class="skur-sortable" data-key="groups" style="min-width:220px;" onclick="skurSort('groups')">Group(s)</th>
+                <th class="skur-sortable" data-key="tags" style="min-width:240px;" onclick="skurSort('tags')">Tags</th>
               </tr>
             </thead>
             <tbody id="skurRows"></tbody>
