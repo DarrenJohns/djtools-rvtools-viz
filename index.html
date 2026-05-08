@@ -7099,7 +7099,8 @@ function showDemoSplash(mode){
 }
 
 function loadSampleData(mode) {
-  showDemoSplash(mode);
+  const isResume = !!window._skurAutoResumeNext;
+  if (!isResume) showDemoSplash(mode);
   window._isDemoMode = true;
   allVMs = [...SAMPLE_VMS];
   if (mode === 'full') {
