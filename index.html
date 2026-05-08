@@ -6027,10 +6027,17 @@ function _skurMaybeShowPreloadPrompt(){
     let lastDs = null;
     try { const r = localStorage.getItem('rvtools.lastDataset.v1'); lastDs = r ? JSON.parse(r) : null; } catch(_) {}
     const fingerprint = (saved && saved.dataset && saved.dataset.fingerprint) || (lastDs && lastDs.fingerprint) || null;
-    if (!fingerprint || typeof idbGetSourceBytes !== 'function') { el.hidden = true; return; }
+    if (!fingerprint) { el.hidden = true; return; }
+    // Demo sessions don't have cached .xlsx bytes — we re-run loadSampleData(mode)
+    // on Continue, so skip the IDB-bytes existence check for demo fingerprints.
+    const isDemoFp = typeof fingerprint === 'string' && fingerprint.indexOf('demo-') === 0;
+    const bytesProbe = isDemoFp
+      ? Promise.resolve({ buffer: { byteLength: 0 } })
+      : (typeof idbGetSourceBytes === 'function' ? idbGetSourceBytes(fingerprint) : Promise.resolve(null));
+    if (!isDemoFp && typeof idbGetSourceBytes !== 'function') { el.hidden = true; return; }
     // Verify cached bytes really exist before showing the prompt — otherwise
     // Continue would just dead-end with a "bytes missing" message.
-    idbGetSourceBytes(fingerprint).then(rec => {
+    bytesProbe.then(rec => {
       if (!rec || !rec.buffer) { el.hidden = true; return; }
       const meta = document.getElementById('autosavePromptMeta');
       if (meta) {
@@ -6069,6 +6076,17 @@ async function _skurContinueAutosave(){
       return;
     }
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Loading…'; }
+    // Demo sessions: re-run loadSampleData(mode) and let the post-load
+    // _skurMaybeResumeAutosave silently re-apply the workspace.
+    if (typeof ds.fingerprint === 'string' && ds.fingerprint.indexOf('demo-') === 0) {
+      const mode = ds.demoMode || ds.fingerprint.slice('demo-'.length) || 'full';
+      document.getElementById('autosavePrompt').hidden = true;
+      window._skurAutoResumeNext = true;
+      window._skurSuppressToasts = true;
+      setTimeout(() => { window._skurSuppressToasts = false; }, 30000);
+      try { loadSampleData(mode); } catch (e) { console.warn('[autosave] demo resume failed:', e && e.message); }
+      return;
+    }
     const rec = await idbGetSourceBytes(ds.fingerprint);
     if (!rec || !rec.buffer) {
       // No cached bytes locally — leave the banner up and prompt the user to
@@ -7106,6 +7124,33 @@ function loadSampleData(mode) {
   updateTabBadges();
   openAllPaneBodies();
   activateTab('overview');
+  // Stamp demo runs with a synthetic dataset identity so the autosave tick
+  // and pre-load resume banner work the same way as real RVTools imports.
+  // Demo has no .xlsx bytes to cache — we use a `demo-<mode>` fingerprint
+  // and the resume path re-calls loadSampleData(mode) instead of parsing.
+  try {
+    const fp = 'demo-' + mode;
+    const fname = mode === 'full' ? '(demo data — full export)' : '(demo data — vInfo only)';
+    window.__rvtoolsCurrent = {
+      fingerprint: fp,
+      sourceFilename: fname,
+      vmCount: allVMs.length,
+      isDemo: true,
+      demoMode: mode,
+    };
+    try {
+      localStorage.setItem('rvtools.lastDataset.v1', JSON.stringify({
+        fingerprint: fp,
+        sourceFilename: fname,
+        vmCount: allVMs.length,
+        isDemo: true,
+        demoMode: mode,
+        savedAt: new Date().toISOString(),
+      }));
+    } catch (_) {}
+    if (typeof _skurMaybeResumeAutosave === 'function') _skurMaybeResumeAutosave();
+    if (typeof _skurStartAutosave === 'function') _skurStartAutosave();
+  } catch (_) {}
 }
 
 function restoreSectionVisibility(key) {
