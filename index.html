@@ -4442,6 +4442,11 @@ function skurOpenAutoGroupModal() {
     return `<div class="skur-ag-group"><div class="skur-ag-group-head"><span>${_skurAgEsc(k)}</span><span class="skur-ag-key-meta">${vals.length} value${vals.length===1?'':'s'}</span></div><div class="skur-ag-values">${chips}</div></div>`;
   }).join('');
   const flt = document.getElementById('skurAgFilter'); if (flt) flt.value = '';
+  // Hide the filter input when the list is small enough to scan visually
+  const totalVals = keys.reduce((acc, k) => acc + Object.keys(km[k]).length, 0);
+  const showFilter = keys.length >= 4 || totalVals >= 10;
+  const fltWrap = document.querySelector('.skur-ag-filter');
+  if (fltWrap) fltWrap.style.display = showFilter ? '' : 'none';
   const nm  = document.getElementById('skurAgName');   if (nm)  nm.value  = '';
   // Reset mode to AND on open so each session starts predictable.
   skurAgSetMode('AND');
