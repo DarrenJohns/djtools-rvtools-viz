@@ -138,6 +138,7 @@ body.dark .ic-tile:hover,[data-theme="dark"] .ic-tile:hover,body.dark .ic-tile-c
 .ic-tile h4{font-size:1.05rem;font-weight:700;color:var(--primary);margin:0;}
 .ic-tile p{font-size:.82rem;color:var(--text-muted);margin:0 0 4px;line-height:1.45;}
 .ic-tile-cta{margin-top:auto;font-size:.78rem;font-weight:600;color:var(--brand-primary);padding:8px 14px;background:rgba(15,108,189,.08);border-radius:6px;}
+.ic-tile-clickable:hover .ic-tile-cta,.ic-tile-clickable:focus-visible .ic-tile-cta{background:var(--brand-primary);color:#fff;}
 @keyframes icTileBump{0%{transform:translateY(0);box-shadow:0 0 0 0 rgba(15,108,189,0);}30%{transform:translateY(-6px);box-shadow:0 10px 24px rgba(15,108,189,.22);}60%{transform:translateY(0);box-shadow:0 4px 12px rgba(15,108,189,.12);}100%{transform:translateY(0);box-shadow:0 0 0 0 rgba(15,108,189,0);}}
 .ic-tile.ic-bump{animation:icTileBump 2.2s cubic-bezier(.2,.8,.3,1.2) both;}
 @media (prefers-reduced-motion:reduce){.ic-tile.ic-bump{animation:none;}}
