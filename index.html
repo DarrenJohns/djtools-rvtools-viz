@@ -7172,6 +7172,20 @@ function loadSampleData(mode) {
     allData = { vInfo: allVMs };
   }
   filteredVMs = [...allVMs];
+  // Surface the same "loaded" UI bits as a real import so the user sees the
+  // status line + 'Clear & reset' button on Start here. Without this the
+  // demo path leaves the 3-tile picker showing as if nothing was loaded.
+  try {
+    const fi = document.getElementById('fileInfo');
+    if (fi) {
+      fi.className = 'file-info';
+      fi.style.display = 'block';
+      const label = mode === 'full' ? 'Full demo dataset' : 'vInfo-only demo dataset';
+      fi.innerHTML = `✅ Loaded: ${label} — ${allVMs.length} sample VMs`;
+    }
+    const wrap = document.getElementById('resetBtnWrap');
+    if (wrap) wrap.style.display = 'block';
+  } catch(_) {}
   // Update toggle button styles
   const btnV = document.getElementById('sampleBtnVinfo');
   const btnF = document.getElementById('sampleBtnFull');
