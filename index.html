@@ -616,6 +616,16 @@ footer strong{opacity:1;}
 .skur-ag-preview{margin:10px 0 6px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
 .skur-ag-preview.is-ok{color:var(--brand-primary);border-color:rgba(15,108,189,.3);background:rgba(15,108,189,.06);}
 .skur-ag-preview.is-empty{color:#d13438;border-color:rgba(209,52,56,.3);background:rgba(209,52,56,.05);}
+.skur-ag-mode{display:inline-flex;border:1px solid var(--border-default);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:10px;background:var(--bg-layer1);}
+.skur-ag-mode-btn{font:inherit;font-size:12px;padding:6px 14px;background:transparent;color:var(--text-secondary);border:none;cursor:pointer;font-weight:600;border-right:1px solid var(--border-default);}
+.skur-ag-mode-btn:last-child{border-right:none;}
+.skur-ag-mode-btn:hover:not(.is-active):not(:disabled){background:var(--bg-layer2);}
+.skur-ag-mode-btn.is-active{background:var(--brand-primary);color:#fff;}
+.skur-ag-mode-btn:disabled{opacity:.5;cursor:not-allowed;}
+.skur-ag-warn{margin:6px 0 0;padding:7px 10px;font-size:12px;border-radius:var(--radius-sm);border:1px solid #ffc83d;background:rgba(255,200,61,.10);color:#8a5a00;}
+[data-theme="dark"] .skur-ag-warn,body.dark .skur-ag-warn{color:#ffc83d;}
+.skur-ag-val .skur-ag-count.is-ctx{background:var(--brand-primary);color:#fff;opacity:.85;}
+.skur-ag-val.disabled .skur-ag-count{background:var(--bg-layer2);color:var(--text-tertiary);}
 /* Sizing groups */
 .skur-groups-card{border:1px solid var(--border-default);border-radius:var(--radius-md);padding:14px 16px;background:var(--bg-layer1);}
 .skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
@@ -1466,12 +1476,17 @@ body.dark .skur-group-chip{color:#b794f4;}
         <label for="skurAgName">New VM Group name</label>
         <input type="text" id="skurAgName" placeholder="e.g. Auckland Production Web" autocomplete="off">
       </div>
-      <div class="skur-ag-lead">Pick the specific tag values to include. VMs matching <strong>any</strong> ticked value within each key (and <strong>every</strong> key with ticks) join the group.</div>
+      <div class="skur-ag-lead">Pick tag values to include and choose how to combine keys. The preview updates as you tick.</div>
+      <div class="skur-ag-mode" role="tablist" aria-label="Match mode">
+        <button type="button" class="skur-ag-mode-btn is-active" data-mode="AND" onclick="skurAgSetMode('AND')" role="tab" aria-selected="true" title="VMs must match every key with ticks (intersection)">Match all keys (AND)</button>
+        <button type="button" class="skur-ag-mode-btn" data-mode="OR" onclick="skurAgSetMode('OR')" role="tab" aria-selected="false" title="VMs match if they hit any ticked value in any key (union)">Match any key (OR)</button>
+      </div>
       <div class="skur-ag-filter">
         <input type="text" id="skurAgFilter" placeholder="🔍 Filter tag keys / values…" oninput="skurFilterAgList()" autocomplete="off">
       </div>
       <div class="skur-ag-list" id="skurAgList"></div>
       <div class="skur-ag-preview" id="skurAgPreview">Tick at least one tag value to preview matches.</div>
+      <div class="skur-ag-warn" id="skurAgWarn" style="display:none;"></div>
       <div class="modal-close-row">
         <button class="btn-outline" onclick="skurCloseAutoGroupModal()">Cancel</button>
         <button class="btn-primary" id="skurAgConfirmBtn" onclick="skurConfirmAutoGroup()">Create group</button>
@@ -4311,13 +4326,29 @@ function _skurAgGetSelections() {
   });
   return sel;
 }
-function _skurAgBuildFilteredVms(sel) {
+function _skurAgBuildFilteredVms(sel, mode) {
   const keys = Object.keys(sel);
   if (!keys.length) return [];
+  const m = mode || _skurAgMode || 'AND';
   return (allVMs || []).filter(v => {
     const tags = skurTagsForVm(v);
+    if (m === 'OR') {
+      return keys.some(k => tags.some(t => t.key === k && sel[k].has(t.value)));
+    }
     return keys.every(k => tags.some(t => t.key === k && sel[k].has(t.value)));
   });
+}
+let _skurAgMode = 'AND';
+function skurAgSetMode(mode) {
+  if (mode !== 'AND' && mode !== 'OR') return;
+  _skurAgMode = mode;
+  document.querySelectorAll('.skur-ag-mode-btn').forEach(b => {
+    const on = b.dataset.mode === mode;
+    b.classList.toggle('is-active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  _skurAgRefreshDisabled();
+  _skurAgUpdatePreview();
 }
 function skurOpenAutoGroupModal() {
   const km = _skurAgBuildKeyMap();
@@ -4331,12 +4362,14 @@ function skurOpenAutoGroupModal() {
   list.innerHTML = keys.map(k => {
     const vals = Object.entries(km[k]).sort((a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: 'base' }));
     const chips = vals.map(([val, cnt]) =>
-      `<label class="skur-ag-val" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}"><input type="checkbox" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}" onchange="skurOnAgValChange(this)"><span>${_skurAgEsc(val)}</span><span class="skur-ag-count">${cnt}</span></label>`
+      `<label class="skur-ag-val" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}"><input type="checkbox" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}" onchange="skurOnAgValChange(this)"><span>${_skurAgEsc(val)}</span><span class="skur-ag-count" data-global="${cnt}">${cnt}</span></label>`
     ).join('');
     return `<div class="skur-ag-group"><div class="skur-ag-group-head"><span>${_skurAgEsc(k)}</span><span class="skur-ag-key-meta">${vals.length} value${vals.length===1?'':'s'}</span></div><div class="skur-ag-values">${chips}</div></div>`;
   }).join('');
   const flt = document.getElementById('skurAgFilter'); if (flt) flt.value = '';
   const nm  = document.getElementById('skurAgName');   if (nm)  nm.value  = '';
+  // Reset mode to AND on open so each session starts predictable.
+  skurAgSetMode('AND');
   _skurAgUpdatePreview();
   document.getElementById('skurAutoGroupModal').classList.add('show');
   setTimeout(() => { const n = document.getElementById('skurAgName'); if (n) n.focus(); }, 50);
@@ -4380,41 +4413,70 @@ function skurOnAgValChange(cb) {
 }
 function _skurAgRefreshDisabled() {
   const sel = _skurAgGetSelections();
+  const hasSel = Object.keys(sel).length > 0;
+  const mode = _skurAgMode;
+  // Toggle buttons: disable when fewer than 2 keys have ticks (AND ≡ OR in that case).
+  const keysWithTicks = Object.keys(sel).length;
+  document.querySelectorAll('.skur-ag-mode-btn').forEach(b => { b.disabled = keysWithTicks < 2; });
   document.querySelectorAll('#skurAgList .skur-ag-val').forEach(chip => {
     const cb = chip.querySelector('input');
-    if (cb.checked) { chip.classList.remove('disabled'); cb.disabled = false; return; }
     const k = cb.dataset.key, val = cb.dataset.val;
+    const cntEl = chip.querySelector('.skur-ag-count');
+    if (cntEl && !cntEl.dataset.global) cntEl.dataset.global = cntEl.textContent;
+    const global = cntEl ? parseInt(cntEl.dataset.global, 10) : 0;
+    if (cb.checked || !hasSel) {
+      if (cntEl) { cntEl.textContent = String(global); cntEl.classList.remove('is-ctx'); }
+      chip.classList.remove('disabled');
+      cb.disabled = false;
+      return;
+    }
+    // Compute contextual count: count of VMs that would match if this chip were ticked.
     const trial = {};
     Object.keys(sel).forEach(sk => { trial[sk] = new Set(sel[sk]); });
     (trial[k] = trial[k] || new Set()).add(val);
-    const matched = _skurAgBuildFilteredVms(trial);
-    const disable = matched.length === 0;
-    chip.classList.toggle('disabled', disable);
-    cb.disabled = disable;
+    const ctx = _skurAgBuildFilteredVms(trial, mode).length;
+    if (cntEl) {
+      cntEl.textContent = (ctx === global) ? String(global) : `${ctx} / ${global}`;
+      cntEl.classList.toggle('is-ctx', ctx !== global);
+    }
+    // Per design: dim at 0 but don't hard-disable — user can still click (mode toggle is the escape hatch).
+    chip.classList.toggle('disabled', ctx === 0);
+    cb.disabled = false;
   });
 }
 function _skurAgUpdatePreview() {
   const prev = document.getElementById('skurAgPreview');
   const btn = document.getElementById('skurAgConfirmBtn');
+  const warn = document.getElementById('skurAgWarn');
   if (!prev) return;
   const sel = _skurAgGetSelections();
   const keys = Object.keys(sel);
+  if (warn) { warn.style.display = 'none'; warn.textContent = ''; }
   if (!keys.length) {
     prev.className = 'skur-ag-preview';
     prev.textContent = 'Tick at least one tag value to preview matches.';
     if (btn) btn.disabled = true;
     return;
   }
-  const matched = _skurAgBuildFilteredVms(sel);
-  const summary = keys.map(k => `${k} ∈ {${[...sel[k]].join(', ')}}`).join('  AND  ');
+  const mode = _skurAgMode;
+  const joiner = (mode === 'OR') ? '  OR  ' : '  AND  ';
+  const matched = _skurAgBuildFilteredVms(sel, mode);
+  const summary = keys.map(k => `${k} ∈ {${[...sel[k]].join(', ')}}`).join(joiner);
   if (!matched.length) {
     prev.className = 'skur-ag-preview is-empty';
-    prev.innerHTML = `⛔ <strong>No VMs match</strong> · ${_skurAgEsc(summary)}`;
-    if (btn) btn.disabled = true;
+    prev.innerHTML = `⛔ <strong>No VMs match</strong> — adjust ticks${keys.length>=2 ? ' or switch matching mode' : ''}. <span style="opacity:.85;">${_skurAgEsc(summary)}</span>`;
+    if (btn) { btn.disabled = true; btn.title = 'Cannot create a group with 0 matching VMs'; }
   } else {
     prev.className = 'skur-ag-preview is-ok';
     prev.innerHTML = `✓ <strong>${matched.length} VM${matched.length===1?'':'s'}</strong> match · ${_skurAgEsc(summary)}`;
-    if (btn) btn.disabled = false;
+    if (btn) { btn.disabled = false; btn.title = ''; }
+    // Threshold warning for OR mode: > 50% of inventory.
+    const total = (allVMs || []).length;
+    if (warn && mode === 'OR' && total > 0 && matched.length / total > 0.5) {
+      const pct = Math.round((matched.length / total) * 100);
+      warn.style.display = '';
+      warn.innerHTML = `⚠ Group includes <strong>${matched.length} of ${total} VMs (${pct}%)</strong> — consider narrowing or switching to <strong>match all</strong>.`;
+    }
   }
 }
 function skurConfirmAutoGroup() {
@@ -4426,7 +4488,8 @@ function skurConfirmAutoGroup() {
   }
   const sel = _skurAgGetSelections();
   if (!Object.keys(sel).length) { alert('Tick at least one tag value.'); return; }
-  const matched = _skurAgBuildFilteredVms(sel);
+  const mode = _skurAgMode || 'AND';
+  const matched = _skurAgBuildFilteredVms(sel, mode);
   if (!matched.length) { alert('No VMs match the selected tag values.'); return; }
   const memberKeys = matched.map(v => skurVmKey(v));
   // Strip these VMs from any existing group / OOS so they live in the new group cleanly.
@@ -4434,7 +4497,7 @@ function skurConfirmAutoGroup() {
   if (typeof skurOutOfScope !== 'undefined' && skurOutOfScope) {
     memberKeys.forEach(k => { if (skurOutOfScope[k]) delete skurOutOfScope[k]; });
   }
-  const g = { id: skurNewGroupId(), name, mode: 'balanced', term: 'payg', ahub: false, members: memberKeys, pinned: false };
+  const g = { id: skurNewGroupId(), name, mode: 'balanced', term: 'payg', ahub: false, members: memberKeys, pinned: false, combinator: mode };
   skurGroups.push(g);
   skurActiveGroupId = g.id;
   skurCloseAutoGroupModal();
