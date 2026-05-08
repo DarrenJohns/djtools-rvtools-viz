@@ -989,14 +989,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <div class="import-chooser" id="dropZone">
     <div class="ic-welcome">
       <h2>👋 Welcome to RVTools Visualiser</h2>
-      <p>Kickstart your Azure migration journey, right from your browser:</p>
-      <ul class="ic-welcome-list">
-        <li><span>📂</span><span><strong>Load</strong> an RVTools export, a saved workspace, or our demo data</span></li>
-        <li><span>📊</span><span><strong>Visualise</strong> your current on-prem estate across grouped dashboards</span></li>
-        <li><span>🎯</span><span><strong>Plan</strong> by mapping VMs into the shape of your Azure migration</span></li>
-        <li><span>💰</span><span><strong>Azure match</strong> VMs to recommended SKUs with indicative pricing</span></li>
-        <li><span>🔒</span><span><strong>Private</strong> by design — nothing leaves your browser</span></li>
-      </ul>
+      <p>Kickstart your Azure migration journey, right from your browser. Load an RVTools export, a saved workspace, or our demo data to visualise your current on-prem estate across grouped dashboards. From there, plan by mapping VMs into the shape of your migration and match them to Azure VM SKUs with indicative pricing. Everything runs locally — your files never leave your browser.</p>
     </div>
     <!-- Hidden file inputs — one per intent, plus a generic one used by 'Import another file' -->
     <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz,.json" onchange="handleFile(this.files[0])" hidden/>
@@ -1058,7 +1051,7 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
     </div>
 
-    <p class="ic-privacy">🔒 Parses 100% in your browser — nothing is uploaded</p>
+    <p class="ic-privacy" style="display:none;">🔒 Parses 100% in your browser — nothing is uploaded</p>
   </div>
   <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
   <div id="resetBtnWrap" style="margin-top:10px;text-align:center;display:none;">
