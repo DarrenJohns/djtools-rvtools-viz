@@ -626,11 +626,12 @@ footer strong{opacity:1;}
 .skur-ag-preview{margin:10px 0 6px;padding:8px 10px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);}
 .skur-ag-preview.is-ok{color:var(--brand-primary);border-color:rgba(15,108,189,.3);background:rgba(15,108,189,.06);}
 .skur-ag-preview.is-empty{color:#d13438;border-color:rgba(209,52,56,.3);background:rgba(209,52,56,.05);}
-.skur-ag-mode{display:inline-flex;border:1px solid var(--border-default);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:10px;background:var(--bg-layer1);}
-.skur-ag-mode-btn{font:inherit;font-size:12px;padding:6px 14px;background:transparent;color:var(--text-secondary);border:none;cursor:pointer;font-weight:600;border-right:1px solid var(--border-default);}
-.skur-ag-mode-btn:last-child{border-right:none;}
-.skur-ag-mode-btn:hover:not(.is-active):not(:disabled){background:var(--bg-layer2);}
-.skur-ag-mode-btn.is-active{background:var(--brand-primary);color:#fff;}
+.skur-ag-mode{display:inline-flex;gap:4px;padding:4px;border:1px solid var(--border-default);border-radius:999px;background:var(--bg-layer2);margin-bottom:10px;align-items:center;width:auto;box-shadow:inset 0 1px 2px rgba(0,0,0,.04);}
+.skur-ag-mode-btn{font:inherit;font-size:12px;padding:6px 16px;background:transparent;color:var(--text-secondary);border:1px solid transparent;border-radius:999px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:background .15s ease,color .15s ease,box-shadow .15s ease,border-color .15s ease;line-height:1;}
+.skur-ag-mode-btn .skur-ag-mode-glyph{font-size:14px;line-height:1;opacity:.8;}
+.skur-ag-mode-btn:hover:not(.is-active):not(:disabled){background:var(--bg-layer1);color:var(--text-primary);}
+.skur-ag-mode-btn.is-active{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);box-shadow:0 1px 2px rgba(0,120,212,.3),0 0 0 1px rgba(255,255,255,.4) inset;}
+.skur-ag-mode-btn.is-active .skur-ag-mode-glyph{opacity:1;}
 .skur-ag-mode-btn:disabled{opacity:.5;cursor:not-allowed;}
 .skur-ag-warn{margin:6px 0 0;padding:7px 10px;font-size:12px;border-radius:var(--radius-sm);border:1px solid #ffc83d;background:rgba(255,200,61,.10);color:#8a5a00;}
 [data-theme="dark"] .skur-ag-warn,body.dark .skur-ag-warn{color:#ffc83d;}
@@ -1489,8 +1490,8 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
       <div class="skur-ag-lead">Pick tag values to include and choose how to combine keys. The preview updates as you tick.</div>
       <div class="skur-ag-mode" role="tablist" aria-label="Match mode">
-        <button type="button" class="skur-ag-mode-btn is-active" data-mode="AND" onclick="skurAgSetMode('AND')" role="tab" aria-selected="true" title="VMs must match every key with ticks (intersection)">Match all keys (AND)</button>
-        <button type="button" class="skur-ag-mode-btn" data-mode="OR" onclick="skurAgSetMode('OR')" role="tab" aria-selected="false" title="VMs match if they hit any ticked value in any key (union)">Match any key (OR)</button>
+        <button type="button" class="skur-ag-mode-btn is-active" data-mode="AND" onclick="skurAgSetMode('AND')" role="tab" aria-selected="true" title="VMs must match every key with ticks (intersection)"><span class="skur-ag-mode-glyph" aria-hidden="true">∩</span>Match all keys (AND)</button>
+        <button type="button" class="skur-ag-mode-btn" data-mode="OR" onclick="skurAgSetMode('OR')" role="tab" aria-selected="false" title="VMs match if they hit any ticked value in any key (union)"><span class="skur-ag-mode-glyph" aria-hidden="true">∪</span>Match any key (OR)</button>
       </div>
       <div class="skur-ag-filter">
         <input type="text" id="skurAgFilter" placeholder="🔍 Filter tag keys / values…" oninput="skurFilterAgList()" autocomplete="off" maxlength="100">
