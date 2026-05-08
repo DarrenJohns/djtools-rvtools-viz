@@ -109,6 +109,26 @@ body.dark nav,[data-theme="dark"] nav{background:linear-gradient(135deg,#1a1d24 
 /* UPLOAD */
 .upload-section{padding:28px 24px;max-width:1400px;margin:0 auto;}
 .drop-zone{border:2px dashed #a0c4e8;border-radius:var(--radius-lg);padding:48px;text-align:center;cursor:pointer;transition:all .2s;background:linear-gradient(180deg,#f0f7ff 0%,#fafcff 100%);position:relative;}
+/* Three-tile import chooser (replaces single drop zone). #dropZone retained as wrapper id for legacy show/hide + drag handlers. */
+.import-chooser{padding:8px 0 4px;}
+.import-chooser.dragover{outline:2px dashed var(--brand-primary);outline-offset:6px;border-radius:var(--radius-lg);background:rgba(15,108,189,.04);}
+.ic-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;}
+@media (max-width:900px){.ic-tiles{grid-template-columns:1fr;}}
+.ic-tile{background:linear-gradient(180deg,#f0f7ff 0%,#fafcff 100%);border:2px dashed #a0c4e8;border-radius:var(--radius-lg);padding:24px 20px 22px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .15s ease,border-color .2s,box-shadow .2s,background .2s;min-height:200px;}
+body.dark .ic-tile,[data-theme="dark"] .ic-tile{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
+.ic-tile-clickable{cursor:pointer;}
+.ic-tile-clickable:hover,.ic-tile-clickable:focus-visible{border-color:var(--brand-primary);background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);box-shadow:0 4px 16px rgba(15,108,189,.12);transform:translateY(-2px);outline:none;}
+body.dark .ic-tile-clickable:hover,[data-theme="dark"] .ic-tile-clickable:hover{background:linear-gradient(180deg,rgba(71,158,245,.12) 0%,rgba(71,158,245,.04) 100%);}
+.ic-tile-icon{font-size:34px;line-height:1;margin-bottom:2px;}
+.ic-tile h4{font-size:1.05rem;font-weight:700;color:var(--primary);margin:0;}
+.ic-tile p{font-size:.82rem;color:var(--text-muted);margin:0 0 4px;line-height:1.45;}
+.ic-tile-cta{margin-top:auto;font-size:.78rem;font-weight:600;color:var(--brand-primary);padding:8px 14px;background:rgba(15,108,189,.08);border-radius:6px;}
+.ic-tile-clickable:hover .ic-tile-cta,.ic-tile-clickable:focus-visible .ic-tile-cta{background:var(--brand-primary);color:#fff;}
+.ic-tile-actions{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--brand-primary);margin-top:auto;}
+.ic-demo-btn{padding:7px 14px;border:none;cursor:pointer;font-weight:600;background:transparent;color:var(--brand-primary);font:inherit;font-size:.78rem;transition:background .15s,color .15s;}
+.ic-demo-btn.is-active{background:var(--brand-primary);color:#fff;}
+.ic-demo-btn:hover:not(.is-active){background:rgba(15,108,189,.08);}
+.ic-privacy{text-align:center;font-size:.78rem;color:var(--text-muted);margin:0;}
 .drop-zone:hover,.drop-zone.dragover{background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);border-color:var(--brand-primary);box-shadow:0 0 20px rgba(15,108,189,.1);}
 body.dark .drop-zone,[data-theme="dark"] .drop-zone{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linear-gradient(180deg,rgba(71,158,245,.12) 0%,rgba(71,158,245,.04) 100%);border-color:var(--brand-primary);}
@@ -944,30 +964,49 @@ body.dark .skur-group-chip{color:#b794f4;}
   <button class="btn btn-primary btn-sm" onclick="activateTab('import')">📥 Go to Import</button>
 </div>
 
-<!-- IMPORT (drop zone + how-to) -->
+<!-- IMPORT (3-tile chooser: demo / new RVTools / saved workspace) -->
 <div class="section tab-pane upload-section active" id="importPane" data-tab="import">
-  <div class="drop-zone" id="dropZone">
-    <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz,.json" onchange="handleFile(this.files[0])"/>
-    <div class="drop-icon">📂</div>
-    <h3>Drop a file here</h3>
-    <p style="margin:0;font-size:.9rem;color:var(--text-muted);font-weight:500;">or click to browse</p>
-    <p style="margin:8px 0 0;font-size:.78rem;color:var(--text-muted);">
-      Accepts <strong>.xlsx</strong> RVTools export · <strong>.rvz</strong> saved scenario · <strong>.json</strong> saved workspace
-    </p>
-    <p style="margin:10px 0 0;font-size:.78rem;color:var(--text-muted);">🔒 Parses 100% in your browser — nothing is uploaded</p>
+  <div class="import-chooser" id="dropZone">
+    <!-- Hidden file inputs — one per intent, plus a generic one used by 'Import another file' -->
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.rvz,.json" onchange="handleFile(this.files[0])" hidden/>
+    <input type="file" id="fileInputXlsx" accept=".xlsx,.xls" onchange="if(this.files[0]){handleFile(this.files[0]);}this.value='';" hidden/>
+    <input type="file" id="fileInputRvz"  accept=".rvz"        onchange="if(this.files[0]){handleFile(this.files[0]);}this.value='';" hidden/>
+
+    <div class="ic-tiles">
+      <!-- Tile 1 — Demo -->
+      <div class="ic-tile ic-tile-demo">
+        <div class="ic-tile-icon">🎯</div>
+        <h4>Try a demo</h4>
+        <p>Explore the app with sample data — no upload needed.</p>
+        <div class="ic-tile-actions">
+          <button id="sampleBtnVinfo" class="ic-demo-btn" onclick="event.stopPropagation();loadSampleData('vinfo')" type="button">📄 vInfo only</button>
+          <button id="sampleBtnFull"  class="ic-demo-btn is-active" onclick="event.stopPropagation();loadSampleData('full')" type="button">📊 Full export</button>
+        </div>
+      </div>
+
+      <!-- Tile 2 — Load RVTools export -->
+      <div class="ic-tile ic-tile-clickable" onclick="document.getElementById('fileInputXlsx').click()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInputXlsx').click();}">
+        <div class="ic-tile-icon">📥</div>
+        <h4>Load RVTools export</h4>
+        <p>Upload your <strong>.xlsx</strong> RVTools export to analyse your own environment.</p>
+        <div class="ic-tile-cta">Drop here or click to browse</div>
+      </div>
+
+      <!-- Tile 3 — Resume saved workspace -->
+      <div class="ic-tile ic-tile-clickable" onclick="document.getElementById('fileInputRvz').click()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('fileInputRvz').click();}">
+        <div class="ic-tile-icon">📂</div>
+        <h4>Resume saved workspace</h4>
+        <p>Open a <strong>.rvz</strong> to pick up where you left off — RVTools data + groups + tags + rules.</p>
+        <div class="ic-tile-cta">Drop here or click to browse</div>
+      </div>
+    </div>
+
+    <p class="ic-privacy">🔒 Parses 100% in your browser — nothing is uploaded</p>
   </div>
   <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
   <div id="resetBtnWrap" style="margin-top:10px;text-align:center;display:none;">
     <button id="importAnotherBtn" class="btn btn-primary" onclick="document.getElementById('fileInput').click()" style="margin-right:8px;">📥 Import another file</button>
     <button id="resetBtn" class="btn btn-outline" onclick="clearLoadedData()">✖ Back to demo</button>
-  </div>
-  <div class="import-demo-row" id="step1Bar">
-    <span>Don't have a file?</span>
-    <span style="color:var(--text-muted);">Try the demo:</span>
-    <div class="toggle-buttons">
-      <button id="sampleBtnVinfo" onclick="event.stopPropagation();loadSampleData('vinfo')" style="padding:6px 14px;border:none;cursor:pointer;font-weight:600;background:transparent;color:var(--primary);transition:all .2s;font-size:.78rem;">📄 vInfo only</button>
-      <button id="sampleBtnFull" onclick="event.stopPropagation();loadSampleData('full')" style="padding:6px 14px;border:none;cursor:pointer;font-weight:600;background:var(--primary);color:#fff;transition:all .2s;font-size:.78rem;">📊 Full Export</button>
-    </div>
   </div>
   <details id="howToExport" class="import-help">
     <summary>📖 How do I export from RVTools?</summary>
@@ -6901,13 +6940,9 @@ function loadSampleData(mode) {
   const btnV = document.getElementById('sampleBtnVinfo');
   const btnF = document.getElementById('sampleBtnFull');
   if (btnV && btnF) {
-    if (mode === 'full') {
-      btnF.style.background = 'var(--primary)'; btnF.style.color = '#fff';
-      btnV.style.background = 'transparent'; btnV.style.color = 'var(--primary)';
-    } else {
-      btnV.style.background = 'var(--primary)'; btnV.style.color = '#fff';
-      btnF.style.background = 'transparent'; btnF.style.color = 'var(--primary)';
-    }
+    btnV.classList.toggle('is-active', mode !== 'full');
+    btnF.classList.toggle('is-active', mode === 'full');
+  }
   }
   populateFilters();
   applyFilters();
