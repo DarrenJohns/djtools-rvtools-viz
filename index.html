@@ -1069,13 +1069,14 @@ body.dark .skur-group-chip{color:#b794f4;}
 
 <!-- TAB STRIP DUPLICATE REMOVED -->
 
-<!-- Shared empty state shown on any non-Start-here tab when no data is loaded -->
+<!-- Shared empty state shown on any non-Start-here tab when no data is loaded
+     (or when the loaded data lacks the RVTools sheets a given tab needs). -->
 <div class="section tab-pane empty-data-pane" id="emptyDataPane" data-tab="__empty__">
   <div class="empty-data-card">
-    <div class="empty-data-icon">📭</div>
-    <h3>No data loaded yet</h3>
-    <p>Choose how you'd like to get started — try our demo data, load an RVTools export, or resume a saved workspace.</p>
-    <button type="button" class="btn btn-primary" onclick="activateTab('import')">🚀 Go to Start here</button>
+    <div class="empty-data-icon" id="emptyDataIcon">📭</div>
+    <h3 id="emptyDataTitle">No data loaded yet</h3>
+    <p id="emptyDataMsg">Choose how you'd like to get started — try our demo data, load an RVTools export, or resume a saved workspace.</p>
+    <button type="button" class="btn btn-primary" onclick="activateTab('import')" id="emptyDataCta">🚀 Go to Start here</button>
   </div>
 </div>
 
@@ -2017,10 +2018,47 @@ function toggleSection(key) {
 
 // ============ TAB NAVIGATION ============
 const TAB_KEYS = ['import','overview','infra','resources','ops','migration','inventory','sku-recommender'];
+// Tabs that require RVTools sheets beyond vInfo. If at least one of the
+// listed sheets has rows, the tab renders normally; otherwise we show the
+// shared "limited data" empty state.
+const TAB_REQUIRES = {
+  infra:     ['vHost','vCluster','vHost_v2','vCluster_v2'],
+  resources: ['vDatastore','vDisk','vNetwork'],
+  ops:       ['vSnapshot','vTools','vRP','vHealth']
+};
+function _tabHasRequiredData(key){
+  const req = TAB_REQUIRES[key]; if (!req) return true;
+  return req.some(k => Array.isArray(allData && allData[k]) && allData[k].length > 0);
+}
+function _setEmptyPaneContent(mode, key){
+  const icon  = document.getElementById('emptyDataIcon');
+  const title = document.getElementById('emptyDataTitle');
+  const msg   = document.getElementById('emptyDataMsg');
+  const cta   = document.getElementById('emptyDataCta');
+  if (!icon || !title || !msg || !cta) return;
+  if (mode === 'limited') {
+    const sheets = (TAB_REQUIRES[key] || []).filter(s => !s.endsWith('_v2'))
+      .map(s => `<code>${s}</code>`).join(', ');
+    icon.textContent = '🧩';
+    title.textContent = 'This tab needs more RVTools data';
+    msg.innerHTML = `Your current import doesn't include ${sheets || 'the required sheets'}. Re-export from RVTools with <strong>File → Export all to Excel</strong> (all tabs) and load it again to unlock this view.`;
+    cta.innerHTML = '🚀 Go to Start here';
+  } else {
+    icon.textContent = '📭';
+    title.textContent = 'No data loaded yet';
+    msg.textContent = `Choose how you'd like to get started — try our demo data, load an RVTools export, or resume a saved workspace.`;
+    cta.innerHTML = '🚀 Go to Start here';
+  }
+}
+
 function activateTab(key) {
   if (!TAB_KEYS.includes(key)) return;
   const hasData = Array.isArray(allVMs) && allVMs.length > 0;
-  const showEmpty = !hasData && key !== 'import';
+  let emptyMode = null;
+  if (!hasData && key !== 'import') emptyMode = 'nodata';
+  else if (hasData && key !== 'import' && !_tabHasRequiredData(key)) emptyMode = 'limited';
+  if (emptyMode) _setEmptyPaneContent(emptyMode, key);
+  const showEmpty = !!emptyMode;
   document.querySelectorAll('.tab-strip .tab').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === key);
   });
