@@ -527,6 +527,10 @@ footer strong{opacity:1;}
 .skur-rules-table .tr-key,.skur-rules-table .tr-val{font-family:'Cascadia Code','Consolas',monospace;color:var(--brand-primary);font-weight:600;}
 .skur-rules-table .tr-matches{color:var(--text-tertiary);white-space:nowrap;}
 .skur-rules-table .tr-matches strong{color:var(--brand-primary);}
+.skur-rules-table .tr-matches.is-zero{color:#8a5a00;background:rgba(255,200,61,.10);}
+.skur-rules-table .tr-matches.is-zero strong{color:#8a5a00;}
+[data-theme="dark"] .skur-rules-table .tr-matches.is-zero,body.dark .skur-rules-table .tr-matches.is-zero{color:#ffc83d;background:rgba(255,200,61,.08);}
+[data-theme="dark"] .skur-rules-table .tr-matches.is-zero strong,body.dark .skur-rules-table .tr-matches.is-zero strong{color:#ffc83d;}
 .skur-rules-table .tr-actions{text-align:center;white-space:nowrap;width:1%;}
 .skur-rules-table th.tr-actions-h{text-align:center;}
 .skur-rules-table th.skur-sortable{cursor:pointer;user-select:none;}
@@ -4699,7 +4703,7 @@ function renderSkurTagRules() {
       <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></td>
       <td class="tr-key">${esc(r.tagKey)}</td>
       <td class="tr-val">${esc(r.tagValue)}</td>
-      <td class="tr-matches"><strong>${cnt}</strong> VM${cnt===1?'':'s'}</td>
+      <td class="tr-matches${cnt===0?' is-zero':''}"${cnt===0?' title="This rule isn\'t applied to any VMs — auto-group won\'t list it. Edit the condition to fix."':''}><strong>${cnt}</strong> VM${cnt===1?'':'s'}${cnt===0?' ⚠':''}</td>
       <td class="tr-actions">
         <button class="tr-btn" title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')" aria-label="Edit rule"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
         <button class="tr-btn" title="Duplicate rule" onclick="duplicateSkurRule('${esc(r.id)}')" aria-label="Duplicate rule"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -4824,13 +4828,28 @@ function updateSkurRuleModalPreview() {
   // Build a temporary rule to count matches without mutating store.
   const tmp = Object.assign({ id: '_preview' }, d);
   const n = skurCountMatches(tmp);
+  if (n === 0) {
+    prev.classList.add('err');
+    prev.textContent = `⛔ Matches 0 VMs — refine the condition to match at least one VM before saving.`;
+    saveBtn.disabled = true;
+    saveBtn.title = 'Refine the condition — currently matches 0 VMs';
+    return;
+  }
   prev.textContent = `Matches ${n} VM${n===1?'':'s'} → will tag as ${d.tagKey}:${d.tagValue}`;
   saveBtn.disabled = false;
+  saveBtn.title = '';
 }
 function saveSkurRule() {
   const d = _skurReadModalDraft();
   if (!d.value.trim() || !d.tagKey || !d.tagValue) return;
   if (d.op === 'regex') { try { new RegExp(d.value, d.flags || ''); } catch (_) { return; } }
+  // Block create/edit save if condition matches 0 VMs (drift case is flagged in the table, not here).
+  const n = skurCountMatches(Object.assign({ id: '_save' }, d));
+  if (n === 0) {
+    const prev = document.getElementById('skurRulePreview');
+    if (prev) { prev.classList.add('err'); prev.textContent = '⛔ Matches 0 VMs — refine the condition to match at least one VM before saving.'; }
+    return;
+  }
   if (_skurEditingRuleId) {
     const r = skurTagRules.find(x => x.id === _skurEditingRuleId);
     if (r) Object.assign(r, d);
