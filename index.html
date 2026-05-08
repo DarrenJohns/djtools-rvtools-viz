@@ -2853,11 +2853,28 @@ async function _skurMaybeResumeAutosave() {
       }
       _skurShowRestoreBanner(saved);
     } else {
+      // Friendly description of the saved dataset (avoid double-parens for demo).
+      const _sf = (saved.dataset.sourceFilename || '').trim();
+      const _vmN = saved.dataset.vmCount || '?';
+      const _isDemoSaved = (_sf.indexOf('(demo') === 0) || (typeof saved.dataset.fingerprint === 'string' && saved.dataset.fingerprint.indexOf('demo-') === 0);
+      const savedLabel = _isDemoSaved
+        ? `${_sf || 'the demo dataset'} — ${_vmN} VMs`
+        : `${_sf || 'an unknown file'} (${_vmN} VMs)`;
+      const when = new Date(saved.savedAt).toLocaleString();
       const ok = await skurConfirm(
-        `An autosaved workspace exists from ${new Date(saved.savedAt).toLocaleString()},\n` +
-        `but it was for a different dataset (${saved.dataset.sourceFilename || 'unknown'}, ${saved.dataset.vmCount || '?'} VMs).\n\n` +
-        `Apply matched groups/rules to this dataset? Cancel to discard the autosave.`,
-        { okLabel: 'Apply' }
+        `You set up groups, rules and tags on a different dataset earlier ` +
+        `(saved ${when} — ${savedLabel}).\n\n` +
+        `The data you've just loaded looks different. Want to try and reuse that saved work here?`,
+        {
+          title: 'Reuse your saved workspace?',
+          okLabel: 'Reuse it',
+          cancelLabel: 'Discard saved',
+          hint:
+            '<strong>Reuse it</strong> — match your saved groups, rules and tags onto the current data by VM name/ID. ' +
+            'Anything that matches comes back; anything that doesn\'t is listed so you can review it.<br><br>' +
+            '<strong>Discard saved</strong> — throw the earlier workspace away and start fresh on this dataset. ' +
+            'You won\'t be asked again.'
+        }
       );
       if (ok) {
         const snap = migrateWorkspace(saved.workspace);
