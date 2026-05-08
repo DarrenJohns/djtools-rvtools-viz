@@ -1028,7 +1028,7 @@ body.dark .skur-group-chip{color:#b794f4;}
           <strong>Demo data</strong> — a synthetic 500-VM estate so you can explore the app without uploading anything.
           <ul>
             <li><strong>vInfo only</strong> — single-tab demo (basic dashboards)</li>
-            <li><strong>Full export</strong> — all tabs, richer dashboards</li>
+            <li><strong>Full demo</strong> — all tabs, richer dashboards</li>
           </ul>
         </div>
         <div class="ic-tile-icon">🎯</div>
@@ -1036,7 +1036,7 @@ body.dark .skur-group-chip{color:#b794f4;}
         <p>Explore the app with sample data — no upload needed.</p>
         <div class="ic-tile-actions">
           <button id="sampleBtnVinfo" class="ic-demo-btn" onclick="event.stopPropagation();loadSampleData('vinfo')" type="button">📄 vInfo only</button>
-          <button id="sampleBtnFull"  class="ic-demo-btn is-active" onclick="event.stopPropagation();loadSampleData('full')" type="button">📊 Full export</button>
+          <button id="sampleBtnFull"  class="ic-demo-btn is-active" onclick="event.stopPropagation();loadSampleData('full')" type="button">📊 Full demo</button>
         </div>
       </div>
 
@@ -2141,7 +2141,7 @@ function _setEmptyPaneContent(mode, key){
       .map(s => `<code>${s}</code>`).join(', ');
     icon.textContent = '🧩';
     title.textContent = 'This tab needs more RVTools data';
-    msg.innerHTML = `Your current import doesn't include ${sheets || 'the required sheets'}. Either pick <strong>📊 Full export</strong> on the demo tile, or re-export from RVTools using <strong>File → Export all to Excel</strong> (all tabs) and load it again.`;
+    msg.innerHTML = `Your current import doesn't include ${sheets || 'the required sheets'}. Either pick <strong>📊 Full demo</strong> on the demo tile, or re-export from RVTools using <strong>File → Export all to Excel</strong> (all tabs) and load it again.`;
     cta.innerHTML = '🚀 Go to Start here';
   } else {
     icon.textContent = '📭';
@@ -7304,7 +7304,7 @@ function loadSampleData(mode) {
   // and the resume path re-calls loadSampleData(mode) instead of parsing.
   try {
     const fp = 'demo-' + mode;
-    const fname = mode === 'full' ? '(demo data — full export)' : '(demo data — vInfo only)';
+    const fname = mode === 'full' ? '(demo data — full)' : '(demo data — vInfo only)';
     window.__rvtoolsCurrent = {
       fingerprint: fp,
       sourceFilename: fname,
