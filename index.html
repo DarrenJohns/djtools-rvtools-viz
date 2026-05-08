@@ -4495,9 +4495,10 @@ function _skurAgRefreshDisabled() {
   const sel = _skurAgGetSelections();
   const hasSel = Object.keys(sel).length > 0;
   const mode = _skurAgMode;
-  // Toggle buttons: disable when fewer than 2 keys have ticks (AND ≡ OR in that case).
-  const keysWithTicks = Object.keys(sel).length;
-  document.querySelectorAll('.skur-ag-mode-btn').forEach(b => { b.disabled = keysWithTicks < 2; });
+  // Mode buttons stay live at all times so users can express intent up front.
+  // (When fewer than 2 keys have ticks, AND ≡ OR — the toggle is a no-op but
+  // the chosen mode is remembered for when more keys are ticked.)
+  document.querySelectorAll('.skur-ag-mode-btn').forEach(b => { b.disabled = false; });
   document.querySelectorAll('#skurAgList .skur-ag-val').forEach(chip => {
     const cb = chip.querySelector('input');
     const k = cb.dataset.key, val = cb.dataset.val;
