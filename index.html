@@ -6927,7 +6927,43 @@ function showDemoIndicators() {
   if (dtb) dtb.style.display = (activeKey !== 'import') ? 'flex' : 'none';
 }
 
+function showDemoSplash(mode){
+  try { document.getElementById('demoSplash')?.remove(); } catch(_){}
+  const label = mode === 'full' ? 'full demo dataset' : 'vInfo demo dataset';
+  const ov = document.createElement('div');
+  ov.id = 'demoSplash';
+  ov.setAttribute('role','status');
+  ov.setAttribute('aria-live','polite');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:10000;animation:demoSplashFade .18s ease-out;';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:28px 36px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);animation:demoSplashPop .25s cubic-bezier(.2,.9,.3,1.2);">
+      <div style="font-size:42px;line-height:1;margin-bottom:8px;">🎯</div>
+      <div style="font-size:18px;font-weight:600;color:#0f172a;margin-bottom:4px;">Great choice — here we go…</div>
+      <div style="font-size:13px;color:#475569;margin-bottom:18px;">Loading the ${label}.</div>
+      <button type="button" id="demoSplashDismiss" style="background:#0078d4;color:#fff;border:0;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:500;cursor:pointer;">Dismiss</button>
+    </div>`;
+  if (!document.getElementById('demoSplashKeyframes')){
+    const st = document.createElement('style');
+    st.id = 'demoSplashKeyframes';
+    st.textContent = '@keyframes demoSplashFade{from{opacity:0}to{opacity:1}}@keyframes demoSplashPop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}';
+    document.head.appendChild(st);
+  }
+  document.body.appendChild(ov);
+  const close = () => {
+    ov.style.transition = 'opacity .18s';
+    ov.style.opacity = '0';
+    setTimeout(() => ov.remove(), 180);
+    document.removeEventListener('keydown', onKey);
+  };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+  document.getElementById('demoSplashDismiss').addEventListener('click', close);
+  setTimeout(close, 2500);
+}
+
 function loadSampleData(mode) {
+  showDemoSplash(mode);
   window._isDemoMode = true;
   allVMs = [...SAMPLE_VMS];
   if (mode === 'full') {
