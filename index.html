@@ -127,7 +127,7 @@ body.dark .ic-tile-help,[data-theme="dark"] .ic-tile-help{background:rgba(15,23,
 .ic-tile-help:hover + .ic-tile-tip,.ic-tile-help:focus-visible + .ic-tile-tip,.ic-tile-tip:hover{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto;}
 body.dark .ic-tile,[data-theme="dark"] .ic-tile{background:linear-gradient(180deg,rgba(71,158,245,.06) 0%,rgba(71,158,245,.02) 100%);border-color:rgba(71,158,245,.4);}
 .ic-tile-clickable{cursor:pointer;}
-.ic-tile-clickable:hover,.ic-tile-clickable:focus-visible{border-color:var(--brand-primary);background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);box-shadow:0 4px 16px rgba(15,108,189,.12);transform:translateY(-2px);outline:none;}
+.ic-tile-clickable:hover,.ic-tile-clickable:focus-visible{border-color:var(--brand-primary);background:linear-gradient(180deg,#e0efff 0%,#f0f7ff 100%);box-shadow:0 4px 16px rgba(15,108,189,.12);outline:none;}
 body.dark .ic-tile-clickable:hover,[data-theme="dark"] .ic-tile-clickable:hover{background:linear-gradient(180deg,rgba(71,158,245,.12) 0%,rgba(71,158,245,.04) 100%);}
 .ic-tile-icon{font-size:34px;line-height:1;margin-bottom:2px;}
 .ic-tile h4{font-size:1.05rem;font-weight:700;color:var(--primary);margin:0;}
@@ -135,7 +135,7 @@ body.dark .ic-tile-clickable:hover,[data-theme="dark"] .ic-tile-clickable:hover{
 .ic-tile-cta{margin-top:auto;font-size:.78rem;font-weight:600;color:var(--brand-primary);padding:8px 14px;background:rgba(15,108,189,.08);border-radius:6px;}
 .ic-tile-clickable:hover .ic-tile-cta,.ic-tile-clickable:focus-visible .ic-tile-cta{background:var(--brand-primary);color:#fff;}
 @keyframes icTileBump{0%{transform:translateY(0);box-shadow:0 0 0 0 rgba(15,108,189,0);}30%{transform:translateY(-6px);box-shadow:0 10px 24px rgba(15,108,189,.22);}60%{transform:translateY(0);box-shadow:0 4px 12px rgba(15,108,189,.12);}100%{transform:translateY(0);box-shadow:0 0 0 0 rgba(15,108,189,0);}}
-.ic-tile.ic-bump{animation:icTileBump 1.6s cubic-bezier(.2,.8,.3,1.2) both;}
+.ic-tile.ic-bump{animation:icTileBump 2.2s cubic-bezier(.2,.8,.3,1.2) both;}
 @media (prefers-reduced-motion:reduce){.ic-tile.ic-bump{animation:none;}}
 .ic-tile-actions{display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--brand-primary);margin-top:auto;}
 .ic-demo-btn{padding:7px 14px;border:none;cursor:pointer;font-weight:600;background:transparent;color:var(--brand-primary);font:inherit;font-size:.78rem;transition:background .15s,color .15s;}
@@ -6077,8 +6077,8 @@ function bumpImportTiles(){
       t.classList.remove('ic-bump');
       void t.offsetWidth;
       t.classList.add('ic-bump');
-      setTimeout(() => t.classList.remove('ic-bump'), 1700);
-    }, i * 280);
+      setTimeout(() => t.classList.remove('ic-bump'), 2300);
+    }, i * 420);
   });
 }
 
