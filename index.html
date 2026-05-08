@@ -545,9 +545,9 @@ footer strong{opacity:1;}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);}
-.skur-tag-chip.manual{background:rgba(124,58,237,.10);color:#7c3aed;border:1px dashed rgba(124,58,237,.45);padding:2px 2px 2px 7px;}
-.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:#7c3aed;cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;}
-.skur-tag-chip.manual .skur-tag-x:hover{background:rgba(124,58,237,.20);color:#5b21b6;}
+.skur-tag-chip.manual{background:rgba(255,200,61,.16);color:var(--brand-primary);border:1px dashed rgba(255,200,61,.65);padding:2px 2px 2px 7px;}
+.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:var(--brand-primary);cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;opacity:.7;}
+.skur-tag-chip.manual .skur-tag-x:hover{background:rgba(15,108,189,.18);opacity:1;}
 .skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:11px;font-weight:700;line-height:1;padding:0;margin:1px 2px 1px 4px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
@@ -1607,7 +1607,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 
 <div class="modal-overlay" id="skurTagConflictModal" onclick="if(event.target===this)_skurResolveTagConflict('cancel')">
   <div class="modal-card is-sm" role="dialog" aria-modal="true" aria-labelledby="skurTagConflictTitle">
-    <div class="modal-banner"><h2 id="skurTagConflictTitle">⚠ Tag conflict</h2></div>
+    <div class="modal-banner"><h2 id="skurTagConflictTitle">⚠️ Tag conflict</h2></div>
     <div class="modal-body">
       <div id="skurTagConflictBody"></div>
       <div id="skurTagConflictBulkSummary" style="display:none;"></div>
