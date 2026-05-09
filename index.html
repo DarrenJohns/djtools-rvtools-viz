@@ -1616,16 +1616,8 @@ body.dark .skur-group-chip{color:#b794f4;}
       <select id="skurWorkloadRuleValueSelect" style="display:none"></select>
     </div>
     <div class="skur-modal-row">
-      <label>Type</label>
-      <select id="skurWorkloadRuleType"><option value="">— pick a type —</option></select>
-    </div>
-    <div class="skur-modal-row">
-      <label>Family</label>
-      <select id="skurWorkloadRuleFamily" disabled><option value="">— pick a family —</option></select>
-    </div>
-    <div class="skur-modal-row">
       <label>Workload</label>
-      <select id="skurWorkloadRuleWorkload" disabled><option value="">— pick a workload —</option></select>
+      <select id="skurWorkloadRulePick"><option value="">— pick a workload —</option></select>
     </div>
     <div class="skur-modal-row">
       <label>Tag</label>
@@ -5695,55 +5687,34 @@ function _skurFindWorkloadLabel(family, slug) {
   for (const w of ft.family.workloads) if (_skurWorkloadSlug(w) === slug) return w;
   return null;
 }
-function _skurPopulateWorkloadTypeSelect(selectedType) {
-  const sel = document.getElementById('skurWorkloadRuleType');
+// Single opinionated workload picker: groups all workloads by Type (optgroup),
+// each option labelled "<family> · <workload>" so the family is visible but
+// implicit. Option value is the canonical "<family>:<slug>" emitted as the tag.
+function _skurPopulateWorkloadPick(selectedValue) {
+  const sel = document.getElementById('skurWorkloadRulePick');
   if (!sel) return;
-  sel.innerHTML = '<option value="">— pick a type —</option>' +
-    AZURE_VM_TYPES.map(t => `<option value="${t.type}"${t.type===selectedType?' selected':''}>${t.label}</option>`).join('');
-}
-function _skurPopulateWorkloadFamilySelect(typeKey, selectedFamily) {
-  const sel = document.getElementById('skurWorkloadRuleFamily');
-  if (!sel) return;
-  const t = AZURE_VM_TYPES.find(x => x.type === typeKey);
-  if (!t) { sel.innerHTML = '<option value="">— pick a family —</option>'; sel.disabled = true; return; }
-  sel.innerHTML = '<option value="">— pick a family —</option>' +
-    t.families.map(f => `<option value="${f.family}"${f.family===selectedFamily?' selected':''}>${f.label}</option>`).join('');
-  sel.disabled = false;
-}
-function _skurPopulateWorkloadWorkloadSelect(family, selectedSlug) {
-  const sel = document.getElementById('skurWorkloadRuleWorkload');
-  if (!sel) return;
-  const ft = _skurFindFamilyType(family);
-  if (!ft) { sel.innerHTML = '<option value="">— pick a workload —</option>'; sel.disabled = true; return; }
-  sel.innerHTML = '<option value="">— pick a workload —</option>' +
-    ft.family.workloads.map(w => {
-      const slug = _skurWorkloadSlug(w);
-      return `<option value="${slug}"${slug===selectedSlug?' selected':''}>${w}</option>`;
-    }).join('');
-  sel.disabled = false;
+  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  let html = '<option value="">— pick a workload —</option>';
+  for (const t of AZURE_VM_TYPES) {
+    html += `<optgroup label="${esc(t.label)}">`;
+    for (const f of t.families) {
+      for (const w of f.workloads) {
+        const slug = _skurWorkloadSlug(w);
+        const val = `${f.family}:${slug}`;
+        html += `<option value="${esc(val)}"${val===selectedValue?' selected':''}>${esc(f.family)} · ${esc(w)}</option>`;
+      }
+    }
+    html += `</optgroup>`;
+  }
+  sel.innerHTML = html;
 }
 function _skurUpdateWorkloadTagOut() {
-  const fam  = document.getElementById('skurWorkloadRuleFamily').value;
-  const slug = document.getElementById('skurWorkloadRuleWorkload').value;
-  const out  = document.getElementById('skurWorkloadRuleTagOut');
+  const val = document.getElementById('skurWorkloadRulePick').value;
+  const out = document.getElementById('skurWorkloadRuleTagOut');
   if (!out) return;
-  out.textContent = (fam && slug) ? `workload: ${fam}:${slug}` : 'workload: —';
+  out.textContent = val ? `workload: ${val}` : 'workload: —';
 }
-function _skurOnWorkloadTypeChange() {
-  const t = document.getElementById('skurWorkloadRuleType').value;
-  _skurPopulateWorkloadFamilySelect(t, '');
-  _skurPopulateWorkloadWorkloadSelect('', '');
-  document.getElementById('skurWorkloadRuleWorkload').disabled = true;
-  _skurUpdateWorkloadTagOut();
-  updateSkurWorkloadRuleModalPreview();
-}
-function _skurOnWorkloadFamilyChange() {
-  const f = document.getElementById('skurWorkloadRuleFamily').value;
-  _skurPopulateWorkloadWorkloadSelect(f, '');
-  _skurUpdateWorkloadTagOut();
-  updateSkurWorkloadRuleModalPreview();
-}
-function _skurOnWorkloadWorkloadChange() {
+function _skurOnWorkloadPickChange() {
   _skurUpdateWorkloadTagOut();
   updateSkurWorkloadRuleModalPreview();
 }
@@ -5845,18 +5816,9 @@ function openSkurWorkloadRuleModal(ruleId) {
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
   _skurSyncWorkloadValueControl(r ? r.value : null);
-  // Parse existing tagValue back into family + slug, if any.
-  let preFamily = '', preSlug = '', preType = '';
-  if (r && typeof r.tagValue === 'string' && r.tagValue.includes(':')) {
-    const idx = r.tagValue.indexOf(':');
-    preFamily = r.tagValue.slice(0, idx);
-    preSlug   = r.tagValue.slice(idx + 1);
-    const ft = _skurFindFamilyType(preFamily);
-    if (ft) preType = ft.type.type;
-  }
-  _skurPopulateWorkloadTypeSelect(preType);
-  _skurPopulateWorkloadFamilySelect(preType, preFamily);
-  _skurPopulateWorkloadWorkloadSelect(preFamily, preSlug);
+  // Parse existing tagValue back into the picker selection ("<family>:<slug>").
+  const preValue = (r && typeof r.tagValue === 'string' && r.tagValue.includes(':')) ? r.tagValue : '';
+  _skurPopulateWorkloadPick(preValue);
   _skurUpdateWorkloadTagOut();
   document.getElementById('skurWorkloadRuleModal').classList.add('show');
   ['skurWorkloadRuleOp','skurWorkloadRuleValue'].forEach(id => {
@@ -5867,13 +5829,9 @@ function openSkurWorkloadRuleModal(ruleId) {
   if (fieldSel && !fieldSel._skurBound) { fieldSel._skurBound = true; fieldSel.addEventListener('change', _skurOnWorkloadFieldChange); }
   const valSel = document.getElementById('skurWorkloadRuleValueSelect');
   if (valSel && !valSel._skurBound) { valSel._skurBound = true; valSel.addEventListener('change', _skurOnWorkloadValueSelectChange); }
-  // Bind cascading dropdowns once
-  const typeSel = document.getElementById('skurWorkloadRuleType');
-  const famSel  = document.getElementById('skurWorkloadRuleFamily');
-  const wlSel   = document.getElementById('skurWorkloadRuleWorkload');
-  if (typeSel && !typeSel._skurBound) { typeSel._skurBound = true; typeSel.addEventListener('change', _skurOnWorkloadTypeChange); }
-  if (famSel  && !famSel._skurBound)  { famSel._skurBound  = true; famSel.addEventListener('change', _skurOnWorkloadFamilyChange); }
-  if (wlSel   && !wlSel._skurBound)   { wlSel._skurBound   = true; wlSel.addEventListener('change', _skurOnWorkloadWorkloadChange); }
+  // Bind the workload picker once
+  const pickSel = document.getElementById('skurWorkloadRulePick');
+  if (pickSel && !pickSel._skurBound) { pickSel._skurBound = true; pickSel.addEventListener('change', _skurOnWorkloadPickChange); }
   updateSkurWorkloadRuleModalPreview();
   setTimeout(() => {
     try {
@@ -5890,15 +5848,14 @@ function closeSkurWorkloadRuleModal() {
   _skurEditingWorkloadRuleId = null;
 }
 function _skurReadWorkloadModalDraft() {
-  const family = document.getElementById('skurWorkloadRuleFamily').value;
-  const slug   = document.getElementById('skurWorkloadRuleWorkload').value;
+  const pick = document.getElementById('skurWorkloadRulePick').value || '';
   return {
     field:    document.getElementById('skurWorkloadRuleField').value,
     op:       document.getElementById('skurWorkloadRuleOp').value,
     value:    document.getElementById('skurWorkloadRuleValue').value,
     flags:    '',
     tagKey:   'workload',
-    tagValue: (family && slug) ? `${family}:${slug}` : '',
+    tagValue: pick,
     kind:     'workload',
   };
 }
