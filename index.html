@@ -1613,6 +1613,7 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="skur-modal-row">
       <label>Value</label>
       <input type="text" id="skurWorkloadRuleValue" placeholder="e.g. sql, web, app" maxlength="200">
+      <select id="skurWorkloadRuleValueSelect" style="display:none"></select>
     </div>
     <div class="skur-modal-row">
       <label>Type</label>
@@ -5774,6 +5775,67 @@ function _skurPopulateWorkloadFieldSelect(selectedField) {
   sel.innerHTML = html;
 }
 
+// Returns sorted unique list of values currently associated with the given tag key
+// across rule outputs and manual tags. Used to populate the value <select> when
+// the workload-rule "If" field is tag:<key>.
+function _skurKnownValuesForTagKey(key) {
+  if (!key) return [];
+  const set = new Set();
+  for (const r of (skurTagRules || [])) {
+    if (r.tagKey === key && r.tagValue != null && r.tagValue !== '') set.add(String(r.tagValue));
+  }
+  for (const arr of Object.values(skurManualTags || {})) {
+    for (const t of (arr || [])) if (t.key === key && t.value != null && t.value !== '') set.add(String(t.value));
+  }
+  return [...set].sort();
+}
+// Toggle the value control between free-text <input> and known-values <select>
+// based on whether the selected field is tag:<key>. When switching to select mode,
+// auto-set operator to "equals" (most natural for discrete tag values) and disable
+// the regex op (doesn't compose with a finite dropdown).
+function _skurSyncWorkloadValueControl(preselectValue) {
+  const fieldSel = document.getElementById('skurWorkloadRuleField');
+  const inp = document.getElementById('skurWorkloadRuleValue');
+  const sel = document.getElementById('skurWorkloadRuleValueSelect');
+  const opSel = document.getElementById('skurWorkloadRuleOp');
+  if (!fieldSel || !inp || !sel || !opSel) return;
+  const fld = fieldSel.value || '';
+  const isTagField = fld.startsWith('tag:');
+  const regexOpt = opSel.querySelector('option[value="regex"]');
+  if (isTagField) {
+    const key = fld.slice(4);
+    const vals = _skurKnownValuesForTagKey(key);
+    const target = preselectValue != null ? String(preselectValue) : (inp.value || '');
+    let html = '';
+    if (!vals.length) {
+      html = '<option value="">— no values yet for this tag —</option>';
+    } else {
+      html = vals.map(v => `<option value="${v.replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}"${v===target?' selected':''}>${v}</option>`).join('');
+      if (!vals.includes(target)) sel.value = vals[0];
+    }
+    sel.innerHTML = html;
+    sel.style.display = '';
+    inp.style.display = 'none';
+    inp.value = sel.value || '';
+    if (opSel.value === 'regex') opSel.value = 'equals';
+    if (regexOpt) regexOpt.disabled = true;
+  } else {
+    sel.style.display = 'none';
+    inp.style.display = '';
+    if (regexOpt) regexOpt.disabled = false;
+  }
+}
+function _skurOnWorkloadFieldChange() {
+  _skurSyncWorkloadValueControl();
+  updateSkurWorkloadRuleModalPreview();
+}
+function _skurOnWorkloadValueSelectChange() {
+  const sel = document.getElementById('skurWorkloadRuleValueSelect');
+  const inp = document.getElementById('skurWorkloadRuleValue');
+  if (sel && inp) inp.value = sel.value || '';
+  updateSkurWorkloadRuleModalPreview();
+}
+
 let _skurEditingWorkloadRuleId = null;
 function openSkurWorkloadRuleModal(ruleId) {
   _skurEditingWorkloadRuleId = ruleId || null;
@@ -5782,6 +5844,7 @@ function openSkurWorkloadRuleModal(ruleId) {
   _skurPopulateWorkloadFieldSelect(r ? r.field : 'name');
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
+  _skurSyncWorkloadValueControl(r ? r.value : null);
   // Parse existing tagValue back into family + slug, if any.
   let preFamily = '', preSlug = '', preType = '';
   if (r && typeof r.tagValue === 'string' && r.tagValue.includes(':')) {
@@ -5796,10 +5859,14 @@ function openSkurWorkloadRuleModal(ruleId) {
   _skurPopulateWorkloadWorkloadSelect(preFamily, preSlug);
   _skurUpdateWorkloadTagOut();
   document.getElementById('skurWorkloadRuleModal').classList.add('show');
-  ['skurWorkloadRuleField','skurWorkloadRuleOp','skurWorkloadRuleValue'].forEach(id => {
+  ['skurWorkloadRuleOp','skurWorkloadRuleValue'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el._skurBound) { el._skurBound = true; el.addEventListener('input', updateSkurWorkloadRuleModalPreview); el.addEventListener('change', updateSkurWorkloadRuleModalPreview); }
   });
+  const fieldSel = document.getElementById('skurWorkloadRuleField');
+  if (fieldSel && !fieldSel._skurBound) { fieldSel._skurBound = true; fieldSel.addEventListener('change', _skurOnWorkloadFieldChange); }
+  const valSel = document.getElementById('skurWorkloadRuleValueSelect');
+  if (valSel && !valSel._skurBound) { valSel._skurBound = true; valSel.addEventListener('change', _skurOnWorkloadValueSelectChange); }
   // Bind cascading dropdowns once
   const typeSel = document.getElementById('skurWorkloadRuleType');
   const famSel  = document.getElementById('skurWorkloadRuleFamily');
@@ -5808,7 +5875,15 @@ function openSkurWorkloadRuleModal(ruleId) {
   if (famSel  && !famSel._skurBound)  { famSel._skurBound  = true; famSel.addEventListener('change', _skurOnWorkloadFamilyChange); }
   if (wlSel   && !wlSel._skurBound)   { wlSel._skurBound   = true; wlSel.addEventListener('change', _skurOnWorkloadWorkloadChange); }
   updateSkurWorkloadRuleModalPreview();
-  setTimeout(() => { try { document.getElementById('skurWorkloadRuleValue').focus(); } catch(_) {} }, 50);
+  setTimeout(() => {
+    try {
+      const fld = document.getElementById('skurWorkloadRuleField').value || '';
+      const target = fld.startsWith('tag:')
+        ? document.getElementById('skurWorkloadRuleValueSelect')
+        : document.getElementById('skurWorkloadRuleValue');
+      target && target.focus();
+    } catch(_) {}
+  }, 50);
 }
 function closeSkurWorkloadRuleModal() {
   document.getElementById('skurWorkloadRuleModal').classList.remove('show');
