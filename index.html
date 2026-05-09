@@ -1615,12 +1615,20 @@ body.dark .skur-group-chip{color:#b794f4;}
       <input type="text" id="skurWorkloadRuleValue" placeholder="e.g. sql, web, app" maxlength="200">
     </div>
     <div class="skur-modal-row">
-      <label>Then tag</label>
-      <input type="text" id="skurWorkloadRuleTagKey" placeholder="key e.g. workload" maxlength="40">
+      <label>Type</label>
+      <select id="skurWorkloadRuleType"><option value="">— pick a type —</option></select>
     </div>
     <div class="skur-modal-row">
-      <label>=</label>
-      <input type="text" id="skurWorkloadRuleTagValue" placeholder="value e.g. sql" maxlength="80">
+      <label>Family</label>
+      <select id="skurWorkloadRuleFamily" disabled><option value="">— pick a family —</option></select>
+    </div>
+    <div class="skur-modal-row">
+      <label>Workload</label>
+      <select id="skurWorkloadRuleWorkload" disabled><option value="">— pick a workload —</option></select>
+    </div>
+    <div class="skur-modal-row">
+      <label>Tag</label>
+      <code id="skurWorkloadRuleTagOut" style="font-family:'Cascadia Code','Consolas',monospace;font-size:13px;color:var(--text-secondary);">workload: —</code>
     </div>
     <div class="skur-modal-preview" id="skurWorkloadRulePreview">— start typing —</div>
     <div class="modal-close-row">
@@ -5569,10 +5577,110 @@ function duplicateSkurRule(id) {
   try { showToast(`Duplicated rule — edit to adjust.`, 'success'); } catch(_) {}
 }
 
-// === Workload rule (advanced) — duplicated entry-point pipeline ===
-// Shares the same store (skurTagRules) and matcher; rules are stamped with
-// kind:'workload' so the table can show a badge and the edit button can route
-// back to this modal. Modify freely — basic 'tag' rules stay untouched.
+// === Workload rule (advanced) — Microsoft VM-family-aligned tagging ===
+// Curated from https://learn.microsoft.com/azure/virtual-machines/sizes/overview
+// Tag emitted: key='workload', value='<family>:<workload-slug>' (e.g. F:medium-traffic-web-servers)
+const AZURE_VM_TYPES = [
+  { type: 'general-purpose', label: 'General purpose', families: [
+    { family: 'A',  label: 'A-family',  workloads: ['Entry-level economical'] },
+    { family: 'B',  label: 'B-family',  workloads: ['Burstable'] },
+    { family: 'D',  label: 'D-family',  workloads: ['Enterprise apps','Relational databases','In-memory caching','Data analytics'] },
+    { family: 'DC', label: 'DC-family', workloads: ['Confidential computing'] },
+  ]},
+  { type: 'compute-optimized', label: 'Compute optimized', families: [
+    { family: 'F',  label: 'F-family',  workloads: ['Medium-traffic web servers','Network appliances','Batch processes','Application servers'] },
+    { family: 'FX', label: 'FX-family', workloads: ['EDA','Large memory relational databases','Medium-to-large caches','In-memory analytics'] },
+  ]},
+  { type: 'memory-optimized', label: 'Memory optimized', families: [
+    { family: 'E',  label: 'E-family',  workloads: ['Relational databases','Medium-to-large caches','In-memory analytics'] },
+    { family: 'Eb', label: 'Eb-family', workloads: ['High remote storage performance'] },
+    { family: 'EC', label: 'EC-family', workloads: ['Memory-optimized confidential computing'] },
+    { family: 'M',  label: 'M-family',  workloads: ['Extra-large databases (SAP HANA)','Large in-memory workloads'] },
+  ]},
+  { type: 'storage-optimized', label: 'Storage optimized', families: [
+    { family: 'L',  label: 'L-family',  workloads: ['High disk throughput/IO','Big Data','SQL and NoSQL databases','Data warehousing','Large transactional databases'] },
+  ]},
+  { type: 'gpu-accelerated', label: 'GPU accelerated', families: [
+    { family: 'NC', label: 'NC-family', workloads: ['Compute-intensive','Graphics-intensive','Visualization'] },
+    { family: 'ND', label: 'ND-family', workloads: ['Large-memory compute','Large-memory graphics','Large-memory visualization'] },
+    { family: 'NG', label: 'NG-family', workloads: ['Virtual Desktop (VDI)','Cloud gaming'] },
+    { family: 'NV', label: 'NV-family', workloads: ['Virtual Desktop (VDI)','Single-precision compute','Video encoding/rendering'] },
+  ]},
+  { type: 'fpga-accelerated', label: 'FPGA accelerated', families: [
+    { family: 'NP', label: 'NP-family', workloads: ['ML inference','Video transcoding','Database search/analytics'] },
+  ]},
+  { type: 'hpc', label: 'High performance compute', families: [
+    { family: 'HB', label: 'HB-family', workloads: ['High memory bandwidth','Fluid dynamics','Weather modeling'] },
+    { family: 'HC', label: 'HC-family', workloads: ['High density compute','Finite element analysis','Molecular dynamics','Computational chemistry'] },
+    { family: 'HX', label: 'HX-family', workloads: ['Large memory capacity','EDA'] },
+  ]},
+];
+function _skurWorkloadSlug(label) {
+  return String(label || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+function _skurFindFamilyType(family) {
+  for (const t of AZURE_VM_TYPES) for (const f of t.families) if (f.family === family) return { type: t, family: f };
+  return null;
+}
+function _skurFindWorkloadLabel(family, slug) {
+  const ft = _skurFindFamilyType(family);
+  if (!ft) return null;
+  for (const w of ft.family.workloads) if (_skurWorkloadSlug(w) === slug) return w;
+  return null;
+}
+function _skurPopulateWorkloadTypeSelect(selectedType) {
+  const sel = document.getElementById('skurWorkloadRuleType');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— pick a type —</option>' +
+    AZURE_VM_TYPES.map(t => `<option value="${t.type}"${t.type===selectedType?' selected':''}>${t.label}</option>`).join('');
+}
+function _skurPopulateWorkloadFamilySelect(typeKey, selectedFamily) {
+  const sel = document.getElementById('skurWorkloadRuleFamily');
+  if (!sel) return;
+  const t = AZURE_VM_TYPES.find(x => x.type === typeKey);
+  if (!t) { sel.innerHTML = '<option value="">— pick a family —</option>'; sel.disabled = true; return; }
+  sel.innerHTML = '<option value="">— pick a family —</option>' +
+    t.families.map(f => `<option value="${f.family}"${f.family===selectedFamily?' selected':''}>${f.label}</option>`).join('');
+  sel.disabled = false;
+}
+function _skurPopulateWorkloadWorkloadSelect(family, selectedSlug) {
+  const sel = document.getElementById('skurWorkloadRuleWorkload');
+  if (!sel) return;
+  const ft = _skurFindFamilyType(family);
+  if (!ft) { sel.innerHTML = '<option value="">— pick a workload —</option>'; sel.disabled = true; return; }
+  sel.innerHTML = '<option value="">— pick a workload —</option>' +
+    ft.family.workloads.map(w => {
+      const slug = _skurWorkloadSlug(w);
+      return `<option value="${slug}"${slug===selectedSlug?' selected':''}>${w}</option>`;
+    }).join('');
+  sel.disabled = false;
+}
+function _skurUpdateWorkloadTagOut() {
+  const fam  = document.getElementById('skurWorkloadRuleFamily').value;
+  const slug = document.getElementById('skurWorkloadRuleWorkload').value;
+  const out  = document.getElementById('skurWorkloadRuleTagOut');
+  if (!out) return;
+  out.textContent = (fam && slug) ? `workload: ${fam}:${slug}` : 'workload: —';
+}
+function _skurOnWorkloadTypeChange() {
+  const t = document.getElementById('skurWorkloadRuleType').value;
+  _skurPopulateWorkloadFamilySelect(t, '');
+  _skurPopulateWorkloadWorkloadSelect('', '');
+  document.getElementById('skurWorkloadRuleWorkload').disabled = true;
+  _skurUpdateWorkloadTagOut();
+  updateSkurWorkloadRuleModalPreview();
+}
+function _skurOnWorkloadFamilyChange() {
+  const f = document.getElementById('skurWorkloadRuleFamily').value;
+  _skurPopulateWorkloadWorkloadSelect(f, '');
+  _skurUpdateWorkloadTagOut();
+  updateSkurWorkloadRuleModalPreview();
+}
+function _skurOnWorkloadWorkloadChange() {
+  _skurUpdateWorkloadTagOut();
+  updateSkurWorkloadRuleModalPreview();
+}
+
 let _skurEditingWorkloadRuleId = null;
 function openSkurWorkloadRuleModal(ruleId) {
   _skurEditingWorkloadRuleId = ruleId || null;
@@ -5581,13 +5689,31 @@ function openSkurWorkloadRuleModal(ruleId) {
   document.getElementById('skurWorkloadRuleField').value = r ? r.field : 'name';
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
-  document.getElementById('skurWorkloadRuleTagKey').value = r ? r.tagKey : 'workload';
-  document.getElementById('skurWorkloadRuleTagValue').value = r ? r.tagValue : '';
+  // Parse existing tagValue back into family + slug, if any.
+  let preFamily = '', preSlug = '', preType = '';
+  if (r && typeof r.tagValue === 'string' && r.tagValue.includes(':')) {
+    const idx = r.tagValue.indexOf(':');
+    preFamily = r.tagValue.slice(0, idx);
+    preSlug   = r.tagValue.slice(idx + 1);
+    const ft = _skurFindFamilyType(preFamily);
+    if (ft) preType = ft.type.type;
+  }
+  _skurPopulateWorkloadTypeSelect(preType);
+  _skurPopulateWorkloadFamilySelect(preType, preFamily);
+  _skurPopulateWorkloadWorkloadSelect(preFamily, preSlug);
+  _skurUpdateWorkloadTagOut();
   document.getElementById('skurWorkloadRuleModal').classList.add('show');
-  ['skurWorkloadRuleField','skurWorkloadRuleOp','skurWorkloadRuleValue','skurWorkloadRuleTagKey','skurWorkloadRuleTagValue'].forEach(id => {
+  ['skurWorkloadRuleField','skurWorkloadRuleOp','skurWorkloadRuleValue'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el._skurBound) { el._skurBound = true; el.addEventListener('input', updateSkurWorkloadRuleModalPreview); el.addEventListener('change', updateSkurWorkloadRuleModalPreview); }
   });
+  // Bind cascading dropdowns once
+  const typeSel = document.getElementById('skurWorkloadRuleType');
+  const famSel  = document.getElementById('skurWorkloadRuleFamily');
+  const wlSel   = document.getElementById('skurWorkloadRuleWorkload');
+  if (typeSel && !typeSel._skurBound) { typeSel._skurBound = true; typeSel.addEventListener('change', _skurOnWorkloadTypeChange); }
+  if (famSel  && !famSel._skurBound)  { famSel._skurBound  = true; famSel.addEventListener('change', _skurOnWorkloadFamilyChange); }
+  if (wlSel   && !wlSel._skurBound)   { wlSel._skurBound   = true; wlSel.addEventListener('change', _skurOnWorkloadWorkloadChange); }
   updateSkurWorkloadRuleModalPreview();
   setTimeout(() => { try { document.getElementById('skurWorkloadRuleValue').focus(); } catch(_) {} }, 50);
 }
@@ -5596,13 +5722,15 @@ function closeSkurWorkloadRuleModal() {
   _skurEditingWorkloadRuleId = null;
 }
 function _skurReadWorkloadModalDraft() {
+  const family = document.getElementById('skurWorkloadRuleFamily').value;
+  const slug   = document.getElementById('skurWorkloadRuleWorkload').value;
   return {
     field:    document.getElementById('skurWorkloadRuleField').value,
     op:       document.getElementById('skurWorkloadRuleOp').value,
     value:    document.getElementById('skurWorkloadRuleValue').value,
     flags:    '',
-    tagKey:   document.getElementById('skurWorkloadRuleTagKey').value.trim(),
-    tagValue: document.getElementById('skurWorkloadRuleTagValue').value.trim(),
+    tagKey:   'workload',
+    tagValue: (family && slug) ? `${family}:${slug}` : '',
     kind:     'workload',
   };
 }
@@ -5612,8 +5740,11 @@ function updateSkurWorkloadRuleModalPreview() {
   if (!prev || !saveBtn) return;
   const d = _skurReadWorkloadModalDraft();
   prev.classList.remove('err');
-  if (!d.value.trim() || !d.tagKey || !d.tagValue) {
-    prev.textContent = 'Fill all fields to preview.'; saveBtn.disabled = true; return;
+  if (!d.value.trim()) {
+    prev.textContent = 'Add a match value (e.g. "web", "sql").'; saveBtn.disabled = true; return;
+  }
+  if (!d.tagValue) {
+    prev.textContent = 'Pick a Type, Family and Workload to assign.'; saveBtn.disabled = true; return;
   }
   if (d.op === 'regex') {
     try { new RegExp(d.value, d.flags || ''); }
@@ -5628,13 +5759,16 @@ function updateSkurWorkloadRuleModalPreview() {
     saveBtn.title = 'Refine the condition — currently matches 0 VMs';
     return;
   }
-  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → will tag as ${d.tagKey}:${d.tagValue}`;
+  const family = d.tagValue.split(':')[0];
+  const slug   = d.tagValue.slice(family.length + 1);
+  const wlLabel = _skurFindWorkloadLabel(family, slug) || slug;
+  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → workload: ${family}:${slug}  (${wlLabel})`;
   saveBtn.disabled = false;
   saveBtn.title = '';
 }
 function saveSkurWorkloadRule() {
   const d = _skurReadWorkloadModalDraft();
-  if (!d.value.trim() || !d.tagKey || !d.tagValue) return;
+  if (!d.value.trim() || !d.tagValue) return;
   if (d.op === 'regex') { try { new RegExp(d.value, d.flags || ''); } catch (_) { return; } }
   const n = skurCountMatches(Object.assign({ id: '_save' }, d));
   if (n === 0) {
