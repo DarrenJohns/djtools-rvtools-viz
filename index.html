@@ -5316,12 +5316,31 @@ function skurNewRuleId() {
   try { if (window.crypto && crypto.randomUUID) return 'r_' + crypto.randomUUID(); } catch (_) {}
   return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
-function skurRuleMatchesVm(rule, vm) {
+function skurRuleMatchesVm(rule, vm, ctxTags) {
   try {
-    const def = SKUR_FIELD_DEFS[rule.field]; if (!def) return false;
-    const hay = String(def.get(vm) ?? '');
     const needle = String(rule.value ?? '').trim();
     if (!needle) return false;
+    // tag:<key> field — match against existing tag values for that key
+    if (typeof rule.field === 'string' && rule.field.startsWith('tag:')) {
+      const key = rule.field.slice(4);
+      const tags = ctxTags || _skurBasicTagsForVm(vm);
+      const vals = tags.filter(t => t.key === key).map(t => String(t.value ?? ''));
+      if (!vals.length) return false;
+      if (rule.op === 'regex') {
+        const re = new RegExp(rule.value, rule.flags || '');
+        return vals.some(v => re.test(v));
+      }
+      const n = needle.toLowerCase();
+      return vals.some(v => {
+        const h = v.toLowerCase();
+        if (rule.op === 'contains')   return h.includes(n);
+        if (rule.op === 'equals')     return h === n;
+        if (rule.op === 'startsWith') return h.startsWith(n);
+        return false;
+      });
+    }
+    const def = SKUR_FIELD_DEFS[rule.field]; if (!def) return false;
+    const hay = String(def.get(vm) ?? '');
     if (rule.op === 'regex') {
       const re = new RegExp(rule.value, rule.flags || '');
       return re.test(hay);
@@ -5333,21 +5352,59 @@ function skurRuleMatchesVm(rule, vm) {
     return false;
   } catch (_) { return false; }
 }
+// Phase-A only: manual + non-workload rule tags. Used as the read-context for
+// workload-rule tag:<key> matching, so workload rules can read basic-rule output
+// without recursing into themselves.
+function _skurBasicTagsForVm(vm) {
+  const vmKey = skurVmKey(vm);
+  const out = [];
+  const overriddenKeys = new Set();
+  for (const t of (skurManualTags[vmKey] || [])) {
+    out.push({ key: t.key, value: t.value });
+    overriddenKeys.add(t.key);
+  }
+  const map = new Map();
+  for (const r of skurTagRules) {
+    if (r.kind === 'workload') continue;
+    if (overriddenKeys.has(r.tagKey)) continue;
+    if (!skurRuleMatchesVm(r, vm)) continue;
+    const k = `${r.tagKey}\u0000${r.tagValue}`;
+    if (!map.has(k)) map.set(k, { key: r.tagKey, value: r.tagValue });
+  }
+  for (const t of map.values()) out.push(t);
+  return out;
+}
 // Returns de-duped tags by key:value, preserving ruleIds for tooltip/diagnostic later.
 // Manual tags override rule-derived tags on the same key (one value per key per VM).
+// Two-phase: non-workload rules first, workload rules second (the latter can
+// read the former's output via the tag:<key> field type).
 function skurTagsForVm(vm) {
   const vmKey = skurVmKey(vm);
   const out = [];
   const overriddenKeys = new Set();
-  // Manual tags first (precedence). Mark their keys so rule-derived entries on same key are skipped.
   for (const t of (skurManualTags[vmKey] || [])) {
     out.push({ key: t.key, value: t.value, origin: 'manual' });
     overriddenKeys.add(t.key);
   }
   const map = new Map();
+  // Phase A: non-workload rules
   for (const r of skurTagRules) {
+    if (r.kind === 'workload') continue;
     if (overriddenKeys.has(r.tagKey)) continue;
     if (!skurRuleMatchesVm(r, vm)) continue;
+    const k = `${r.tagKey}\u0000${r.tagValue}`;
+    if (!map.has(k)) map.set(k, { key: r.tagKey, value: r.tagValue, origin: 'rule', ruleIds: [r.id] });
+    else map.get(k).ruleIds.push(r.id);
+  }
+  // Build context for Phase B (workload rules with tag:<key> field need to see basic tags)
+  const basicCtx = [];
+  for (const t of (skurManualTags[vmKey] || [])) basicCtx.push({ key: t.key, value: t.value });
+  for (const t of map.values()) basicCtx.push({ key: t.key, value: t.value });
+  // Phase B: workload rules
+  for (const r of skurTagRules) {
+    if (r.kind !== 'workload') continue;
+    if (overriddenKeys.has(r.tagKey)) continue;
+    if (!skurRuleMatchesVm(r, vm, basicCtx)) continue;
     const k = `${r.tagKey}\u0000${r.tagValue}`;
     if (!map.has(k)) map.set(k, { key: r.tagKey, value: r.tagValue, origin: 'rule', ruleIds: [r.id] });
     else map.get(k).ruleIds.push(r.id);
@@ -5356,7 +5413,13 @@ function skurTagsForVm(vm) {
   return out;
 }
 function skurCountMatches(rule) {
-  let n = 0; for (const v of (allVMs || [])) if (skurRuleMatchesVm(rule, v)) n++; return n;
+  let n = 0;
+  const needsCtx = (rule.kind === 'workload' && typeof rule.field === 'string' && rule.field.startsWith('tag:'));
+  for (const v of (allVMs || [])) {
+    const ctx = needsCtx ? _skurBasicTagsForVm(v) : null;
+    if (skurRuleMatchesVm(rule, v, ctx)) n++;
+  }
+  return n;
 }
 function renderSkurTagRules() {
   const list = document.getElementById('skurRulesList');
@@ -5368,11 +5431,14 @@ function renderSkurTagRules() {
   empty.style.display = 'none';
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   const opLabel = { contains:'contains', equals:'equals', startsWith:'starts with', regex:'matches' };
+  const fldLabel = (f) => {
+    if (typeof f === 'string' && f.startsWith('tag:')) return `tag:${f.slice(4)}`;
+    return (SKUR_FIELD_DEFS[f] && SKUR_FIELD_DEFS[f].label) || f;
+  };
   const sk = skurRulesSortState.key, sd = skurRulesSortState.dir;
   const sortVal = (r, k) => {
     if (k === 'condition') {
-      const fld = (SKUR_FIELD_DEFS[r.field] && SKUR_FIELD_DEFS[r.field].label) || r.field;
-      return (fld + ' ' + r.op + ' ' + r.value).toLowerCase();
+      return (fldLabel(r.field) + ' ' + r.op + ' ' + r.value).toLowerCase();
     }
     if (k === 'tagKey')   return String(r.tagKey || '').toLowerCase();
     if (k === 'tagValue') return String(r.tagValue || '').toLowerCase();
@@ -5386,7 +5452,7 @@ function renderSkurTagRules() {
       })
     : skurTagRules;
   const rows = sorted.map(r => {
-    const fld = (SKUR_FIELD_DEFS[r.field] && SKUR_FIELD_DEFS[r.field].label) || r.field;
+    const fld = fldLabel(r.field);
     const cnt = skurCountMatches(r);
     const isChk = skurSelectedRuleIds.has(r.id);
     return `<tr data-rid="${esc(r.id)}"${isChk ? ' class="checked"' : ''}>
@@ -5681,12 +5747,39 @@ function _skurOnWorkloadWorkloadChange() {
   updateSkurWorkloadRuleModalPreview();
 }
 
+function _skurPopulateWorkloadFieldSelect(selectedField) {
+  const sel = document.getElementById('skurWorkloadRuleField');
+  if (!sel) return;
+  const standard = [
+    { value: 'name',    label: 'VM name' },
+    { value: 'os',      label: 'OS' },
+    { value: 'cluster', label: 'Cluster' },
+    { value: 'dc',      label: 'Datacenter' },
+  ];
+  // Tag keys: union of rule tagKeys + manual-tag keys, excluding 'workload' (would self-recurse)
+  const tagKeys = new Set();
+  for (const r of (skurTagRules || [])) if (r.tagKey && r.tagKey !== 'workload') tagKeys.add(r.tagKey);
+  for (const arr of Object.values(skurManualTags || {})) for (const t of (arr||[])) if (t.key && t.key !== 'workload') tagKeys.add(t.key);
+  const sortedKeys = [...tagKeys].sort();
+  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  let html = standard.map(o => `<option value="${o.value}"${o.value===selectedField?' selected':''}>${o.label}</option>`).join('');
+  if (sortedKeys.length) {
+    html += `<optgroup label="Existing tags">`;
+    html += sortedKeys.map(k => {
+      const v = 'tag:' + k;
+      return `<option value="${esc(v)}"${v===selectedField?' selected':''}>tag: ${esc(k)}</option>`;
+    }).join('');
+    html += `</optgroup>`;
+  }
+  sel.innerHTML = html;
+}
+
 let _skurEditingWorkloadRuleId = null;
 function openSkurWorkloadRuleModal(ruleId) {
   _skurEditingWorkloadRuleId = ruleId || null;
   const r = ruleId ? skurTagRules.find(x => x.id === ruleId) : null;
   document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🎯 Add workload rule';
-  document.getElementById('skurWorkloadRuleField').value = r ? r.field : 'name';
+  _skurPopulateWorkloadFieldSelect(r ? r.field : 'name');
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
   // Parse existing tagValue back into family + slug, if any.
@@ -5769,6 +5862,12 @@ function updateSkurWorkloadRuleModalPreview() {
 function saveSkurWorkloadRule() {
   const d = _skurReadWorkloadModalDraft();
   if (!d.value.trim() || !d.tagValue) return;
+  // Self-recursion guard: a workload rule reading the 'workload' tag would form a cycle.
+  if (typeof d.field === 'string' && d.field === 'tag:workload') {
+    const prev = document.getElementById('skurWorkloadRulePreview');
+    if (prev) { prev.classList.add('err'); prev.textContent = '⛔ A workload rule can\'t match on tag:workload (self-reference).'; }
+    return;
+  }
   if (d.op === 'regex') { try { new RegExp(d.value, d.flags || ''); } catch (_) { return; } }
   const n = skurCountMatches(Object.assign({ id: '_save' }, d));
   if (n === 0) {
