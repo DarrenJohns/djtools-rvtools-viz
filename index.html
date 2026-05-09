@@ -5687,13 +5687,43 @@ function _skurFindWorkloadLabel(family, slug) {
   for (const w of ft.family.workloads) if (_skurWorkloadSlug(w) === slug) return w;
   return null;
 }
+// Maps each MS family letter to a one-word qualifier shown to users in place of
+// the raw family code. Used to disambiguate when the same workload label appears
+// under multiple families (and for the friendly tag-out hint).
+const _SKUR_FAMILY_QUALIFIER = {
+  'A': 'entry-level', 'B': 'burstable', 'D': 'balanced', 'DC': 'confidential',
+  'F': 'compute-leaning', 'FX': 'compute-leaning XL',
+  'E': 'memory-leaning', 'Eb': 'memory + storage perf', 'EC': 'memory + confidential',
+  'M': 'extra-large memory', 'G': 'memory (legacy)',
+  'L': 'storage-leaning',
+  'N': 'GPU', 'NC': 'GPU compute', 'ND': 'GPU deep-learning', 'NV': 'GPU visualisation',
+  'NP': 'FPGA',
+  'H': 'HPC',
+};
+function _skurFamilyQualifier(family) {
+  return _SKUR_FAMILY_QUALIFIER[family] || family;
+}
+function _skurFindWorkload(family, slug) {
+  for (const t of AZURE_VM_TYPES) for (const f of t.families) {
+    if (f.family !== family) continue;
+    for (const w of f.workloads) if (_skurWorkloadSlug(w) === slug) return { workload: w, type: t };
+  }
+  return null;
+}
 // Single opinionated workload picker: groups all workloads by Type (optgroup),
-// each option labelled "<family> · <workload>" so the family is visible but
-// implicit. Option value is the canonical "<family>:<slug>" emitted as the tag.
+// labels in plain English. The family letter is hidden; a short qualifier is
+// appended only when the same workload label appears under multiple families.
+// Option value remains the canonical "<family>:<slug>" emitted as the tag.
 function _skurPopulateWorkloadPick(selectedValue) {
   const sel = document.getElementById('skurWorkloadRulePick');
   if (!sel) return;
   const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  // Pass 1: count label occurrences across the whole taxonomy to detect duplicates.
+  const counts = new Map();
+  for (const t of AZURE_VM_TYPES) for (const f of t.families) for (const w of f.workloads) {
+    counts.set(w, (counts.get(w) || 0) + 1);
+  }
+  // Pass 2: build options. Append qualifier only when the label is duplicated.
   let html = '<option value="">— pick a workload —</option>';
   for (const t of AZURE_VM_TYPES) {
     html += `<optgroup label="${esc(t.label)}">`;
@@ -5701,7 +5731,8 @@ function _skurPopulateWorkloadPick(selectedValue) {
       for (const w of f.workloads) {
         const slug = _skurWorkloadSlug(w);
         const val = `${f.family}:${slug}`;
-        html += `<option value="${esc(val)}"${val===selectedValue?' selected':''}>${esc(f.family)} · ${esc(w)}</option>`;
+        const label = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
+        html += `<option value="${esc(val)}"${val===selectedValue?' selected':''}>${esc(label)}</option>`;
       }
     }
     html += `</optgroup>`;
@@ -5712,7 +5743,13 @@ function _skurUpdateWorkloadTagOut() {
   const val = document.getElementById('skurWorkloadRulePick').value;
   const out = document.getElementById('skurWorkloadRuleTagOut');
   if (!out) return;
-  out.textContent = val ? `workload: ${val}` : 'workload: —';
+  if (!val) { out.textContent = 'workload: —'; return; }
+  const idx = val.indexOf(':');
+  const family = idx >= 0 ? val.slice(0, idx) : val;
+  const slug = idx >= 0 ? val.slice(idx + 1) : '';
+  const found = _skurFindWorkload(family, slug);
+  const friendly = found ? `${found.workload} (${_skurFamilyQualifier(family)})` : '';
+  out.textContent = friendly ? `workload: ${val}  →  ${friendly}` : `workload: ${val}`;
 }
 function _skurOnWorkloadPickChange() {
   _skurUpdateWorkloadTagOut();
