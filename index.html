@@ -605,6 +605,7 @@ footer strong{opacity:1;}
 .skur-rules-table .tr-btn{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0 3px;display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:background .15s,border-color .15s,color .15s;}
 .skur-rules-table .tr-btn:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-rules-table .tr-btn svg{display:block;}
+.skur-rules-table .skur-rule-kind-badge{display:inline-block;font-family:inherit;font-size:10px;font-weight:700;background:rgba(15,108,189,.12);color:var(--brand-primary);border:1px solid rgba(15,108,189,.3);border-radius:10px;padding:1px 7px;margin-right:6px;vertical-align:middle;letter-spacing:.02em;}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
@@ -1441,6 +1442,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
             <button class="btn btn-danger skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
             <button class="btn skur-tagrules-add" id="skurRulesAddBtn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
+            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);margin-left:8px;" onclick="openSkurWorkloadRuleModal()" type="button">🎯 Add workload rule</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
             <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
@@ -1580,6 +1582,50 @@ body.dark .skur-group-chip{color:#b794f4;}
     <div class="modal-close-row">
       <button class="btn-outline" onclick="closeSkurRuleModal()">Cancel</button>
       <button class="btn-primary" id="skurRuleSaveBtn" onclick="saveSkurRule()">Save</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKU Recommender: Workload rule add/edit modal (advanced — duplicated for iteration) -->
+<div class="modal-overlay" id="skurWorkloadRuleModal" onclick="if(event.target===this)closeSkurWorkloadRuleModal()">
+  <div class="modal-card is-md" role="dialog" aria-modal="true" aria-labelledby="skurWorkloadRuleModalTitle">
+    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🎯 Add workload rule</h2></div>
+    <div class="modal-body">
+    <div class="skur-modal-row">
+      <label>If</label>
+      <select id="skurWorkloadRuleField">
+        <option value="name">VM name</option>
+        <option value="os">OS</option>
+        <option value="cluster">Cluster</option>
+        <option value="dc">Datacenter</option>
+      </select>
+    </div>
+    <div class="skur-modal-row">
+      <label>Operator</label>
+      <select id="skurWorkloadRuleOp">
+        <option value="contains">contains</option>
+        <option value="equals">equals</option>
+        <option value="startsWith">starts with</option>
+        <option value="regex">matches regex</option>
+      </select>
+    </div>
+    <div class="skur-modal-row">
+      <label>Value</label>
+      <input type="text" id="skurWorkloadRuleValue" placeholder="e.g. sql, web, app" maxlength="200">
+    </div>
+    <div class="skur-modal-row">
+      <label>Then tag</label>
+      <input type="text" id="skurWorkloadRuleTagKey" placeholder="key e.g. workload" maxlength="40">
+    </div>
+    <div class="skur-modal-row">
+      <label>=</label>
+      <input type="text" id="skurWorkloadRuleTagValue" placeholder="value e.g. sql" maxlength="80">
+    </div>
+    <div class="skur-modal-preview" id="skurWorkloadRulePreview">— start typing —</div>
+    <div class="modal-close-row">
+      <button class="btn-outline" onclick="closeSkurWorkloadRuleModal()">Cancel</button>
+      <button class="btn-primary" id="skurWorkloadRuleSaveBtn" onclick="saveSkurWorkloadRule()">Save</button>
     </div>
     </div>
   </div>
@@ -5337,12 +5383,12 @@ function renderSkurTagRules() {
     const isChk = skurSelectedRuleIds.has(r.id);
     return `<tr data-rid="${esc(r.id)}"${isChk ? ' class="checked"' : ''}>
       <td class="tr-check"><input type="checkbox" class="skur-rule-check" data-rid="${esc(r.id)}" onclick="skurOnRuleCheck(this)"${isChk ? ' checked' : ''}></td>
-      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></td>
+      <td class="tr-cond">${r.kind === 'workload' ? '<span class="skur-rule-kind-badge" title="Advanced workload rule">🎯 workload</span> ' : ''}<strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></td>
       <td class="tr-key">${esc(r.tagKey)}</td>
       <td class="tr-val">${esc(r.tagValue)}</td>
       <td class="tr-matches${cnt===0?' is-zero':''}"${cnt===0?' title="This rule isn\'t applied to any VMs — auto-group won\'t list it. Edit the condition to fix."':''}><strong>${cnt}</strong> VM${cnt===1?'':'s'}${cnt===0?' ⚠':''}</td>
       <td class="tr-actions">
-        <button class="tr-btn" title="Edit rule" onclick="openSkurRuleModal('${esc(r.id)}')" aria-label="Edit rule"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
+        <button class="tr-btn" title="Edit rule" onclick="${r.kind === 'workload' ? 'openSkurWorkloadRuleModal' : 'openSkurRuleModal'}('${esc(r.id)}')" aria-label="Edit rule"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
         <button class="tr-btn" title="Duplicate rule" onclick="duplicateSkurRule('${esc(r.id)}')" aria-label="Duplicate rule"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         <button class="tr-btn" title="Delete rule" onclick="deleteSkurRule('${esc(r.id)}')" aria-label="Delete rule"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
       </td>
@@ -5521,6 +5567,91 @@ function duplicateSkurRule(id) {
   renderSkurGroups();
   renderSkurVmGrid();
   try { showToast(`Duplicated rule — edit to adjust.`, 'success'); } catch(_) {}
+}
+
+// === Workload rule (advanced) — duplicated entry-point pipeline ===
+// Shares the same store (skurTagRules) and matcher; rules are stamped with
+// kind:'workload' so the table can show a badge and the edit button can route
+// back to this modal. Modify freely — basic 'tag' rules stay untouched.
+let _skurEditingWorkloadRuleId = null;
+function openSkurWorkloadRuleModal(ruleId) {
+  _skurEditingWorkloadRuleId = ruleId || null;
+  const r = ruleId ? skurTagRules.find(x => x.id === ruleId) : null;
+  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🎯 Add workload rule';
+  document.getElementById('skurWorkloadRuleField').value = r ? r.field : 'name';
+  document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
+  document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
+  document.getElementById('skurWorkloadRuleTagKey').value = r ? r.tagKey : 'workload';
+  document.getElementById('skurWorkloadRuleTagValue').value = r ? r.tagValue : '';
+  document.getElementById('skurWorkloadRuleModal').classList.add('show');
+  ['skurWorkloadRuleField','skurWorkloadRuleOp','skurWorkloadRuleValue','skurWorkloadRuleTagKey','skurWorkloadRuleTagValue'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el._skurBound) { el._skurBound = true; el.addEventListener('input', updateSkurWorkloadRuleModalPreview); el.addEventListener('change', updateSkurWorkloadRuleModalPreview); }
+  });
+  updateSkurWorkloadRuleModalPreview();
+  setTimeout(() => { try { document.getElementById('skurWorkloadRuleValue').focus(); } catch(_) {} }, 50);
+}
+function closeSkurWorkloadRuleModal() {
+  document.getElementById('skurWorkloadRuleModal').classList.remove('show');
+  _skurEditingWorkloadRuleId = null;
+}
+function _skurReadWorkloadModalDraft() {
+  return {
+    field:    document.getElementById('skurWorkloadRuleField').value,
+    op:       document.getElementById('skurWorkloadRuleOp').value,
+    value:    document.getElementById('skurWorkloadRuleValue').value,
+    flags:    '',
+    tagKey:   document.getElementById('skurWorkloadRuleTagKey').value.trim(),
+    tagValue: document.getElementById('skurWorkloadRuleTagValue').value.trim(),
+    kind:     'workload',
+  };
+}
+function updateSkurWorkloadRuleModalPreview() {
+  const prev = document.getElementById('skurWorkloadRulePreview');
+  const saveBtn = document.getElementById('skurWorkloadRuleSaveBtn');
+  if (!prev || !saveBtn) return;
+  const d = _skurReadWorkloadModalDraft();
+  prev.classList.remove('err');
+  if (!d.value.trim() || !d.tagKey || !d.tagValue) {
+    prev.textContent = 'Fill all fields to preview.'; saveBtn.disabled = true; return;
+  }
+  if (d.op === 'regex') {
+    try { new RegExp(d.value, d.flags || ''); }
+    catch (e) { prev.classList.add('err'); prev.textContent = 'Invalid regex: ' + e.message; saveBtn.disabled = true; return; }
+  }
+  const tmp = Object.assign({ id: '_preview' }, d);
+  const n = skurCountMatches(tmp);
+  if (n === 0) {
+    prev.classList.add('err');
+    prev.textContent = `⛔ Matches 0 VMs — refine the condition to match at least one VM before saving.`;
+    saveBtn.disabled = true;
+    saveBtn.title = 'Refine the condition — currently matches 0 VMs';
+    return;
+  }
+  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → will tag as ${d.tagKey}:${d.tagValue}`;
+  saveBtn.disabled = false;
+  saveBtn.title = '';
+}
+function saveSkurWorkloadRule() {
+  const d = _skurReadWorkloadModalDraft();
+  if (!d.value.trim() || !d.tagKey || !d.tagValue) return;
+  if (d.op === 'regex') { try { new RegExp(d.value, d.flags || ''); } catch (_) { return; } }
+  const n = skurCountMatches(Object.assign({ id: '_save' }, d));
+  if (n === 0) {
+    const prev = document.getElementById('skurWorkloadRulePreview');
+    if (prev) { prev.classList.add('err'); prev.textContent = '⛔ Matches 0 VMs — refine the condition to match at least one VM before saving.'; }
+    return;
+  }
+  if (_skurEditingWorkloadRuleId) {
+    const r = skurTagRules.find(x => x.id === _skurEditingWorkloadRuleId);
+    if (r) Object.assign(r, d);
+  } else {
+    skurTagRules.push(Object.assign({ id: skurNewRuleId() }, d));
+  }
+  closeSkurWorkloadRuleModal();
+  renderSkurTagRules();
+  renderSkurGroups();
+  renderSkurVmGrid();
 }
 
 // === SKU Recommender VM grid (Phase 2) ===
