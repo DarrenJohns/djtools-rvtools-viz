@@ -628,26 +628,40 @@ body.dark .skur-rules-table tr.is-workload .tr-key,body.dark .skur-rules-table t
 .skur-combo-trigger.is-empty .skur-combo-trigger-label{color:var(--text-tertiary);}
 .skur-combo-trigger-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skur-combo-trigger-caret{flex-shrink:0;color:var(--text-tertiary);font-size:11px;}
-.skur-combo-panel{position:fixed;z-index:10000;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.18);display:flex;flex-direction:column;max-height:420px;}
-body.dark .skur-combo-panel,[data-theme="dark"] .skur-combo-panel{background:#1f2937;border-color:#374151;box-shadow:0 12px 32px rgba(0,0,0,.45);}
-.skur-combo-search{padding:8px;border-bottom:1px solid var(--border-default);}
+/* === Center-screen palette === */
+.skur-combo-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:48px 24px 24px;}
+.skur-combo-panel{position:relative;z-index:10000;width:760px;max-width:100%;height:min(560px,calc(100vh - 96px));background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;}
+body.dark .skur-combo-panel,[data-theme="dark"] .skur-combo-panel{background:#1f2937;border-color:#374151;}
+.skur-combo-search{padding:14px 18px;border-bottom:1px solid var(--border-default);}
 body.dark .skur-combo-search,[data-theme="dark"] .skur-combo-search{border-bottom-color:#374151;}
-.skur-combo-search input{width:100%;padding:7px 10px;border:1px solid var(--border-default);border-radius:6px;font:inherit;font-size:13px;background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
-.skur-combo-search input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(15,108,189,.15);}
+.skur-combo-search input{width:100%;padding:10px 12px;border:1px solid var(--border-default);border-radius:8px;font:inherit;font-size:14px;background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
+.skur-combo-search input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 3px rgba(15,108,189,.15);}
 .skur-combo-list{flex:1;overflow-y:auto;padding:4px 0;}
-.skur-combo-group-header{position:sticky;top:0;background:var(--bg-layer1);padding:8px 12px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);border-bottom:1px solid rgba(0,0,0,.05);z-index:1;}
+.skur-combo-group-header{position:sticky;top:0;background:var(--bg-layer1);padding:10px 18px 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);border-bottom:1px solid rgba(0,0,0,.05);z-index:1;}
 body.dark .skur-combo-group-header,[data-theme="dark"] .skur-combo-group-header{background:#1f2937;border-bottom-color:rgba(255,255,255,.06);color:#94a3b8;}
-.skur-combo-option{padding:7px 12px 8px;cursor:pointer;border-left:3px solid transparent;}
+.skur-combo-option{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:start;padding:9px 18px;cursor:pointer;border-left:3px solid transparent;}
 .skur-combo-option:hover{background:rgba(15,108,189,.06);}
 .skur-combo-option.is-active{background:rgba(15,108,189,.10);border-left-color:var(--brand-primary);}
 .skur-combo-option.is-selected .skur-combo-option-name{color:var(--brand-primary);}
 body.dark .skur-combo-option:hover,[data-theme="dark"] .skur-combo-option:hover{background:rgba(96,165,250,.10);}
 body.dark .skur-combo-option.is-active,[data-theme="dark"] .skur-combo-option.is-active{background:rgba(96,165,250,.16);border-left-color:#60a5fa;}
-.skur-combo-option-name{font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.3;}
-.skur-combo-option-desc{font-size:11.5px;color:var(--text-tertiary);line-height:1.4;margin-top:2px;}
+.skur-combo-option-num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;color:var(--text-tertiary);background:rgba(0,0,0,.05);border-radius:5px;text-align:center;padding:3px 0;line-height:1.3;align-self:center;min-width:28px;}
+.skur-combo-option.is-active .skur-combo-option-num{background:var(--brand-primary);color:#fff;}
+body.dark .skur-combo-option-num,[data-theme="dark"] .skur-combo-option-num{background:rgba(255,255,255,.08);}
+.skur-combo-option-body{min-width:0;}
+.skur-combo-option-name{font-size:13.5px;font-weight:600;color:var(--text-primary);line-height:1.3;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+.skur-combo-option-meta{font-size:11px;font-weight:500;color:var(--text-tertiary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+.skur-combo-option-desc{font-size:12px;color:var(--text-tertiary);line-height:1.4;margin-top:3px;}
+.skur-combo-option-id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;color:var(--text-tertiary);background:rgba(0,0,0,.04);border:1px solid var(--border-default);border-radius:5px;padding:2px 7px;align-self:center;white-space:nowrap;}
+body.dark .skur-combo-option-id,[data-theme="dark"] .skur-combo-option-id{background:rgba(255,255,255,.04);border-color:#374151;}
 .skur-combo-option mark{background:rgba(255,200,61,.45);color:inherit;padding:0 1px;border-radius:2px;}
 body.dark .skur-combo-option mark,[data-theme="dark"] .skur-combo-option mark{background:rgba(251,191,36,.35);}
-.skur-combo-empty{padding:18px 12px;text-align:center;color:var(--text-tertiary);font-size:12px;font-style:italic;}
+.skur-combo-empty{padding:32px 18px;text-align:center;color:var(--text-tertiary);font-size:13px;font-style:italic;}
+.skur-combo-foot{border-top:1px solid var(--border-default);padding:9px 18px;color:var(--text-tertiary);font-size:11.5px;display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.02);flex-wrap:wrap;}
+body.dark .skur-combo-foot,[data-theme="dark"] .skur-combo-foot{border-top-color:#374151;background:rgba(255,255,255,.02);}
+.skur-combo-foot .skur-kbd{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;padding:1px 6px;border:1px solid var(--border-default);border-bottom-width:2px;border-radius:4px;background:var(--bg-layer1);color:var(--text-secondary);margin-right:2px;}
+.skur-combo-foot-spacer{margin-left:auto;}
+.skur-combo-foot code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--brand-primary);}
 .skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:14px;font-weight:400;line-height:1;padding:0 0 2px 0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
@@ -1658,11 +1672,20 @@ body.dark .skur-group-chip{color:#b794f4;}
           <span class="skur-combo-trigger-label" id="skurWorkloadRuleComboLabel">— pick a workload —</span>
           <span class="skur-combo-trigger-caret" aria-hidden="true">▾</span>
         </button>
-        <div class="skur-combo-panel" id="skurWorkloadRuleComboPanel" role="dialog" aria-label="Workload picker" style="display:none">
-          <div class="skur-combo-search">
-            <input type="text" id="skurWorkloadRuleComboSearch" placeholder="🔎 Type to filter workloads…" autocomplete="off">
+        <div class="skur-combo-backdrop" id="skurWorkloadRuleComboBackdrop" style="display:none">
+          <div class="skur-combo-panel" id="skurWorkloadRuleComboPanel" role="dialog" aria-label="Workload picker">
+            <div class="skur-combo-search">
+              <input type="text" id="skurWorkloadRuleComboSearch" placeholder="🔎 Search workloads — try &quot;web&quot;, &quot;gpu&quot;, &quot;sap&quot;…" autocomplete="off">
+            </div>
+            <div class="skur-combo-list" id="skurWorkloadRuleComboList" role="listbox" tabindex="-1"></div>
+            <div class="skur-combo-foot">
+              <span><span class="skur-kbd">↑</span><span class="skur-kbd">↓</span> navigate</span>
+              <span><span class="skur-kbd">↵</span> select</span>
+              <span><span class="skur-kbd">esc</span> close</span>
+              <span class="skur-combo-foot-spacer"></span>
+              <span id="skurWorkloadRuleComboFootInfo">50 workloads · 7 types</span>
+            </div>
           </div>
-          <div class="skur-combo-list" id="skurWorkloadRuleComboList" role="listbox" tabindex="-1"></div>
         </div>
       </div>
     </div>
@@ -5837,6 +5860,30 @@ function _skurFindWorkload(family, slug) {
   }
   return null;
 }
+// Type prefix for the canonical workload id (e.g. 'workload-gen-01'). Stable —
+// adding a new type would need its own prefix here.
+const _SKUR_TYPE_PREFIX = {
+  'general-purpose':  'gen',
+  'compute-optimized':'comp',
+  'memory-optimized': 'mem',
+  'storage-optimized':'stor',
+  'gpu-accelerated':  'gpu',
+  'fpga-accelerated': 'fpga',
+  'hpc':              'hpc',
+};
+// Representative current-gen series per family — shown next to the workload
+// name in the picker so users can sanity-check against MS Learn (sizes overview).
+const _SKUR_FAMILY_SERIES = {
+  'A':'Av2-series','B':'Bsv2-series',
+  'D':'Dsv7-series','DC':'DCasv6-series',
+  'F':'Fasv7-series','FX':'FX-series',
+  'E':'Esv7-series','Eb':'Ebsv6-series','EC':'ECasv6-series','M':'Msv3-series',
+  'L':'Lsv4-series',
+  'NC':'NCads_H100_v5','ND':'ND-H200-v5','NG':'NGads_V620','NV':'NVadsA10_v5',
+  'NP':'NP-series',
+  'HB':'HBv5-series','HC':'HC-series','HX':'HX-series',
+};
+
 // Builds the canonical option list for the workload combobox. Returns an array
 // of { value, name, type, family, desc, search } items. Workload "name" hides the
 // family letter; a qualifier is appended only when the same workload label appears
@@ -5847,17 +5894,28 @@ function _skurBuildWorkloadComboItems() {
     counts.set(w, (counts.get(w) || 0) + 1);
   }
   const items = [];
-  for (const t of AZURE_VM_TYPES) for (const f of t.families) for (const w of f.workloads) {
-    const slug = _skurWorkloadSlug(w);
-    const value = `${f.family}:${slug}`;
-    const name = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
-    const desc = _SKUR_WORKLOAD_DESCRIPTIONS[value] || '';
-    items.push({
-      value, name, desc,
-      type: t.label,
-      family: f.family,
-      search: `${name} ${desc} ${t.label} ${f.family}`.toLowerCase(),
-    });
+  for (const t of AZURE_VM_TYPES) {
+    const prefix = _SKUR_TYPE_PREFIX[t.type] || t.type;
+    let n = 0;
+    for (const f of t.families) for (const w of f.workloads) {
+      n++;
+      const slug = _skurWorkloadSlug(w);
+      const value = `${f.family}:${slug}`;
+      const name = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
+      const desc = _SKUR_WORKLOAD_DESCRIPTIONS[value] || '';
+      const series = _SKUR_FAMILY_SERIES[f.family] || '';
+      const canonId = `workload-${prefix}-${String(n).padStart(2,'0')}`;
+      items.push({
+        value, name, desc,
+        type: t.label,
+        typeKey: t.type,
+        family: f.family,
+        series,
+        num: n,
+        canonId,
+        search: `${name} ${desc} ${t.label} ${f.family} ${series} ${canonId}`.toLowerCase(),
+      });
+    }
   }
   return items;
 }
@@ -5892,6 +5950,18 @@ function _skurRenderWorkloadCombo() {
     ? _SKUR_WORKLOAD_COMBO.items.filter(it => it.search.includes(filter))
     : _SKUR_WORKLOAD_COMBO.items.slice();
   _SKUR_WORKLOAD_COMBO.visible = matches;
+  // Footer info: total counts + selected canonical id (if any).
+  const foot = document.getElementById('skurWorkloadRuleComboFootInfo');
+  if (foot) {
+    const total = _SKUR_WORKLOAD_COMBO.items.length;
+    const sel = hidden.value
+      ? _SKUR_WORKLOAD_COMBO.items.find(x => x.value === hidden.value)
+      : null;
+    const matchTxt = filter ? `${matches.length} of ${total} match` : `${total} workloads · 7 types`;
+    foot.innerHTML = sel
+      ? `${_skurEscHtml(matchTxt)} · selected <code>${_skurEscHtml(sel.canonId)}</code>`
+      : _skurEscHtml(matchTxt);
+  }
   if (!matches.length) {
     list.innerHTML = `<div class="skur-combo-empty">No workloads match "${_skurEscHtml(filter)}".</div>`;
     _SKUR_WORKLOAD_COMBO.activeIdx = -1;
@@ -5908,10 +5978,20 @@ function _skurRenderWorkloadCombo() {
     const cls = ['skur-combo-option'];
     if (it.value === sel) cls.push('is-selected');
     if (i === _SKUR_WORKLOAD_COMBO.activeIdx) cls.push('is-active');
+    const metaParts = [];
+    if (it.family) metaParts.push(`Family ${it.family}`);
+    if (it.series) metaParts.push(it.series);
+    const metaHtml = metaParts.length
+      ? `<span class="skur-combo-option-meta">${_skurHighlight(metaParts.join(' · '), filter)}</span>`
+      : '';
     html += `<div class="${cls.join(' ')}" role="option" data-value="${_skurEscHtml(it.value)}" data-idx="${i}">`
-         +  `<div class="skur-combo-option-name">${_skurHighlight(it.name, filter)}</div>`;
+         +    `<div class="skur-combo-option-num">${it.num}</div>`
+         +    `<div class="skur-combo-option-body">`
+         +      `<div class="skur-combo-option-name">${_skurHighlight(it.name, filter)}${metaHtml}</div>`;
     if (it.desc) html += `<div class="skur-combo-option-desc">${_skurHighlight(it.desc, filter)}</div>`;
-    html += `</div>`;
+    html +=     `</div>`
+         +    `<div class="skur-combo-option-id">${_skurEscHtml(it.canonId)}</div>`
+         +  `</div>`;
   });
   list.innerHTML = html;
   // Scroll active option into view if any.
@@ -5938,45 +6018,13 @@ function _skurUpdateWorkloadComboTrigger() {
   trigger.classList.remove('is-empty');
 }
 
-function _skurPositionWorkloadCombo() {
-  const panel   = document.getElementById('skurWorkloadRuleComboPanel');
-  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
-  if (!panel || !trigger || panel.style.display === 'none') return;
-  const r = trigger.getBoundingClientRect();
-  const vh = window.innerHeight;
-  const margin = 8;
-  const spaceBelow = vh - r.bottom - margin;
-  const spaceAbove = r.top - margin;
-  const desired = 420;
-  let top, maxH;
-  if (spaceBelow >= 240 || spaceBelow >= spaceAbove) {
-    top = r.bottom + 4;
-    maxH = Math.min(desired, spaceBelow);
-  } else {
-    maxH = Math.min(desired, spaceAbove);
-    top = r.top - 4 - maxH;
-  }
-  panel.style.left = r.left + 'px';
-  panel.style.width = r.width + 'px';
-  panel.style.top = top + 'px';
-  panel.style.maxHeight = maxH + 'px';
-}
-
 function _skurOpenWorkloadCombo() {
-  const panel   = document.getElementById('skurWorkloadRuleComboPanel');
-  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
-  const search  = document.getElementById('skurWorkloadRuleComboSearch');
-  if (!panel || !trigger) return;
-  panel.style.display = '';
+  const backdrop = document.getElementById('skurWorkloadRuleComboBackdrop');
+  const trigger  = document.getElementById('skurWorkloadRuleComboTrigger');
+  const search   = document.getElementById('skurWorkloadRuleComboSearch');
+  if (!backdrop || !trigger) return;
+  backdrop.style.display = '';
   trigger.setAttribute('aria-expanded', 'true');
-  // Position panel under the trigger using fixed coords so it escapes any
-  // ancestor overflow:hidden/auto (modal body scroll container).
-  _skurPositionWorkloadCombo();
-  if (!_SKUR_WORKLOAD_COMBO._reposBound) {
-    _SKUR_WORKLOAD_COMBO._reposBound = true;
-    window.addEventListener('resize', _skurPositionWorkloadCombo);
-    window.addEventListener('scroll', _skurPositionWorkloadCombo, true);
-  }
   // Pre-position the active row at the currently selected option (or 0).
   const hidden = document.getElementById('skurWorkloadRulePick');
   const selVal = hidden ? hidden.value : '';
@@ -5991,10 +6039,10 @@ function _skurOpenWorkloadCombo() {
 }
 
 function _skurCloseWorkloadCombo() {
-  const panel = document.getElementById('skurWorkloadRuleComboPanel');
-  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
-  if (!panel || !trigger) return;
-  panel.style.display = 'none';
+  const backdrop = document.getElementById('skurWorkloadRuleComboBackdrop');
+  const trigger  = document.getElementById('skurWorkloadRuleComboTrigger');
+  if (!backdrop || !trigger) return;
+  backdrop.style.display = 'none';
   trigger.setAttribute('aria-expanded', 'false');
 }
 
@@ -6013,13 +6061,14 @@ function _skurBindWorkloadCombo() {
   const root = document.getElementById('skurWorkloadRuleCombo');
   if (!root || root._skurBound) return;
   root._skurBound = true;
-  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
-  const search  = document.getElementById('skurWorkloadRuleComboSearch');
-  const list    = document.getElementById('skurWorkloadRuleComboList');
-  const panel   = document.getElementById('skurWorkloadRuleComboPanel');
+  const trigger  = document.getElementById('skurWorkloadRuleComboTrigger');
+  const search   = document.getElementById('skurWorkloadRuleComboSearch');
+  const list     = document.getElementById('skurWorkloadRuleComboList');
+  const backdrop = document.getElementById('skurWorkloadRuleComboBackdrop');
+  const panel    = document.getElementById('skurWorkloadRuleComboPanel');
+  const isOpen = () => backdrop.style.display !== 'none';
   trigger.addEventListener('click', () => {
-    const open = panel.style.display !== 'none';
-    if (open) _skurCloseWorkloadCombo(); else _skurOpenWorkloadCombo();
+    if (isOpen()) _skurCloseWorkloadCombo(); else _skurOpenWorkloadCombo();
   });
   trigger.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
@@ -6065,11 +6114,9 @@ function _skurBindWorkloadCombo() {
       opt.classList.add('is-active');
     }
   });
-  // Click-outside to close.
-  document.addEventListener('mousedown', (e) => {
-    if (panel.style.display === 'none') return;
-    if (root.contains(e.target)) return;
-    _skurCloseWorkloadCombo();
+  // Backdrop click (outside the centred palette) closes the picker.
+  backdrop.addEventListener('mousedown', (e) => {
+    if (e.target === backdrop) _skurCloseWorkloadCombo();
   });
 }
 
