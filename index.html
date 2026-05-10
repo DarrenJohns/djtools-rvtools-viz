@@ -609,10 +609,18 @@ footer strong{opacity:1;}
 .skur-row-add{background:transparent;border:1px solid var(--border-default);color:var(--brand-primary);width:26px;height:26px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px;font-family:inherit;font-weight:700;line-height:1;padding:0;}
 .skur-row-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);}
 .skur-tag-chip{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;background:rgba(15,108,189,.10);color:var(--brand-primary);font-size:10px;font-weight:600;margin:1px 2px 1px 0;border:1px solid rgba(15,108,189,.20);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;}
-.skur-tag-chip.manual{background:rgba(255,200,61,.16);color:var(--brand-primary);border:1px dashed rgba(255,200,61,.65);padding:2px 2px 2px 7px;max-width:260px;}
+.skur-tag-chip.manual{background:rgba(217,119,6,.12);color:#92400e;border:1px dashed rgba(217,119,6,.55);padding:2px 2px 2px 7px;max-width:260px;}
 .skur-tag-chip.manual .skur-tag-text{display:inline-block;max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;}
-.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:var(--brand-primary);cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;opacity:.7;flex-shrink:0;}
-.skur-tag-chip.manual .skur-tag-x:hover{background:rgba(15,108,189,.18);opacity:1;}
+.skur-tag-chip.manual .skur-tag-x{background:transparent;border:none;color:#92400e;cursor:pointer;font-size:10px;line-height:1;padding:1px 5px;margin-left:4px;border-radius:50%;font-family:inherit;opacity:.7;flex-shrink:0;}
+.skur-tag-chip.manual .skur-tag-x:hover{background:rgba(217,119,6,.22);opacity:1;}
+body.dark .skur-tag-chip.manual,[data-theme="dark"] .skur-tag-chip.manual{background:rgba(251,191,36,.16);color:#fcd34d;border-color:rgba(251,191,36,.55);}
+body.dark .skur-tag-chip.manual .skur-tag-x,[data-theme="dark"] .skur-tag-chip.manual .skur-tag-x{color:#fcd34d;}
+.skur-tag-chip.workload{background:rgba(220,38,38,.10);color:#b91c1c;border:1px solid rgba(220,38,38,.35);}
+body.dark .skur-tag-chip.workload,[data-theme="dark"] .skur-tag-chip.workload{background:rgba(248,113,113,.16);color:#fca5a5;border-color:rgba(248,113,113,.45);}
+.skur-workload-hint{margin:6px 0 0 110px;padding:8px 10px;border-radius:6px;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.20);color:#991b1b;font-size:12px;line-height:1.4;max-width:520px;}
+body.dark .skur-workload-hint,[data-theme="dark"] .skur-workload-hint{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);color:#fecaca;}
+.skur-rules-table tr.is-workload .tr-key,.skur-rules-table tr.is-workload .tr-val{background:rgba(220,38,38,.06);color:#b91c1c;font-weight:600;}
+body.dark .skur-rules-table tr.is-workload .tr-key,body.dark .skur-rules-table tr.is-workload .tr-val,[data-theme="dark"] .skur-rules-table tr.is-workload .tr-key,[data-theme="dark"] .skur-rules-table tr.is-workload .tr-val{background:rgba(248,113,113,.10);color:#fca5a5;}
 .skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:14px;font-weight:400;line-height:1;padding:0 0 2px 0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
@@ -1616,9 +1624,10 @@ body.dark .skur-group-chip{color:#b794f4;}
       <select id="skurWorkloadRuleValueSelect" style="display:none"></select>
     </div>
     <div class="skur-modal-row">
-      <label>Workload</label>
+      <label>Workload type</label>
       <select id="skurWorkloadRulePick"><option value="">— pick a workload —</option></select>
     </div>
+    <div class="skur-workload-hint" id="skurWorkloadRuleHint" style="display:none"></div>
     <div class="skur-modal-row">
       <label>Tag</label>
       <code id="skurWorkloadRuleTagOut" style="font-family:'Cascadia Code','Consolas',monospace;font-size:13px;color:var(--text-secondary);">workload: —</code>
@@ -5448,7 +5457,8 @@ function renderSkurTagRules() {
     const fld = fldLabel(r.field);
     const cnt = skurCountMatches(r);
     const isChk = skurSelectedRuleIds.has(r.id);
-    return `<tr data-rid="${esc(r.id)}"${isChk ? ' class="checked"' : ''}>
+    const rowCls = [isChk ? 'checked' : '', r.kind === 'workload' ? 'is-workload' : ''].filter(Boolean).join(' ');
+    return `<tr data-rid="${esc(r.id)}"${rowCls ? ` class="${rowCls}"` : ''}>
       <td class="tr-check"><input type="checkbox" class="skur-rule-check" data-rid="${esc(r.id)}" onclick="skurOnRuleCheck(this)"${isChk ? ' checked' : ''}></td>
       <td class="tr-cond">${r.kind === 'workload' ? '<span class="skur-rule-kind-badge" title="Advanced workload rule">🎯 workload</span> ' : ''}<strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em></td>
       <td class="tr-key">${esc(r.tagKey)}</td>
@@ -5687,6 +5697,62 @@ function _skurFindWorkloadLabel(family, slug) {
   for (const w of ft.family.workloads) if (_skurWorkloadSlug(w) === slug) return w;
   return null;
 }
+// 1-sentence plain-English description for each MS-aligned workload, keyed by
+// canonical "<family>:<slug>". Shown beneath the picker on selection so users
+// can sanity-check their choice without knowing Azure family taxonomy.
+const _SKUR_WORKLOAD_DESCRIPTIONS = {
+  // General purpose
+  'A:entry-level-economical':            'Cheapest tier. Dev/test, small internal tools, learning environments — minimal CPU and RAM.',
+  'B:burstable':                         'Low average CPU with occasional spikes. Good for dev/test, low-traffic web servers, small databases, build agents.',
+  'D:enterprise-apps':                   'Balanced CPU and memory for everyday line-of-business apps and mid-tier services.',
+  'D:relational-databases':              'Balanced workhorse for general SQL/PostgreSQL/MySQL where memory needs are modest.',
+  'D:in-memory-caching':                 'General-purpose Redis/Memcached tier when cache size is moderate.',
+  'D:data-analytics':                    'General analytics jobs (Spark workers, ETL) with balanced compute and memory.',
+  'DC:confidential-computing':           'Workloads needing confidential computing (encrypted memory, hardware-based attestation).',
+  // Compute optimized
+  'F:medium-traffic-web-servers':        'CPU-bound web tier with steady, moderate traffic. High vCPU per GB RAM keeps response times tight.',
+  'F:network-appliances':                'Network virtual appliances, firewalls, proxies — packet-processing workloads that scale with CPU.',
+  'F:batch-processes':                   'CPU-heavy batch jobs (encoding, simulation steps, scientific compute) where throughput per core matters most.',
+  'F:application-servers':               'CPU-bound Java/.NET/Node app servers where memory needs are modest relative to CPU.',
+  'FX:eda':                              'Electronic design automation (chip simulation, RTL synthesis) — needs lots of fast cores and memory bandwidth.',
+  'FX:large-memory-relational-databases':'Large SQL/PostgreSQL with significant working set; CPU-leaning but bigger RAM than F-family.',
+  'FX:medium-to-large-caches':           'Larger Redis/Memcached deployments where cache sizes outgrow F-family RAM.',
+  'FX:in-memory-analytics':              'In-memory analytics on bigger datasets (mid-size Spark, time-series queries).',
+  // Memory optimized
+  'E:relational-databases':              'Memory-leaning SQL/PostgreSQL/MySQL where working set is large and RAM is the bottleneck.',
+  'E:medium-to-large-caches':            'Large Redis/Memcached where total cache size dominates over CPU.',
+  'E:in-memory-analytics':               'Spark/Presto/columnar analytics with large in-memory datasets.',
+  'Eb:high-remote-storage-performance':  'Memory-leaning workloads that ALSO need high remote disk throughput (e.g. large DBs on premium SSD).',
+  'EC:memory-optimized-confidential-computing':'Memory-heavy workloads that also need confidential computing (encrypted memory + attestation).',
+  'M:extra-large-databases-sap-hana':    'SAP HANA, very large in-memory databases needing terabytes of RAM per VM.',
+  'M:large-in-memory-workloads':         'Massive in-memory analytics, large caches and graph databases that don\'t fit on E-family.',
+  // Storage optimized
+  'L:high-disk-throughput-and-io':       'NoSQL (Cassandra, MongoDB), big data, data warehousing — local NVMe storage with high IOPS.',
+  // GPU
+  'NC:gpu-compute':                      'GPU compute: CUDA workloads, machine-learning inference, scientific simulation.',
+  'ND:deep-learning-training':           'Heavy GPU training (LLM fine-tune, large CNN). Multi-GPU + InfiniBand for distributed training.',
+  'NV:visualisation-and-vdi':            'Remote visualisation, VDI, gaming, 3D rendering — GPUs tuned for graphics rather than compute.',
+  // FPGA
+  'NP:fpga-acceleration':                'FPGA-accelerated workloads (genomics, real-time signal processing, custom inference pipelines).',
+  // HPC
+  'H:hpc':                               'Tightly-coupled parallel compute — CFD, weather, finance Monte Carlo. Needs RDMA networking.',
+};
+
+function _skurUpdateWorkloadHint() {
+  const sel = document.getElementById('skurWorkloadRulePick');
+  const hint = document.getElementById('skurWorkloadRuleHint');
+  if (!sel || !hint) return;
+  const val = sel.value || '';
+  const text = _SKUR_WORKLOAD_DESCRIPTIONS[val];
+  if (text) {
+    hint.textContent = text;
+    hint.style.display = '';
+  } else {
+    hint.textContent = '';
+    hint.style.display = 'none';
+  }
+}
+
 // Maps each MS family letter to a one-word qualifier shown to users in place of
 // the raw family code. Used to disambiguate when the same workload label appears
 // under multiple families (and for the friendly tag-out hint).
@@ -5753,6 +5819,7 @@ function _skurUpdateWorkloadTagOut() {
 }
 function _skurOnWorkloadPickChange() {
   _skurUpdateWorkloadTagOut();
+  _skurUpdateWorkloadHint();
   updateSkurWorkloadRuleModalPreview();
 }
 
@@ -5857,6 +5924,7 @@ function openSkurWorkloadRuleModal(ruleId) {
   const preValue = (r && typeof r.tagValue === 'string' && r.tagValue.includes(':')) ? r.tagValue : '';
   _skurPopulateWorkloadPick(preValue);
   _skurUpdateWorkloadTagOut();
+  _skurUpdateWorkloadHint();
   document.getElementById('skurWorkloadRuleModal').classList.add('show');
   ['skurWorkloadRuleOp','skurWorkloadRuleValue'].forEach(id => {
     const el = document.getElementById(id);
@@ -6146,6 +6214,9 @@ function renderSkurVmGrid() {
       const tagsCore = tags.map(t => {
         if (t.origin === 'manual') {
           return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}"><span class="skur-tag-text">${esc(t.key)}:${esc(t.value)}</span><button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
+        }
+        if (t.key === 'workload') {
+          return `<span class="skur-tag-chip workload" title="Workload (advanced rule) · ${esc(t.key)}:${esc(t.value)}">🎯 ${esc(t.value)}</span>`;
         }
         return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
       }).join('');
