@@ -5765,16 +5765,38 @@ const _SKUR_WORKLOAD_DESCRIPTIONS = {
   'EC:memory-optimized-confidential-computing':'Memory-heavy workloads that also need confidential computing (encrypted memory + attestation).',
   'M:extra-large-databases-sap-hana':    'SAP HANA, very large in-memory databases needing terabytes of RAM per VM.',
   'M:large-in-memory-workloads':         'Massive in-memory analytics, large caches and graph databases that don\'t fit on E-family.',
-  // Storage optimized
-  'L:high-disk-throughput-and-io':       'NoSQL (Cassandra, MongoDB), big data, data warehousing — local NVMe storage with high IOPS.',
-  // GPU
-  'NC:gpu-compute':                      'GPU compute: CUDA workloads, machine-learning inference, scientific simulation.',
-  'ND:deep-learning-training':           'Heavy GPU training (LLM fine-tune, large CNN). Multi-GPU + InfiniBand for distributed training.',
-  'NV:visualisation-and-vdi':            'Remote visualisation, VDI, gaming, 3D rendering — GPUs tuned for graphics rather than compute.',
-  // FPGA
-  'NP:fpga-acceleration':                'FPGA-accelerated workloads (genomics, real-time signal processing, custom inference pipelines).',
-  // HPC
-  'H:hpc':                               'Tightly-coupled parallel compute — CFD, weather, finance Monte Carlo. Needs RDMA networking.',
+  // Storage optimized (L-family — local NVMe)
+  'L:high-disk-throughput-io':           'Workloads bottlenecked on local disk throughput/IOPS — log ingestion, message brokers, search indexing.',
+  'L:big-data':                          'Hadoop/Spark with shuffle-heavy jobs that benefit from fast local NVMe scratch space.',
+  'L:sql-and-nosql-databases':           'Cassandra, MongoDB, ScyllaDB, MySQL/Postgres deployments that prefer local NVMe over remote disks.',
+  'L:data-warehousing':                  'Columnar/MPP warehouses (Greenplum, ClickHouse, Vertica) where local NVMe scan speed dominates.',
+  'L:large-transactional-databases':     'OLTP databases with high random IOPS demands and large on-host storage footprints.',
+  // GPU accelerated
+  'NC:compute-intensive':                'GPU compute: CUDA, HPC simulation, ML inference and small/medium training jobs.',
+  'NC:graphics-intensive':               'GPU rendering and visualisation workloads on NC tiers (CAD, 3D modeling).',
+  'NC:visualization':                    'Remote GPU visualisation and scientific viz where graphics output matters more than raw compute.',
+  'ND:large-memory-compute':             'Large-memory GPU compute (LLM training/fine-tune, big-batch inference) needing high HBM and InfiniBand.',
+  'ND:large-memory-graphics':            'GPU graphics workloads with very large frame buffers / textures (film FX, large-scene rendering).',
+  'ND:large-memory-visualization':       'High-end remote visualisation on large-memory GPUs (medical imaging, seismic, large 3D scenes).',
+  'NG:virtual-desktop-vdi':              'Cloud-gaming-grade GPU VDI tier — high frame-rate desktop streaming for graphics professionals.',
+  'NG:cloud-gaming':                     'Cloud gaming hosts — low-latency GPU streaming optimised for interactive frame delivery.',
+  'NV:virtual-desktop-vdi':              'Mainstream GPU VDI — multi-user remote desktops, CAD/design workstations.',
+  'NV:single-precision-compute':         'Single-precision GPU compute (FP32) for graphics-leaning ML, image processing, simulation.',
+  'NV:video-encoding-rendering':         'GPU-accelerated video transcoding and 3D rendering pipelines.',
+  // FPGA accelerated
+  'NP:ml-inference':                     'FPGA-accelerated ML inference (low-latency, high-throughput model serving).',
+  'NP:video-transcoding':                'FPGA video transcoding pipelines for live streaming and broadcast.',
+  'NP:database-search-analytics':        'FPGA-accelerated search, ranking and analytics — offloads CPU on query-heavy workloads.',
+  // High performance compute
+  'HB:high-memory-bandwidth':            'HPC workloads bottlenecked on memory bandwidth — CFD, seismic, reservoir simulation.',
+  'HB:fluid-dynamics':                   'Computational fluid dynamics (CFD) — bandwidth-bound, MPI/RDMA across nodes.',
+  'HB:weather-modeling':                 'Numerical weather prediction and climate models — bandwidth-bound HPC with InfiniBand.',
+  'HC:high-density-compute':             'Dense FP-heavy HPC — explicit/implicit solvers that scale per-core rather than per-bandwidth.',
+  'HC:finite-element-analysis':          'FEA / structural and crash simulation — MPI workloads needing strong per-core FP throughput.',
+  'HC:molecular-dynamics':               'Molecular dynamics (GROMACS, NAMD, LAMMPS) — tightly-coupled MPI with RDMA.',
+  'HC:computational-chemistry':          'Quantum chemistry / DFT codes (Gaussian, VASP, NWChem) — heavy FP and inter-node communication.',
+  'HX:large-memory-capacity':            'HPC jobs needing very large per-node RAM (in-memory solvers, large EDA jobs).',
+  'HX:eda':                              'Electronic design automation at scale — large memory plus high core counts for synthesis/verification.',
 };
 
 function _skurUpdateWorkloadHint() {
