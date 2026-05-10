@@ -657,11 +657,9 @@ body.dark .skur-combo-option-id,[data-theme="dark"] .skur-combo-option-id{backgr
 .skur-combo-option mark{background:rgba(255,200,61,.45);color:inherit;padding:0 1px;border-radius:2px;}
 body.dark .skur-combo-option mark,[data-theme="dark"] .skur-combo-option mark{background:rgba(251,191,36,.35);}
 .skur-combo-empty{padding:32px 18px;text-align:center;color:var(--text-tertiary);font-size:13px;font-style:italic;}
-.skur-combo-foot{border-top:1px solid var(--border-default);padding:9px 18px;color:var(--text-tertiary);font-size:11.5px;display:flex;align-items:center;gap:16px;background:rgba(0,0,0,.02);flex-wrap:wrap;}
-body.dark .skur-combo-foot,[data-theme="dark"] .skur-combo-foot{border-top-color:#374151;background:rgba(255,255,255,.02);}
-.skur-combo-foot .skur-kbd{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;padding:1px 6px;border:1px solid var(--border-default);border-bottom-width:2px;border-radius:4px;background:var(--bg-layer1);color:var(--text-secondary);margin-right:2px;}
-.skur-combo-foot-spacer{margin-left:auto;}
-.skur-combo-foot code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--brand-primary);}
+.skur-combo-close{position:absolute;top:8px;right:10px;width:30px;height:30px;border:none;background:transparent;color:var(--text-tertiary);font-size:22px;line-height:1;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;}
+.skur-combo-close:hover{background:rgba(0,0,0,.06);color:var(--text-primary);}
+body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{background:rgba(255,255,255,.08);color:#f3f4f6;}
 .skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:14px;font-weight:400;line-height:1;padding:0 0 2px 0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
@@ -1674,17 +1672,11 @@ body.dark .skur-group-chip{color:#b794f4;}
         </button>
         <div class="skur-combo-backdrop" id="skurWorkloadRuleComboBackdrop" style="display:none">
           <div class="skur-combo-panel" id="skurWorkloadRuleComboPanel" role="dialog" aria-label="Workload picker">
+            <button type="button" class="skur-combo-close" id="skurWorkloadRuleComboClose" aria-label="Close">×</button>
             <div class="skur-combo-search">
               <input type="text" id="skurWorkloadRuleComboSearch" placeholder="🔎 Search workloads — try &quot;web&quot;, &quot;gpu&quot;, &quot;sap&quot;…" autocomplete="off">
             </div>
             <div class="skur-combo-list" id="skurWorkloadRuleComboList" role="listbox" tabindex="-1"></div>
-            <div class="skur-combo-foot">
-              <span><span class="skur-kbd">↑</span><span class="skur-kbd">↓</span> navigate</span>
-              <span><span class="skur-kbd">↵</span> select</span>
-              <span><span class="skur-kbd">esc</span> close</span>
-              <span class="skur-combo-foot-spacer"></span>
-              <span id="skurWorkloadRuleComboFootInfo">50 workloads · 7 types</span>
-            </div>
           </div>
         </div>
       </div>
@@ -5950,18 +5942,6 @@ function _skurRenderWorkloadCombo() {
     ? _SKUR_WORKLOAD_COMBO.items.filter(it => it.search.includes(filter))
     : _SKUR_WORKLOAD_COMBO.items.slice();
   _SKUR_WORKLOAD_COMBO.visible = matches;
-  // Footer info: total counts + selected canonical id (if any).
-  const foot = document.getElementById('skurWorkloadRuleComboFootInfo');
-  if (foot) {
-    const total = _SKUR_WORKLOAD_COMBO.items.length;
-    const sel = hidden.value
-      ? _SKUR_WORKLOAD_COMBO.items.find(x => x.value === hidden.value)
-      : null;
-    const matchTxt = filter ? `${matches.length} of ${total} match` : `${total} workloads · 7 types`;
-    foot.innerHTML = sel
-      ? `${_skurEscHtml(matchTxt)} · selected <code>${_skurEscHtml(sel.canonId)}</code>`
-      : _skurEscHtml(matchTxt);
-  }
   if (!matches.length) {
     list.innerHTML = `<div class="skur-combo-empty">No workloads match "${_skurEscHtml(filter)}".</div>`;
     _SKUR_WORKLOAD_COMBO.activeIdx = -1;
@@ -6118,6 +6098,9 @@ function _skurBindWorkloadCombo() {
   backdrop.addEventListener('mousedown', (e) => {
     if (e.target === backdrop) _skurCloseWorkloadCombo();
   });
+  // X close button in the top-right of the palette.
+  const closeBtn = document.getElementById('skurWorkloadRuleComboClose');
+  if (closeBtn) closeBtn.addEventListener('click', () => { _skurCloseWorkloadCombo(); trigger.focus(); });
 }
 
 // Public-facing wrappers preserving the names used elsewhere in the modal pipeline.
