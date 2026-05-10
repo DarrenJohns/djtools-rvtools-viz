@@ -5868,7 +5868,20 @@ function _skurFindWorkload(family, slug) {
 function _skurResolveWorkloadId(id) {
   if (!id) return null;
   if (!_SKUR_WORKLOAD_COMBO.items) _SKUR_WORKLOAD_COMBO.items = _skurBuildWorkloadComboItems();
-  return _SKUR_WORKLOAD_COMBO.items.find(it => it.canonId === id || it.value === id) || null;
+  const items = _SKUR_WORKLOAD_COMBO.items;
+  // Direct match: new canonId ("general-01") or legacy "family:slug".
+  let hit = items.find(it => it.canonId === id || it.value === id);
+  if (hit) return hit;
+  // Older interim shape "workload-<short>-NN" (gen/comp/mem/stor) — map to the
+  // new canonId by short prefix and number.
+  const m = /^workload-(gen|comp|mem|stor|gpu|fpga|hpc)-(\d+)$/.exec(id);
+  if (m) {
+    const map = { gen:'general', comp:'compute', mem:'memory', stor:'storage', gpu:'gpu', fpga:'fpga', hpc:'hpc' };
+    const want = `${map[m[1]]}-${m[2].padStart(2,'0')}`;
+    hit = items.find(it => it.canonId === want);
+    if (hit) return hit;
+  }
+  return null;
 }
 // Normalise any historical workload tag value to its canonical id. Rules
 // loaded from older .rvz workspaces may carry "family:slug"; this brings them
@@ -5880,10 +5893,10 @@ function _skurNormaliseWorkloadTagValue(v) {
 // Type prefix for the canonical workload id (e.g. 'workload-gen-01'). Stable —
 // adding a new type would need its own prefix here.
 const _SKUR_TYPE_PREFIX = {
-  'general-purpose':  'gen',
-  'compute-optimized':'comp',
-  'memory-optimized': 'mem',
-  'storage-optimized':'stor',
+  'general-purpose':  'general',
+  'compute-optimized':'compute',
+  'memory-optimized': 'memory',
+  'storage-optimized':'storage',
   'gpu-accelerated':  'gpu',
   'fpga-accelerated': 'fpga',
   'hpc':              'hpc',
@@ -5921,7 +5934,7 @@ function _skurBuildWorkloadComboItems() {
       const name = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
       const desc = _SKUR_WORKLOAD_DESCRIPTIONS[value] || '';
       const series = _SKUR_FAMILY_SERIES[f.family] || '';
-      const canonId = `workload-${prefix}-${String(n).padStart(2,'0')}`;
+      const canonId = `${prefix}-${String(n).padStart(2,'0')}`;
       items.push({
         value, name, desc,
         type: t.label,
@@ -6549,7 +6562,7 @@ function renderSkurVmGrid() {
           return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}"><span class="skur-tag-text">${esc(t.key)}:${esc(t.value)}</span><button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
         }
         if (t.key === 'workload') {
-          return `<span class="skur-tag-chip workload" title="Workload (advanced rule) · ${esc(t.key)}:${esc(t.value)}">🎯 ${esc(t.value)}</span>`;
+          return `<span class="skur-tag-chip workload" title="Workload (advanced rule) · ${esc(t.key)}:${esc(t.value)}">🎯 ${esc(t.key)}:${esc(t.value)}</span>`;
         }
         return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
       }).join('');
