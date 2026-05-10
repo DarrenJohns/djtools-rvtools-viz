@@ -621,6 +621,33 @@ body.dark .skur-tag-chip.workload,[data-theme="dark"] .skur-tag-chip.workload{ba
 body.dark .skur-workload-hint,[data-theme="dark"] .skur-workload-hint{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);color:#fecaca;}
 .skur-rules-table tr.is-workload .tr-key,.skur-rules-table tr.is-workload .tr-val{background:rgba(220,38,38,.06);color:#b91c1c;font-weight:600;}
 body.dark .skur-rules-table tr.is-workload .tr-key,body.dark .skur-rules-table tr.is-workload .tr-val,[data-theme="dark"] .skur-rules-table tr.is-workload .tr-key,[data-theme="dark"] .skur-rules-table tr.is-workload .tr-val{background:rgba(248,113,113,.10);color:#fca5a5;}
+.skur-combo{position:relative;flex:1;min-width:0;}
+.skur-combo-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);font:inherit;font-size:13px;cursor:pointer;text-align:left;box-sizing:border-box;}
+.skur-combo-trigger:hover{border-color:var(--brand-primary);}
+.skur-combo-trigger:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 3px rgba(15,108,189,.15);}
+.skur-combo-trigger.is-empty .skur-combo-trigger-label{color:var(--text-tertiary);}
+.skur-combo-trigger-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.skur-combo-trigger-caret{flex-shrink:0;color:var(--text-tertiary);font-size:11px;}
+.skur-combo-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:1000;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.18);display:flex;flex-direction:column;max-height:420px;}
+body.dark .skur-combo-panel,[data-theme="dark"] .skur-combo-panel{background:#1f2937;border-color:#374151;box-shadow:0 12px 32px rgba(0,0,0,.45);}
+.skur-combo-search{padding:8px;border-bottom:1px solid var(--border-default);}
+body.dark .skur-combo-search,[data-theme="dark"] .skur-combo-search{border-bottom-color:#374151;}
+.skur-combo-search input{width:100%;padding:7px 10px;border:1px solid var(--border-default);border-radius:6px;font:inherit;font-size:13px;background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
+.skur-combo-search input:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(15,108,189,.15);}
+.skur-combo-list{flex:1;overflow-y:auto;padding:4px 0;}
+.skur-combo-group-header{position:sticky;top:0;background:var(--bg-layer1);padding:8px 12px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-tertiary);border-bottom:1px solid rgba(0,0,0,.05);z-index:1;}
+body.dark .skur-combo-group-header,[data-theme="dark"] .skur-combo-group-header{background:#1f2937;border-bottom-color:rgba(255,255,255,.06);color:#94a3b8;}
+.skur-combo-option{padding:7px 12px 8px;cursor:pointer;border-left:3px solid transparent;}
+.skur-combo-option:hover{background:rgba(15,108,189,.06);}
+.skur-combo-option.is-active{background:rgba(15,108,189,.10);border-left-color:var(--brand-primary);}
+.skur-combo-option.is-selected .skur-combo-option-name{color:var(--brand-primary);}
+body.dark .skur-combo-option:hover,[data-theme="dark"] .skur-combo-option:hover{background:rgba(96,165,250,.10);}
+body.dark .skur-combo-option.is-active,[data-theme="dark"] .skur-combo-option.is-active{background:rgba(96,165,250,.16);border-left-color:#60a5fa;}
+.skur-combo-option-name{font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.3;}
+.skur-combo-option-desc{font-size:11.5px;color:var(--text-tertiary);line-height:1.4;margin-top:2px;}
+.skur-combo-option mark{background:rgba(255,200,61,.45);color:inherit;padding:0 1px;border-radius:2px;}
+body.dark .skur-combo-option mark,[data-theme="dark"] .skur-combo-option mark{background:rgba(251,191,36,.35);}
+.skur-combo-empty{padding:18px 12px;text-align:center;color:var(--text-tertiary);font-size:12px;font-style:italic;}
 .skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:14px;font-weight:400;line-height:1;padding:0 0 2px 0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
@@ -1625,7 +1652,19 @@ body.dark .skur-group-chip{color:#b794f4;}
     </div>
     <div class="skur-modal-row">
       <label>Workload type</label>
-      <select id="skurWorkloadRulePick"><option value="">— pick a workload —</option></select>
+      <div class="skur-combo" id="skurWorkloadRuleCombo">
+        <input type="hidden" id="skurWorkloadRulePick" value="">
+        <button type="button" class="skur-combo-trigger" id="skurWorkloadRuleComboTrigger" aria-haspopup="listbox" aria-expanded="false">
+          <span class="skur-combo-trigger-label" id="skurWorkloadRuleComboLabel">— pick a workload —</span>
+          <span class="skur-combo-trigger-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="skur-combo-panel" id="skurWorkloadRuleComboPanel" role="dialog" aria-label="Workload picker" style="display:none">
+          <div class="skur-combo-search">
+            <input type="text" id="skurWorkloadRuleComboSearch" placeholder="🔎 Type to filter workloads…" autocomplete="off">
+          </div>
+          <div class="skur-combo-list" id="skurWorkloadRuleComboList" role="listbox" tabindex="-1"></div>
+        </div>
+      </div>
     </div>
     <div class="skur-workload-hint" id="skurWorkloadRuleHint" style="display:none"></div>
     <div class="skur-modal-row">
@@ -5776,47 +5815,223 @@ function _skurFindWorkload(family, slug) {
   }
   return null;
 }
-// Single opinionated workload picker: groups all workloads by Type (optgroup),
-// labels in plain English. The family letter is hidden; a short qualifier is
-// appended only when the same workload label appears under multiple families.
-// Option value remains the canonical "<family>:<slug>" emitted as the tag.
-function _skurPopulateWorkloadPick(selectedValue) {
-  const sel = document.getElementById('skurWorkloadRulePick');
-  if (!sel) return;
-  const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-  // Pass 1: count label occurrences across the whole taxonomy to detect duplicates.
+// Builds the canonical option list for the workload combobox. Returns an array
+// of { value, name, type, family, desc, search } items. Workload "name" hides the
+// family letter; a qualifier is appended only when the same workload label appears
+// under multiple families (so duplicates are disambiguated).
+function _skurBuildWorkloadComboItems() {
   const counts = new Map();
   for (const t of AZURE_VM_TYPES) for (const f of t.families) for (const w of f.workloads) {
     counts.set(w, (counts.get(w) || 0) + 1);
   }
-  // Pass 2: build options. Append qualifier only when the label is duplicated.
-  // Description (if available) is inlined into the option text so users can
-  // read it BEFORE selecting — native <select> doesn't support rich content,
-  // but the browser auto-expands the dropdown panel to fit the longest option.
-  // We stash both the short and full label in dataset so the open/change handlers
-  // can swap between them (full while open, short when collapsed).
-  let html = '<option value="">— pick a workload —</option>';
-  for (const t of AZURE_VM_TYPES) {
-    html += `<optgroup label="${esc(t.label)}">`;
-    for (const f of t.families) {
-      for (const w of f.workloads) {
-        const slug = _skurWorkloadSlug(w);
-        const val = `${f.family}:${slug}`;
-        const baseLabel = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
-        const desc = _SKUR_WORKLOAD_DESCRIPTIONS[val] || '';
-        const fullLabel = desc ? `${baseLabel}  —  ${desc}` : baseLabel;
-        const isSel = val === selectedValue;
-        // When pre-selected, use the short label so the closed select is clean.
-        const displayLabel = isSel ? baseLabel : fullLabel;
-        html += `<option value="${esc(val)}" data-short-label="${esc(baseLabel)}" data-full-label="${esc(fullLabel)}"${isSel?' selected':''}>${esc(displayLabel)}</option>`;
-      }
-    }
-    html += `</optgroup>`;
+  const items = [];
+  for (const t of AZURE_VM_TYPES) for (const f of t.families) for (const w of f.workloads) {
+    const slug = _skurWorkloadSlug(w);
+    const value = `${f.family}:${slug}`;
+    const name = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
+    const desc = _SKUR_WORKLOAD_DESCRIPTIONS[value] || '';
+    items.push({
+      value, name, desc,
+      type: t.label,
+      family: f.family,
+      search: `${name} ${desc} ${t.label} ${f.family}`.toLowerCase(),
+    });
   }
-  sel.innerHTML = html;
+  return items;
+}
+
+const _SKUR_WORKLOAD_COMBO = {
+  items: null,        // built lazily on first open
+  filter: '',
+  activeIdx: -1,      // index into the *filtered* visible-option list
+  visible: [],        // last-rendered list of items (after filter), in render order
+};
+
+function _skurEscHtml(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function _skurEscRe(s) {
+  return String(s==null?'':s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+function _skurHighlight(text, filter) {
+  const safe = _skurEscHtml(text);
+  if (!filter) return safe;
+  const re = new RegExp(`(${_skurEscRe(filter)})`, 'gi');
+  return safe.replace(re, '<mark>$1</mark>');
+}
+
+function _skurRenderWorkloadCombo() {
+  const list = document.getElementById('skurWorkloadRuleComboList');
+  const hidden = document.getElementById('skurWorkloadRulePick');
+  if (!list || !hidden) return;
+  if (!_SKUR_WORKLOAD_COMBO.items) _SKUR_WORKLOAD_COMBO.items = _skurBuildWorkloadComboItems();
+  const filter = (_SKUR_WORKLOAD_COMBO.filter || '').trim().toLowerCase();
+  const matches = filter
+    ? _SKUR_WORKLOAD_COMBO.items.filter(it => it.search.includes(filter))
+    : _SKUR_WORKLOAD_COMBO.items.slice();
+  _SKUR_WORKLOAD_COMBO.visible = matches;
+  if (!matches.length) {
+    list.innerHTML = `<div class="skur-combo-empty">No workloads match "${_skurEscHtml(filter)}".</div>`;
+    _SKUR_WORKLOAD_COMBO.activeIdx = -1;
+    return;
+  }
+  const sel = hidden.value || '';
+  let html = '';
+  let lastType = null;
+  matches.forEach((it, i) => {
+    if (it.type !== lastType) {
+      html += `<div class="skur-combo-group-header">${_skurEscHtml(it.type)}</div>`;
+      lastType = it.type;
+    }
+    const cls = ['skur-combo-option'];
+    if (it.value === sel) cls.push('is-selected');
+    if (i === _SKUR_WORKLOAD_COMBO.activeIdx) cls.push('is-active');
+    html += `<div class="${cls.join(' ')}" role="option" data-value="${_skurEscHtml(it.value)}" data-idx="${i}">`
+         +  `<div class="skur-combo-option-name">${_skurHighlight(it.name, filter)}</div>`;
+    if (it.desc) html += `<div class="skur-combo-option-desc">${_skurHighlight(it.desc, filter)}</div>`;
+    html += `</div>`;
+  });
+  list.innerHTML = html;
+  // Scroll active option into view if any.
+  if (_SKUR_WORKLOAD_COMBO.activeIdx >= 0) {
+    const act = list.querySelector('.skur-combo-option.is-active');
+    if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function _skurUpdateWorkloadComboTrigger() {
+  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
+  const label   = document.getElementById('skurWorkloadRuleComboLabel');
+  const hidden  = document.getElementById('skurWorkloadRulePick');
+  if (!trigger || !label || !hidden) return;
+  const val = hidden.value || '';
+  if (!val) {
+    label.textContent = '— pick a workload —';
+    trigger.classList.add('is-empty');
+    return;
+  }
+  if (!_SKUR_WORKLOAD_COMBO.items) _SKUR_WORKLOAD_COMBO.items = _skurBuildWorkloadComboItems();
+  const it = _SKUR_WORKLOAD_COMBO.items.find(x => x.value === val);
+  label.textContent = it ? it.name : val;
+  trigger.classList.remove('is-empty');
+}
+
+function _skurOpenWorkloadCombo() {
+  const panel   = document.getElementById('skurWorkloadRuleComboPanel');
+  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
+  const search  = document.getElementById('skurWorkloadRuleComboSearch');
+  if (!panel || !trigger) return;
+  panel.style.display = '';
+  trigger.setAttribute('aria-expanded', 'true');
+  // Pre-position the active row at the currently selected option (or 0).
+  const hidden = document.getElementById('skurWorkloadRulePick');
+  const selVal = hidden ? hidden.value : '';
+  if (!_SKUR_WORKLOAD_COMBO.items) _SKUR_WORKLOAD_COMBO.items = _skurBuildWorkloadComboItems();
+  const visible = _SKUR_WORKLOAD_COMBO.filter
+    ? _SKUR_WORKLOAD_COMBO.items.filter(it => it.search.includes(_SKUR_WORKLOAD_COMBO.filter))
+    : _SKUR_WORKLOAD_COMBO.items;
+  const idx = selVal ? visible.findIndex(it => it.value === selVal) : -1;
+  _SKUR_WORKLOAD_COMBO.activeIdx = idx >= 0 ? idx : -1;
+  _skurRenderWorkloadCombo();
+  if (search) { try { search.focus(); search.select(); } catch (_) {} }
+}
+
+function _skurCloseWorkloadCombo() {
+  const panel = document.getElementById('skurWorkloadRuleComboPanel');
+  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
+  if (!panel || !trigger) return;
+  panel.style.display = 'none';
+  trigger.setAttribute('aria-expanded', 'false');
+}
+
+function _skurSelectWorkloadFromCombo(value) {
+  const hidden = document.getElementById('skurWorkloadRulePick');
+  if (!hidden) return;
+  hidden.value = value || '';
+  _skurUpdateWorkloadComboTrigger();
+  _skurUpdateWorkloadTagOut();
+  _skurUpdateWorkloadHint();
+  updateSkurWorkloadRuleModalPreview();
+  _skurCloseWorkloadCombo();
+}
+
+function _skurBindWorkloadCombo() {
+  const root = document.getElementById('skurWorkloadRuleCombo');
+  if (!root || root._skurBound) return;
+  root._skurBound = true;
+  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
+  const search  = document.getElementById('skurWorkloadRuleComboSearch');
+  const list    = document.getElementById('skurWorkloadRuleComboList');
+  const panel   = document.getElementById('skurWorkloadRuleComboPanel');
+  trigger.addEventListener('click', () => {
+    const open = panel.style.display !== 'none';
+    if (open) _skurCloseWorkloadCombo(); else _skurOpenWorkloadCombo();
+  });
+  trigger.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault(); _skurOpenWorkloadCombo();
+    }
+  });
+  search.addEventListener('input', () => {
+    _SKUR_WORKLOAD_COMBO.filter = search.value || '';
+    _SKUR_WORKLOAD_COMBO.activeIdx = _SKUR_WORKLOAD_COMBO.filter ? 0 : -1;
+    _skurRenderWorkloadCombo();
+  });
+  search.addEventListener('keydown', (e) => {
+    const visible = _SKUR_WORKLOAD_COMBO.visible || [];
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _SKUR_WORKLOAD_COMBO.activeIdx = Math.min(visible.length - 1, (_SKUR_WORKLOAD_COMBO.activeIdx < 0 ? -1 : _SKUR_WORKLOAD_COMBO.activeIdx) + 1);
+      _skurRenderWorkloadCombo();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _SKUR_WORKLOAD_COMBO.activeIdx = Math.max(0, (_SKUR_WORKLOAD_COMBO.activeIdx <= 0 ? 1 : _SKUR_WORKLOAD_COMBO.activeIdx) - 1);
+      _skurRenderWorkloadCombo();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const it = visible[_SKUR_WORKLOAD_COMBO.activeIdx];
+      if (it) _skurSelectWorkloadFromCombo(it.value);
+    } else if (e.key === 'Escape') {
+      e.preventDefault(); _skurCloseWorkloadCombo(); trigger.focus();
+    }
+  });
+  list.addEventListener('click', (e) => {
+    const opt = e.target.closest('.skur-combo-option');
+    if (!opt) return;
+    _skurSelectWorkloadFromCombo(opt.dataset.value);
+  });
+  list.addEventListener('mousemove', (e) => {
+    const opt = e.target.closest('.skur-combo-option');
+    if (!opt) return;
+    const idx = parseInt(opt.dataset.idx, 10);
+    if (!isNaN(idx) && idx !== _SKUR_WORKLOAD_COMBO.activeIdx) {
+      _SKUR_WORKLOAD_COMBO.activeIdx = idx;
+      // Lightweight: just toggle classes instead of re-rendering on every mousemove.
+      list.querySelectorAll('.skur-combo-option.is-active').forEach(el => el.classList.remove('is-active'));
+      opt.classList.add('is-active');
+    }
+  });
+  // Click-outside to close.
+  document.addEventListener('mousedown', (e) => {
+    if (panel.style.display === 'none') return;
+    if (root.contains(e.target)) return;
+    _skurCloseWorkloadCombo();
+  });
+}
+
+// Public-facing wrappers preserving the names used elsewhere in the modal pipeline.
+function _skurPopulateWorkloadPick(selectedValue) {
+  const hidden = document.getElementById('skurWorkloadRulePick');
+  if (hidden) hidden.value = selectedValue || '';
+  _SKUR_WORKLOAD_COMBO.filter = '';
+  _SKUR_WORKLOAD_COMBO.activeIdx = -1;
+  const search = document.getElementById('skurWorkloadRuleComboSearch');
+  if (search) search.value = '';
+  _skurUpdateWorkloadComboTrigger();
+  _skurBindWorkloadCombo();
 }
 function _skurUpdateWorkloadTagOut() {
-  const val = document.getElementById('skurWorkloadRulePick').value;
+  const val = (document.getElementById('skurWorkloadRulePick') || {}).value || '';
   const out = document.getElementById('skurWorkloadRuleTagOut');
   if (!out) return;
   if (!val) { out.textContent = 'workload: —'; return; }
@@ -5827,27 +6042,13 @@ function _skurUpdateWorkloadTagOut() {
   const friendly = found ? `${found.workload} (${_skurFamilyQualifier(family)})` : '';
   out.textContent = friendly ? `workload: ${val}  →  ${friendly}` : `workload: ${val}`;
 }
+// Legacy hooks (no-op shims kept for any callers; combobox binding is automatic).
 function _skurOnWorkloadPickChange() {
-  // Collapse the selected option's visible text back to the short label so the
-  // closed <select> doesn't display the full description string. The hint box
-  // below already re-shows the full description.
-  const sel = document.getElementById('skurWorkloadRulePick');
-  if (sel) {
-    const opt = sel.options[sel.selectedIndex];
-    if (opt && opt.dataset && opt.dataset.shortLabel) opt.text = opt.dataset.shortLabel;
-  }
   _skurUpdateWorkloadTagOut();
   _skurUpdateWorkloadHint();
   updateSkurWorkloadRuleModalPreview();
 }
-function _skurOnWorkloadPickOpen() {
-  // Re-expand all options to show descriptions when the user reopens the picker.
-  const sel = document.getElementById('skurWorkloadRulePick');
-  if (!sel) return;
-  for (const opt of sel.options) {
-    if (opt.dataset && opt.dataset.fullLabel) opt.text = opt.dataset.fullLabel;
-  }
-}
+function _skurOnWorkloadPickOpen() { _skurOpenWorkloadCombo(); }
 
 function _skurPopulateWorkloadFieldSelect(selectedField) {
   const sel = document.getElementById('skurWorkloadRuleField');
@@ -5960,19 +6161,8 @@ function openSkurWorkloadRuleModal(ruleId) {
   if (fieldSel && !fieldSel._skurBound) { fieldSel._skurBound = true; fieldSel.addEventListener('change', _skurOnWorkloadFieldChange); }
   const valSel = document.getElementById('skurWorkloadRuleValueSelect');
   if (valSel && !valSel._skurBound) { valSel._skurBound = true; valSel.addEventListener('change', _skurOnWorkloadValueSelectChange); }
-  // Bind the workload picker once
-  const pickSel = document.getElementById('skurWorkloadRulePick');
-  if (pickSel && !pickSel._skurBound) {
-    pickSel._skurBound = true;
-    pickSel.addEventListener('change', _skurOnWorkloadPickChange);
-    // Re-expand all options to show descriptions whenever the user opens the picker.
-    pickSel.addEventListener('mousedown', _skurOnWorkloadPickOpen);
-    pickSel.addEventListener('focus',     _skurOnWorkloadPickOpen);
-    pickSel.addEventListener('keydown', (e) => {
-      // Spacebar / Alt+Down also open the dropdown via keyboard.
-      if (e.key === ' ' || (e.altKey && e.key === 'ArrowDown')) _skurOnWorkloadPickOpen();
-    });
-  }
+  // Workload combobox is bound automatically inside _skurPopulateWorkloadPick via
+  // _skurBindWorkloadCombo (idempotent). Nothing to do here.
   updateSkurWorkloadRuleModalPreview();
   setTimeout(() => {
     try {
@@ -6010,7 +6200,7 @@ function updateSkurWorkloadRuleModalPreview() {
     prev.textContent = 'Add a match value (e.g. "web", "sql").'; saveBtn.disabled = true; return;
   }
   if (!d.tagValue) {
-    prev.textContent = 'Pick a Type, Family and Workload to assign.'; saveBtn.disabled = true; return;
+    prev.textContent = 'Pick a workload type to assign.'; saveBtn.disabled = true; return;
   }
   if (d.op === 'regex') {
     try { new RegExp(d.value, d.flags || ''); }
