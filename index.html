@@ -617,7 +617,7 @@ body.dark .skur-tag-chip.manual,[data-theme="dark"] .skur-tag-chip.manual{backgr
 body.dark .skur-tag-chip.manual .skur-tag-x,[data-theme="dark"] .skur-tag-chip.manual .skur-tag-x{color:#fcd34d;}
 .skur-tag-chip.workload{background:rgba(220,38,38,.10);color:#b91c1c;border:1px solid rgba(220,38,38,.35);}
 body.dark .skur-tag-chip.workload,[data-theme="dark"] .skur-tag-chip.workload{background:rgba(248,113,113,.16);color:#fca5a5;border-color:rgba(248,113,113,.45);}
-.skur-workload-hint{margin:6px 0 0 110px;padding:8px 10px;border-radius:6px;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.20);color:#991b1b;font-size:12px;line-height:1.4;max-width:520px;}
+.skur-workload-hint{margin:6px 0 0;padding:8px 10px;border-radius:6px;background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.20);color:#991b1b;font-size:12px;line-height:1.4;}
 body.dark .skur-workload-hint,[data-theme="dark"] .skur-workload-hint{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25);color:#fecaca;}
 .skur-rules-table tr.is-workload .tr-key,.skur-rules-table tr.is-workload .tr-val{background:rgba(220,38,38,.06);color:#b91c1c;font-weight:600;}
 body.dark .skur-rules-table tr.is-workload .tr-key,body.dark .skur-rules-table tr.is-workload .tr-val,[data-theme="dark"] .skur-rules-table tr.is-workload .tr-key,[data-theme="dark"] .skur-rules-table tr.is-workload .tr-val{background:rgba(248,113,113,.10);color:#fca5a5;}
@@ -1681,11 +1681,11 @@ body.dark .skur-group-chip{color:#b794f4;}
         </div>
       </div>
     </div>
-    <div class="skur-workload-hint" id="skurWorkloadRuleHint" style="display:none"></div>
     <div class="skur-modal-row">
       <label>Tag</label>
       <code id="skurWorkloadRuleTagOut" style="font-family:'Cascadia Code','Consolas',monospace;font-size:13px;color:var(--text-secondary);">workload: —</code>
     </div>
+    <div class="skur-workload-hint" id="skurWorkloadRuleHint" style="display:none"></div>
     <div class="skur-modal-preview" id="skurWorkloadRulePreview">— start typing —</div>
     <div class="modal-close-row">
       <button class="btn-outline" onclick="closeSkurWorkloadRuleModal()">Cancel</button>
