@@ -5790,6 +5790,11 @@ function _skurPopulateWorkloadPick(selectedValue) {
     counts.set(w, (counts.get(w) || 0) + 1);
   }
   // Pass 2: build options. Append qualifier only when the label is duplicated.
+  // Description (if available) is inlined into the option text so users can
+  // read it BEFORE selecting — native <select> doesn't support rich content,
+  // but the browser auto-expands the dropdown panel to fit the longest option.
+  // We stash both the short and full label in dataset so the open/change handlers
+  // can swap between them (full while open, short when collapsed).
   let html = '<option value="">— pick a workload —</option>';
   for (const t of AZURE_VM_TYPES) {
     html += `<optgroup label="${esc(t.label)}">`;
@@ -5797,8 +5802,13 @@ function _skurPopulateWorkloadPick(selectedValue) {
       for (const w of f.workloads) {
         const slug = _skurWorkloadSlug(w);
         const val = `${f.family}:${slug}`;
-        const label = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
-        html += `<option value="${esc(val)}"${val===selectedValue?' selected':''}>${esc(label)}</option>`;
+        const baseLabel = counts.get(w) > 1 ? `${w} (${_skurFamilyQualifier(f.family)})` : w;
+        const desc = _SKUR_WORKLOAD_DESCRIPTIONS[val] || '';
+        const fullLabel = desc ? `${baseLabel}  —  ${desc}` : baseLabel;
+        const isSel = val === selectedValue;
+        // When pre-selected, use the short label so the closed select is clean.
+        const displayLabel = isSel ? baseLabel : fullLabel;
+        html += `<option value="${esc(val)}" data-short-label="${esc(baseLabel)}" data-full-label="${esc(fullLabel)}"${isSel?' selected':''}>${esc(displayLabel)}</option>`;
       }
     }
     html += `</optgroup>`;
@@ -5818,9 +5828,25 @@ function _skurUpdateWorkloadTagOut() {
   out.textContent = friendly ? `workload: ${val}  →  ${friendly}` : `workload: ${val}`;
 }
 function _skurOnWorkloadPickChange() {
+  // Collapse the selected option's visible text back to the short label so the
+  // closed <select> doesn't display the full description string. The hint box
+  // below already re-shows the full description.
+  const sel = document.getElementById('skurWorkloadRulePick');
+  if (sel) {
+    const opt = sel.options[sel.selectedIndex];
+    if (opt && opt.dataset && opt.dataset.shortLabel) opt.text = opt.dataset.shortLabel;
+  }
   _skurUpdateWorkloadTagOut();
   _skurUpdateWorkloadHint();
   updateSkurWorkloadRuleModalPreview();
+}
+function _skurOnWorkloadPickOpen() {
+  // Re-expand all options to show descriptions when the user reopens the picker.
+  const sel = document.getElementById('skurWorkloadRulePick');
+  if (!sel) return;
+  for (const opt of sel.options) {
+    if (opt.dataset && opt.dataset.fullLabel) opt.text = opt.dataset.fullLabel;
+  }
 }
 
 function _skurPopulateWorkloadFieldSelect(selectedField) {
@@ -5936,7 +5962,17 @@ function openSkurWorkloadRuleModal(ruleId) {
   if (valSel && !valSel._skurBound) { valSel._skurBound = true; valSel.addEventListener('change', _skurOnWorkloadValueSelectChange); }
   // Bind the workload picker once
   const pickSel = document.getElementById('skurWorkloadRulePick');
-  if (pickSel && !pickSel._skurBound) { pickSel._skurBound = true; pickSel.addEventListener('change', _skurOnWorkloadPickChange); }
+  if (pickSel && !pickSel._skurBound) {
+    pickSel._skurBound = true;
+    pickSel.addEventListener('change', _skurOnWorkloadPickChange);
+    // Re-expand all options to show descriptions whenever the user opens the picker.
+    pickSel.addEventListener('mousedown', _skurOnWorkloadPickOpen);
+    pickSel.addEventListener('focus',     _skurOnWorkloadPickOpen);
+    pickSel.addEventListener('keydown', (e) => {
+      // Spacebar / Alt+Down also open the dropdown via keyboard.
+      if (e.key === ' ' || (e.altKey && e.key === 'ArrowDown')) _skurOnWorkloadPickOpen();
+    });
+  }
   updateSkurWorkloadRuleModalPreview();
   setTimeout(() => {
     try {
