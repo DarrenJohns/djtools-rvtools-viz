@@ -647,6 +647,9 @@ body.dark .skur-combo-option:hover,[data-theme="dark"] .skur-combo-option:hover{
 body.dark .skur-combo-option.is-active,[data-theme="dark"] .skur-combo-option.is-active{background:rgba(96,165,250,.16);border-left-color:#60a5fa;}
 .skur-combo-option-num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;color:var(--text-tertiary);background:rgba(0,0,0,.05);border-radius:5px;text-align:center;padding:3px 0;line-height:1.3;align-self:center;min-width:28px;}
 .skur-combo-option.is-active .skur-combo-option-num{background:var(--brand-primary);color:#fff;}
+.skur-combo-option.is-unavailable{opacity:.42;}
+.skur-combo-option.is-unavailable .skur-combo-option-id::after{content:" · n/a";color:#b91c1c;font-weight:600;}
+body.dark .skur-combo-option.is-unavailable .skur-combo-option-id::after,[data-theme="dark"] .skur-combo-option.is-unavailable .skur-combo-option-id::after{color:#fca5a5;}
 body.dark .skur-combo-option-num,[data-theme="dark"] .skur-combo-option-num{background:rgba(255,255,255,.08);}
 .skur-combo-option-body{min-width:0;}
 .skur-combo-option-name{font-size:13.5px;font-weight:600;color:var(--text-primary);line-height:1.3;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
@@ -5986,6 +5989,10 @@ function _skurRenderWorkloadCombo() {
     return;
   }
   const sel = hidden.value || '';
+  const region = (typeof skurPlan !== 'undefined' && skurPlan && skurPlan.region) || '';
+  const regionObj = (typeof SKUR_AZURE_REGIONS !== 'undefined')
+    ? SKUR_AZURE_REGIONS.find(r => r.id === region) : null;
+  const regionLabel = regionObj ? regionObj.label : region;
   let html = '';
   let lastType = null;
   matches.forEach((it, i) => {
@@ -5993,16 +6000,21 @@ function _skurRenderWorkloadCombo() {
       html += `<div class="skur-combo-group-header">${_skurEscHtml(it.type)}</div>`;
       lastType = it.type;
     }
+    const available = _skurFamilyAvailableInRegion(it.family, region);
     const cls = ['skur-combo-option'];
     if (it.canonId === sel) cls.push('is-selected');
     if (i === _SKUR_WORKLOAD_COMBO.activeIdx) cls.push('is-active');
+    if (!available) cls.push('is-unavailable');
     const metaParts = [];
     if (it.family) metaParts.push(`Family ${it.family}`);
     if (it.series) metaParts.push(it.series);
     const metaHtml = metaParts.length
       ? `<span class="skur-combo-option-meta">${_skurHighlight(metaParts.join(' · '), filter)}</span>`
       : '';
-    html += `<div class="${cls.join(' ')}" role="option" data-value="${_skurEscHtml(it.canonId)}" data-idx="${i}">`
+    const titleAttr = !available && regionLabel
+      ? ` title="Not available in ${_skurEscHtml(regionLabel)} — Family ${_skurEscHtml(it.family)} has no published SKUs for this region."`
+      : '';
+    html += `<div class="${cls.join(' ')}" role="option" data-value="${_skurEscHtml(it.canonId)}" data-idx="${i}"${titleAttr}>`
          +    `<div class="skur-combo-option-num">${it.num}</div>`
          +    `<div class="skur-combo-option-body">`
          +      `<div class="skur-combo-option-name">${_skurHighlight(it.name, filter)}${metaHtml}</div>`;
@@ -6809,6 +6821,46 @@ function _skurDeriveFamily(name) {
   const m = String(name).match(/^Standard_([A-Z])/);
   return m ? m[1] : 'X';
 }
+// Capture the *multi-letter* family prefix from a raw SKU name. Matches the
+// taxonomy used by the workload picker (A, B, D, DC, E, Eb, EC, F, FX, L, M,
+// NC, ND, NG, NP, NV, HB, HC, HX, ...). This is independent of
+// _skurDeriveFamily (which strips to a single letter for pricing/eligibility).
+function _skurFamilyPrefixFromSkuName(name) {
+  const m = String(name).match(/^Standard_([A-Z][A-Za-z]?)/);
+  if (!m) return '';
+  // Special-case: a single uppercase followed by digits means single-letter
+  // family (e.g. "Standard_D2s_v5" → "D"); ditto for purely numeric size codes.
+  // The regex already captures up to one trailing letter, so trim trailing
+  // lowercase that is actually part of the SKU size (e.g. "Ds" in "Ds_v5" is
+  // really family D with "s" feature flag). The simplest fix: if the second
+  // character is lowercase AND the *next* character is a digit, drop it.
+  const cap = m[1];
+  if (cap.length === 2 && /[a-z]/.test(cap[1])) {
+    const after = String(name).charAt(m.index + m[0].length);
+    if (/\d/.test(after)) return cap[0];
+  }
+  return cap;
+}
+// Set of family prefixes actually present in a region's raw catalog. Computed
+// lazily once per region and cached on the region entry.
+function _skurRegionFamilySet(region) {
+  if (!skurLiveData || !region) return null;
+  const entry = skurLiveData.byRegion[region];
+  if (!entry || !entry.available || !entry.familySet) return null;
+  return entry.familySet;
+}
+// True if `family` (workload-picker form, e.g. "DC") is present in the region.
+// When live data hasn't loaded yet we fail open (return true) so the picker
+// doesn't grey out everything during boot.
+function _skurFamilyAvailableInRegion(family, region) {
+  const set = _skurRegionFamilySet(region);
+  if (!set) return true;
+  if (set.has(family)) return true;
+  // Allow letter-level fallback: e.g. workload family "DC" can match if the
+  // catalog only knows "D" (rare, but keeps us forgiving).
+  if (family && family.length > 1 && set.has(family[0])) return true;
+  return false;
+}
 function _skurNormaliseLiveSkus(skus, prices) {
   if (!Array.isArray(skus) || !prices) return [];
   const out = [];
@@ -6846,9 +6898,22 @@ async function _skurLoadRegionData(regionName) {
     return skurLiveData.byRegion[regionName];
   }
   const normalized = _skurNormaliseLiveSkus(vmJson.skus, pricingJson.prices);
+  // Build the family-prefix set from the *raw* sku list so the workload picker
+  // can grey out workloads whose family has no SKUs in this region, even for
+  // families that the normalised catalog filters out (GPU, HPC, ...).
+  const familySet = new Set();
+  if (Array.isArray(vmJson.skus)) {
+    for (const s of vmJson.skus) {
+      if (!s || !s.name) continue;
+      if (Array.isArray(s.restrictions) && s.restrictions.length) continue;
+      const fam = _skurFamilyPrefixFromSkuName(s.name);
+      if (fam) familySet.add(fam);
+    }
+  }
   const entry = {
     available: normalized.length > 0,
     normalized,
+    familySet,
     lastUpdated: vmJson.lastUpdated,
     displayName: vmJson.regionDisplayName,
     rawCount: Array.isArray(vmJson.skus) ? vmJson.skus.length : 0,
