@@ -6159,8 +6159,7 @@ function _skurUpdateWorkloadTagOut() {
   if (!out) return;
   if (!val) { out.textContent = 'workload: —'; return; }
   const it = _skurResolveWorkloadId(val);
-  if (!it) { out.textContent = `workload: ${val}`; return; }
-  out.textContent = `workload: ${it.canonId}  →  ${it.name}`;
+  out.textContent = `workload: ${it ? it.canonId : val}`;
 }
 // Legacy hooks (no-op shims kept for any callers; combobox binding is automatic).
 function _skurOnWorkloadPickChange() {
