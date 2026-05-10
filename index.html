@@ -2587,7 +2587,16 @@ function _applyWorkspaceSnapshot(ws) {
   }
   if (typeof skurTagRules !== 'undefined') {
     skurTagRules.length = 0;
-    for (const r of (ws.tagRules || [])) skurTagRules.push({ ...r });
+    for (const r of (ws.tagRules || [])) {
+      const copy = { ...r };
+      // Workload rules: migrate any legacy "family:slug" tagValue to the
+      // canonical id ("workload-<type>-NN") so loaded rules emit the new tag.
+      if (copy.kind === 'workload' && typeof copy.tagValue === 'string'
+          && typeof _skurNormaliseWorkloadTagValue === 'function') {
+        copy.tagValue = _skurNormaliseWorkloadTagValue(copy.tagValue);
+      }
+      skurTagRules.push(copy);
+    }
   }
   if (typeof skurPlan !== 'undefined' && ws.planSettings) {
     Object.assign(skurPlan, ws.planSettings);
@@ -5818,8 +5827,8 @@ function _skurUpdateWorkloadHint() {
   const sel = document.getElementById('skurWorkloadRulePick');
   const hint = document.getElementById('skurWorkloadRuleHint');
   if (!sel || !hint) return;
-  const val = sel.value || '';
-  const text = _SKUR_WORKLOAD_DESCRIPTIONS[val];
+  const it = _skurResolveWorkloadId(sel.value || '');
+  const text = it ? it.desc : '';
   if (text) {
     hint.textContent = text;
     hint.style.display = '';
@@ -5851,6 +5860,22 @@ function _skurFindWorkload(family, slug) {
     for (const w of f.workloads) if (_skurWorkloadSlug(w) === slug) return { workload: w, type: t };
   }
   return null;
+}
+// Look up an item in the combobox list by either its canonical id
+// (e.g. "workload-gen-01" — the new value contract) or its legacy
+// "family:slug" value (still accepted so saved rules from prior versions keep
+// resolving). Returns null if neither matches.
+function _skurResolveWorkloadId(id) {
+  if (!id) return null;
+  if (!_SKUR_WORKLOAD_COMBO.items) _SKUR_WORKLOAD_COMBO.items = _skurBuildWorkloadComboItems();
+  return _SKUR_WORKLOAD_COMBO.items.find(it => it.canonId === id || it.value === id) || null;
+}
+// Normalise any historical workload tag value to its canonical id. Rules
+// loaded from older .rvz workspaces may carry "family:slug"; this brings them
+// up to date so the rest of the pipeline only deals with one shape.
+function _skurNormaliseWorkloadTagValue(v) {
+  const it = _skurResolveWorkloadId(v);
+  return it ? it.canonId : (v || '');
 }
 // Type prefix for the canonical workload id (e.g. 'workload-gen-01'). Stable —
 // adding a new type would need its own prefix here.
@@ -5956,7 +5981,7 @@ function _skurRenderWorkloadCombo() {
       lastType = it.type;
     }
     const cls = ['skur-combo-option'];
-    if (it.value === sel) cls.push('is-selected');
+    if (it.canonId === sel) cls.push('is-selected');
     if (i === _SKUR_WORKLOAD_COMBO.activeIdx) cls.push('is-active');
     const metaParts = [];
     if (it.family) metaParts.push(`Family ${it.family}`);
@@ -5964,7 +5989,7 @@ function _skurRenderWorkloadCombo() {
     const metaHtml = metaParts.length
       ? `<span class="skur-combo-option-meta">${_skurHighlight(metaParts.join(' · '), filter)}</span>`
       : '';
-    html += `<div class="${cls.join(' ')}" role="option" data-value="${_skurEscHtml(it.value)}" data-idx="${i}">`
+    html += `<div class="${cls.join(' ')}" role="option" data-value="${_skurEscHtml(it.canonId)}" data-idx="${i}">`
          +    `<div class="skur-combo-option-num">${it.num}</div>`
          +    `<div class="skur-combo-option-body">`
          +      `<div class="skur-combo-option-name">${_skurHighlight(it.name, filter)}${metaHtml}</div>`;
@@ -5992,8 +6017,7 @@ function _skurUpdateWorkloadComboTrigger() {
     trigger.classList.add('is-empty');
     return;
   }
-  if (!_SKUR_WORKLOAD_COMBO.items) _SKUR_WORKLOAD_COMBO.items = _skurBuildWorkloadComboItems();
-  const it = _SKUR_WORKLOAD_COMBO.items.find(x => x.value === val);
+  const it = _skurResolveWorkloadId(val);
   label.textContent = it ? it.name : val;
   trigger.classList.remove('is-empty');
 }
@@ -6012,7 +6036,7 @@ function _skurOpenWorkloadCombo() {
   const visible = _SKUR_WORKLOAD_COMBO.filter
     ? _SKUR_WORKLOAD_COMBO.items.filter(it => it.search.includes(_SKUR_WORKLOAD_COMBO.filter))
     : _SKUR_WORKLOAD_COMBO.items;
-  const idx = selVal ? visible.findIndex(it => it.value === selVal) : -1;
+  const idx = selVal ? visible.findIndex(it => it.canonId === selVal) : -1;
   _SKUR_WORKLOAD_COMBO.activeIdx = idx >= 0 ? idx : -1;
   _skurRenderWorkloadCombo();
   if (search) { try { search.focus(); search.select(); } catch (_) {} }
@@ -6106,7 +6130,9 @@ function _skurBindWorkloadCombo() {
 // Public-facing wrappers preserving the names used elsewhere in the modal pipeline.
 function _skurPopulateWorkloadPick(selectedValue) {
   const hidden = document.getElementById('skurWorkloadRulePick');
-  if (hidden) hidden.value = selectedValue || '';
+  // Accept either a canonical id ("workload-gen-01") or a legacy "family:slug"
+  // value — normalise to canonId so downstream code only deals with one shape.
+  if (hidden) hidden.value = _skurNormaliseWorkloadTagValue(selectedValue || '');
   _SKUR_WORKLOAD_COMBO.filter = '';
   _SKUR_WORKLOAD_COMBO.activeIdx = -1;
   const search = document.getElementById('skurWorkloadRuleComboSearch');
@@ -6119,12 +6145,9 @@ function _skurUpdateWorkloadTagOut() {
   const out = document.getElementById('skurWorkloadRuleTagOut');
   if (!out) return;
   if (!val) { out.textContent = 'workload: —'; return; }
-  const idx = val.indexOf(':');
-  const family = idx >= 0 ? val.slice(0, idx) : val;
-  const slug = idx >= 0 ? val.slice(idx + 1) : '';
-  const found = _skurFindWorkload(family, slug);
-  const friendly = found ? `${found.workload} (${_skurFamilyQualifier(family)})` : '';
-  out.textContent = friendly ? `workload: ${val}  →  ${friendly}` : `workload: ${val}`;
+  const it = _skurResolveWorkloadId(val);
+  if (!it) { out.textContent = `workload: ${val}`; return; }
+  out.textContent = `workload: ${it.canonId}  →  ${it.name}`;
 }
 // Legacy hooks (no-op shims kept for any callers; combobox binding is automatic).
 function _skurOnWorkloadPickChange() {
@@ -6231,8 +6254,9 @@ function openSkurWorkloadRuleModal(ruleId) {
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
   _skurSyncWorkloadValueControl(r ? r.value : null);
-  // Parse existing tagValue back into the picker selection ("<family>:<slug>").
-  const preValue = (r && typeof r.tagValue === 'string' && r.tagValue.includes(':')) ? r.tagValue : '';
+  // Tag value for a workload rule is the canonical id ("workload-<type>-NN").
+  // Older saved rules may carry "family:slug"; accept either via the populator.
+  const preValue = (r && typeof r.tagValue === 'string') ? r.tagValue : '';
   _skurPopulateWorkloadPick(preValue);
   _skurUpdateWorkloadTagOut();
   _skurUpdateWorkloadHint();
@@ -6299,10 +6323,9 @@ function updateSkurWorkloadRuleModalPreview() {
     saveBtn.title = 'Refine the condition — currently matches 0 VMs';
     return;
   }
-  const family = d.tagValue.split(':')[0];
-  const slug   = d.tagValue.slice(family.length + 1);
-  const wlLabel = _skurFindWorkloadLabel(family, slug) || slug;
-  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → workload: ${family}:${slug}  (${wlLabel})`;
+  const wlIt = _skurResolveWorkloadId(d.tagValue);
+  const wlLabel = wlIt ? wlIt.name : d.tagValue;
+  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → workload: ${d.tagValue}  (${wlLabel})`;
   saveBtn.disabled = false;
   saveBtn.title = '';
 }
