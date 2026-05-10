@@ -628,7 +628,7 @@ body.dark .skur-rules-table tr.is-workload .tr-key,body.dark .skur-rules-table t
 .skur-combo-trigger.is-empty .skur-combo-trigger-label{color:var(--text-tertiary);}
 .skur-combo-trigger-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skur-combo-trigger-caret{flex-shrink:0;color:var(--text-tertiary);font-size:11px;}
-.skur-combo-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:1000;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.18);display:flex;flex-direction:column;max-height:420px;}
+.skur-combo-panel{position:fixed;z-index:10000;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:8px;box-shadow:0 12px 32px rgba(0,0,0,.18);display:flex;flex-direction:column;max-height:420px;}
 body.dark .skur-combo-panel,[data-theme="dark"] .skur-combo-panel{background:#1f2937;border-color:#374151;box-shadow:0 12px 32px rgba(0,0,0,.45);}
 .skur-combo-search{padding:8px;border-bottom:1px solid var(--border-default);}
 body.dark .skur-combo-search,[data-theme="dark"] .skur-combo-search{border-bottom-color:#374151;}
@@ -5916,6 +5916,30 @@ function _skurUpdateWorkloadComboTrigger() {
   trigger.classList.remove('is-empty');
 }
 
+function _skurPositionWorkloadCombo() {
+  const panel   = document.getElementById('skurWorkloadRuleComboPanel');
+  const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
+  if (!panel || !trigger || panel.style.display === 'none') return;
+  const r = trigger.getBoundingClientRect();
+  const vh = window.innerHeight;
+  const margin = 8;
+  const spaceBelow = vh - r.bottom - margin;
+  const spaceAbove = r.top - margin;
+  const desired = 420;
+  let top, maxH;
+  if (spaceBelow >= 240 || spaceBelow >= spaceAbove) {
+    top = r.bottom + 4;
+    maxH = Math.min(desired, spaceBelow);
+  } else {
+    maxH = Math.min(desired, spaceAbove);
+    top = r.top - 4 - maxH;
+  }
+  panel.style.left = r.left + 'px';
+  panel.style.width = r.width + 'px';
+  panel.style.top = top + 'px';
+  panel.style.maxHeight = maxH + 'px';
+}
+
 function _skurOpenWorkloadCombo() {
   const panel   = document.getElementById('skurWorkloadRuleComboPanel');
   const trigger = document.getElementById('skurWorkloadRuleComboTrigger');
@@ -5923,6 +5947,14 @@ function _skurOpenWorkloadCombo() {
   if (!panel || !trigger) return;
   panel.style.display = '';
   trigger.setAttribute('aria-expanded', 'true');
+  // Position panel under the trigger using fixed coords so it escapes any
+  // ancestor overflow:hidden/auto (modal body scroll container).
+  _skurPositionWorkloadCombo();
+  if (!_SKUR_WORKLOAD_COMBO._reposBound) {
+    _SKUR_WORKLOAD_COMBO._reposBound = true;
+    window.addEventListener('resize', _skurPositionWorkloadCombo);
+    window.addEventListener('scroll', _skurPositionWorkloadCombo, true);
+  }
   // Pre-position the active row at the currently selected option (or 0).
   const hidden = document.getElementById('skurWorkloadRulePick');
   const selVal = hidden ? hidden.value : '';
