@@ -874,9 +874,10 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-group-panel .gp-exc-strip .gp-exc-hint{margin-left:auto;color:var(--text-tertiary);font-style:italic;font-size:10px;}
 /* v1.3: per-group recommendations table */
 .skur-group-panel .gp-recs{margin-top:10px;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-layer1);}
-.skur-group-panel .gp-recs-head,.skur-group-panel .gp-recs-row{display:grid;grid-template-columns:minmax(160px,1.3fr) minmax(220px,1.5fr) minmax(150px,1.1fr) minmax(110px,1fr) 28px;gap:10px;align-items:center;padding:7px 10px;font-size:12px;}
+.skur-group-panel .gp-recs-head,.skur-group-panel .gp-recs-row{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(260px,2.4fr) minmax(130px,.9fr) minmax(95px,.8fr) 28px;gap:10px;align-items:center;padding:7px 10px;font-size:12px;}
 .skur-group-panel .gp-recs-head{background:var(--bg-layer2);border-bottom:1px solid var(--border-subtle);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-tertiary);}
 .skur-group-panel .gp-recs-head .gp-recs-cost-col{text-align:right;}
+.skur-group-panel .gp-recs-head .gp-recs-hr-col{text-align:right;}
 .skur-group-panel .gp-recs-head .gp-sortable{cursor:pointer;user-select:none;}
 .skur-group-panel .gp-recs-head .gp-sortable:hover{color:var(--text-secondary);}
 .skur-group-panel .gp-recs-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;font-size:11px;color:var(--text-tertiary);border-top:1px solid var(--border-subtle);background:var(--bg-layer1);}
@@ -887,6 +888,7 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-group-panel .gp-recs-vm{display:flex;flex-direction:column;gap:2px;min-width:0;}
 .skur-group-panel .gp-recs-vm strong{color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .skur-group-panel .gp-recs-vmspec{font-family:var(--font-mono,'Consolas',monospace);font-size:11px;color:var(--text-tertiary);}
+.skur-group-panel .gp-recs-hr{text-align:right;}
 .skur-group-panel .gp-recs-cost{text-align:right;}
 .skur-group-panel .gp-recs-actions{text-align:right;}
 .skur-group-panel .gp-row-remove{background:transparent;border:1px solid transparent;color:var(--text-tertiary);width:24px;height:24px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-family:inherit;}
@@ -4656,7 +4658,7 @@ function renderSkurGroups() {
             <div class="gp-recs-head">
               <span class="gp-sortable" onclick="skurSortGp('vm')" title="Sort by VM name">VM ${_skurGpArrow('vm')}</span>
               <span class="gp-sortable" onclick="skurSortGp('sku')" title="Sort by SKU">SKU · Why? ${_skurGpArrow('sku')}</span>
-              <span class="gp-sortable" onclick="skurSortGp('headroom')" title="Sort by headroom">Headroom · Conf ${_skurGpArrow('headroom')}</span>
+              <span class="gp-sortable gp-recs-hr-col" onclick="skurSortGp('headroom')" title="Sort by headroom">Headroom · Conf ${_skurGpArrow('headroom')}</span>
               <span class="gp-sortable gp-recs-cost-col" onclick="skurSortGp('price')" title="Sort by price">$/mo ${_skurGpArrow('price')}</span>
               <span></span>
             </div>
