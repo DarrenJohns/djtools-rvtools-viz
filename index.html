@@ -1558,7 +1558,7 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="skur-section">
         <div class="skur-groups-card">
           <div class="skur-groups-head">
-            <h4>📂 VM Groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
+            <h4>📂 Sizing and pricing groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
             <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
               <option value="" disabled selected hidden>📊 Excel ▾</option>
               <option value="all">All groups</option>
@@ -8092,7 +8092,7 @@ function renderSkuRecStatCards() {
   host.innerHTML = [
     card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
     card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
-    card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
+    card('📂', groups.length.toLocaleString(), 'Sizing and pricing groups', `${pinnedCount} pinned`),
     card('🌏', skuCount.toLocaleString(), 'Eligible SKUs', regionLabel ? `in ${regionLabel}` : '', '', eligibleHelp),
   ].join('');
 }
