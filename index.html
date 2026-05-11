@@ -875,14 +875,16 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .gp-toolbar .gp-toggle .gp-tg-slider::before{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
 .skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider{background:var(--status-success);}
 .skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider::before{transform:translateX(14px);}
-.skur-group-panel .gp-toolbar .gp-tb-excel{font:inherit;font-size:11px;padding:4px 9px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;}
-.skur-group-panel .gp-toolbar .gp-tb-excel:hover{background:var(--bg-layer2);}
+.skur-group-panel .gp-toolbar .gp-tb-excel{font:inherit;font-size:11px;height:30px;padding:0 12px;border:1px solid var(--border-default);border-radius:6px;background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1;transition:background .15s,border-color .15s,color .15s;}
+.skur-group-panel .gp-toolbar .gp-tb-excel:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-group-panel .gp-toolbar .gp-tb-rename{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
 .skur-group-panel .gp-toolbar .gp-tb-rename:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-group-panel .gp-toolbar .gp-tb-rename svg{display:block;}
-.skur-group-panel .gp-toolbar .gp-tb-delete{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0 0 0 4px;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
-.skur-group-panel .gp-toolbar .gp-tb-delete:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
+.skur-group-panel .gp-toolbar .gp-tb-delete{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
+.skur-group-panel .gp-toolbar .gp-tb-delete:hover{background:var(--bg-layer2);border-color:var(--status-danger);color:var(--status-danger);}
 .skur-group-panel .gp-toolbar .gp-tb-delete svg{display:block;}
+.skur-group-panel .gp-toolbar .gp-tb-excel + .gp-tb-rename,
+.skur-group-panel .gp-toolbar .gp-tb-rename + .gp-tb-delete{margin-left:-4px;}
 .skur-group-panel .gp-cband{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin:6px 0 4px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:11px;}
 .skur-group-panel .gp-cband-label{font-weight:700;}
 .skur-group-panel .gp-cchip{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);cursor:pointer;user-select:none;}
