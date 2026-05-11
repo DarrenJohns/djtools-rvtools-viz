@@ -6065,6 +6065,20 @@ function _skurOpenWorkloadCombo() {
   _SKUR_WORKLOAD_COMBO.activeIdx = idx >= 0 ? idx : -1;
   _skurRenderWorkloadCombo();
   if (search) { try { search.focus(); search.select(); } catch (_) {} }
+  // If live region data hasn't loaded yet for the current plan region, kick
+  // it off and re-render once available so families that have no SKUs in the
+  // region get greyed out without requiring a picker reopen.
+  try {
+    const reg = (typeof skurPlan !== 'undefined' && skurPlan && skurPlan.region) || '';
+    if (reg && typeof skurLiveData !== 'undefined' && skurLiveData
+        && !(skurLiveData.byRegion[reg] && skurLiveData.byRegion[reg].familySet)
+        && typeof _skurLoadRegionData === 'function') {
+      _skurLoadRegionData(reg).then(() => {
+        const bd = document.getElementById('skurWorkloadRuleComboBackdrop');
+        if (bd && bd.style.display !== 'none') _skurRenderWorkloadCombo();
+      }).catch(() => {});
+    }
+  } catch (_) {}
 }
 
 function _skurCloseWorkloadCombo() {
@@ -7072,6 +7086,10 @@ document.addEventListener('skurPlanChanged', (ev) => {
     try { updateSkurDataPill(); } catch (_) {}
     try { renderSkurGroups(); } catch (_) {}
     try { renderSkurVmGrid(); } catch (_) {}
+    try {
+      const bd = document.getElementById('skurWorkloadRuleComboBackdrop');
+      if (bd && bd.style.display !== 'none') _skurRenderWorkloadCombo();
+    } catch (_) {}
   }).catch(() => {});
 });
 // Kick off live-data init once the DOM is ready (idempotent; no-op on file://).
