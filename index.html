@@ -785,7 +785,10 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-groups-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
 .skur-groups-2col{display:grid;grid-template-columns:260px 1fr;gap:14px;align-items:stretch;margin-top:8px;}
 .skur-group-rail{display:flex;flex-direction:column;gap:4px;border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:8px;max-height:520px;overflow:auto;background:var(--bg-layer2);}
-.skur-group-rail-item{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid transparent;background:var(--bg-layer1);}
+.skur-group-rail-item{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;border:1px solid transparent;background:var(--bg-layer1);position:relative;}
+.skur-group-rail-item.is-dragging{opacity:.4;}
+.skur-group-rail-item.is-drop-before{box-shadow:inset 0 3px 0 var(--brand-primary);}
+.skur-group-rail-item.is-drop-after{box-shadow:inset 0 -3px 0 var(--brand-primary);}
 .skur-group-rail-item:hover{background:var(--bg-layer2);border-color:var(--border-subtle);}
 .skur-group-rail-item.is-active{background:rgba(15,108,189,.14);border-color:rgba(15,108,189,.45);}
 .skur-group-rail-item .ri-top{display:flex;align-items:center;gap:6px;}
@@ -4244,6 +4247,53 @@ function skurTogglePin(id) {
   g.pinned = !g.pinned;
   renderSkurGroups();
 }
+
+let _skurDragSrcId = null;
+function _skurOnDragStart(ev, gid) {
+  _skurDragSrcId = gid;
+  try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', gid); } catch (_) {}
+  const el = ev.currentTarget; if (el) el.classList.add('is-dragging');
+}
+function _skurOnDragOver(ev, gid) {
+  if (!_skurDragSrcId || _skurDragSrcId === gid) return;
+  ev.preventDefault();
+  try { ev.dataTransfer.dropEffect = 'move'; } catch (_) {}
+  const el = ev.currentTarget; if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const before = (ev.clientY - rect.top) < rect.height / 2;
+  el.classList.toggle('is-drop-before', before);
+  el.classList.toggle('is-drop-after', !before);
+}
+function _skurOnDragLeave(ev) {
+  const el = ev.currentTarget; if (!el) return;
+  el.classList.remove('is-drop-before','is-drop-after');
+}
+function _skurOnDrop(ev, gid) {
+  ev.preventDefault(); ev.stopPropagation();
+  const el = ev.currentTarget;
+  const before = el && el.classList.contains('is-drop-before');
+  if (el) el.classList.remove('is-drop-before','is-drop-after');
+  const srcId = _skurDragSrcId; _skurDragSrcId = null;
+  if (!srcId || srcId === gid) return;
+  const srcIdx = skurGroups.findIndex(g => g.id === srcId);
+  let dstIdx = skurGroups.findIndex(g => g.id === gid);
+  if (srcIdx < 0 || dstIdx < 0) return;
+  const [moved] = skurGroups.splice(srcIdx, 1);
+  if (srcIdx < dstIdx) dstIdx--;
+  if (!before) dstIdx++;
+  if (dstIdx < 0) dstIdx = 0;
+  if (dstIdx > skurGroups.length) dstIdx = skurGroups.length;
+  skurGroups.splice(dstIdx, 0, moved);
+  // Drag implies manual ordering — flip the sort dropdown back so the new order is visible.
+  if (skurRailSort !== 'manual') skurRailSort = 'manual';
+  renderSkurGroups();
+}
+function _skurOnDragEnd(_ev) {
+  _skurDragSrcId = null;
+  document.querySelectorAll('.skur-group-rail-item.is-dragging').forEach(el => el.classList.remove('is-dragging'));
+  document.querySelectorAll('.skur-group-rail-item.is-drop-before, .skur-group-rail-item.is-drop-after')
+    .forEach(el => el.classList.remove('is-drop-before','is-drop-after'));
+}
 function skurRemoveMemberFromGroup(groupId, vmKey) {
   const g = skurGroups.find(x => x.id === groupId); if (!g) return;
   const before = g.members.length;
@@ -4512,7 +4562,15 @@ function renderSkurGroups() {
     const cost = _skurGroupTotalMonthlyCost(g);
     const costHtml = cost == null ? '<span class="ri-cost" style="color:var(--text-tertiary);">—</span>' : `<span class="ri-cost" title="Estimated monthly compute">${escG(_skurFmtCostK(cost))}</span>`;
     const warnCls = railWarnSet.has(g.id) ? ' is-warn' : '';
-    return `<div class="skur-group-rail-item${isActive?' is-active':''}${pinned?' is-pinned':''}${warnCls}" onclick="skurSetActiveGroup('${escG(g.id)}')">
+    return `<div class="skur-group-rail-item${isActive?' is-active':''}${pinned?' is-pinned':''}${warnCls}"
+      data-gid="${escG(g.id)}"
+      draggable="true"
+      ondragstart="_skurOnDragStart(event,'${escG(g.id)}')"
+      ondragover="_skurOnDragOver(event,'${escG(g.id)}')"
+      ondragleave="_skurOnDragLeave(event)"
+      ondrop="_skurOnDrop(event,'${escG(g.id)}')"
+      ondragend="_skurOnDragEnd(event)"
+      onclick="skurSetActiveGroup('${escG(g.id)}')">
       <div class="ri-top">
         <span class="ri-handle" title="Drag to reorder">⠿</span>
         <span class="ri-mode-emoji" title="Sizing mode: ${escG(mode)}">${modeEmoji(mode)}</span>
