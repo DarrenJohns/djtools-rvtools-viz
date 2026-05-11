@@ -816,7 +816,7 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-group-rail-oos.is-active{background:var(--status-danger-bg);border-style:solid;filter:brightness(1.08);}
 .skur-group-rail-oos:hover{filter:brightness(1.04);}
 .skur-group-rail-empty{padding:14px 10px;text-align:center;color:var(--text-tertiary);font-style:italic;font-size:12px;}
-.skur-group-panel{border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 18px;background:var(--bg-layer1);min-height:200px;display:flex;flex-direction:column;gap:10px;}
+.skur-group-panel{border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:14px 18px;background:var(--bg-layer1);min-height:520px;display:flex;flex-direction:column;gap:10px;overflow-anchor:none;}
 .skur-group-panel.is-empty{align-items:center;justify-content:center;color:var(--text-tertiary);font-style:italic;}
 .skur-group-panel .gp-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .skur-group-panel .gp-name{font-size:var(--fs-xxl);font-weight:700;color:var(--text-primary);}
@@ -4266,8 +4266,23 @@ function skurSortGp(key){
 function skurGpGotoPage(p){ _skurGpPage = Math.max(1, p|0); renderSkurGroups(); }
 function skurSetActiveGroup(id) {
   if (skurActiveGroupId !== (id || null)) _skurGpPage = 1;
+  // Anchor scroll to the clicked rail item so the page doesn't jump when the
+  // panel resizes between groups of different heights.
+  let _anchorEl = null, _anchorTop = 0;
+  try {
+    const sel = id === '__oos__'
+      ? '.skur-group-rail-oos'
+      : `.skur-group-rail-item[data-gid="${(id||'').replace(/"/g,'\\"')}"]`;
+    _anchorEl = document.querySelector(sel);
+    if (_anchorEl) _anchorTop = _anchorEl.getBoundingClientRect().top;
+  } catch (_) {}
   skurActiveGroupId = id || null;
   renderSkurGroups();
+  if (_anchorEl && _anchorEl.isConnected) {
+    const after = _anchorEl.getBoundingClientRect().top;
+    const delta = after - _anchorTop;
+    if (Math.abs(delta) > 1) window.scrollBy({ top: delta, left: 0, behavior: 'instant' });
+  }
 }
 function skurSetGroupsView(_v) { skurGroupsView = 'rail'; renderSkurGroups(); }
 function skurTogglePin(id) {
