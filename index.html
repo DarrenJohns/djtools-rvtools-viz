@@ -609,6 +609,7 @@ body.dark .skur-rec-fam,[data-theme="dark"] .skur-rec-fam{filter:saturate(.75) b
 [data-theme="dark"] .skur-rules-table .tr-matches.is-zero,body.dark .skur-rules-table .tr-matches.is-zero{color:#ffc83d;background:rgba(255,200,61,.08);}
 [data-theme="dark"] .skur-rules-table .tr-matches.is-zero strong,body.dark .skur-rules-table .tr-matches.is-zero strong{color:#ffc83d;}
 .skur-rules-table .tr-actions{text-align:center;white-space:nowrap;width:1%;}
+.skur-rules-table .tr-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:12px;}
 .skur-rules-table th.tr-actions-h{text-align:center;}
 .skur-rules-table th.skur-sortable{cursor:pointer;user-select:none;}
 .skur-rules-table th.skur-sortable:hover{color:var(--brand-primary);}
@@ -616,7 +617,7 @@ body.dark .skur-rec-fam,[data-theme="dark"] .skur-rec-fam{filter:saturate(.75) b
 .skur-rules-table th.skur-sortable.active .sk-arrow{opacity:1;color:var(--brand-primary);}
 .skur-rules-table tbody tr.checked{background:rgba(15,108,189,.07);}
 .skur-rules-table tbody tr.checked:hover{background:var(--brand-tint);}
-.skur-rules-table .tr-btn{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0 3px;display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:background .15s,border-color .15s,color .15s;}
+.skur-rules-table .tr-btn{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;transition:background .15s,border-color .15s,color .15s;}
 .skur-rules-table .tr-btn:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-rules-table .tr-btn svg{display:block;}
 .skur-rules-table .skur-rule-kind-badge{display:inline-block;font-family:inherit;font-size:10px;font-weight:700;background:var(--brand-tint);color:var(--brand-primary);border:1px solid var(--brand-tint-strong);border-radius:10px;padding:1px 7px;margin-left:8px;vertical-align:middle;letter-spacing:.02em;}
