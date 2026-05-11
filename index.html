@@ -6003,7 +6003,7 @@ function _skurRenderWorkloadCombo() {
     const available = _skurFamilyAvailableInRegion(it.family, region);
     const cls = ['skur-combo-option'];
     if (it.canonId === sel) cls.push('is-selected');
-    if (i === _SKUR_WORKLOAD_COMBO.activeIdx) cls.push('is-active');
+    if (i === _SKUR_WORKLOAD_COMBO.activeIdx && available) cls.push('is-active');
     if (!available) cls.push('is-unavailable');
     const metaParts = [];
     if (it.family) metaParts.push(`Family ${it.family}`);
@@ -6153,6 +6153,7 @@ function _skurBindWorkloadCombo() {
   list.addEventListener('mousemove', (e) => {
     const opt = e.target.closest('.skur-combo-option');
     if (!opt) return;
+    if (opt.classList.contains('is-unavailable')) return; // don't highlight blocked rows
     const idx = parseInt(opt.dataset.idx, 10);
     if (!isNaN(idx) && idx !== _SKUR_WORKLOAD_COMBO.activeIdx) {
       _SKUR_WORKLOAD_COMBO.activeIdx = idx;
