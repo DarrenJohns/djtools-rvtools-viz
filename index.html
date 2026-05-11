@@ -8093,7 +8093,7 @@ function renderSkuRecStatCards() {
     card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
     card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
     card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
-    card('🌐', skuCount.toLocaleString(), 'Eligible SKUs', regionLabel ? `in ${regionLabel}` : '', '', eligibleHelp),
+    card('🌏', skuCount.toLocaleString(), 'Eligible SKUs', regionLabel ? `in ${regionLabel}` : '', '', eligibleHelp),
   ].join('');
 }
 
