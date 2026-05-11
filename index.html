@@ -819,6 +819,17 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-group-panel .gp-mode-btn:last-child{border-right:none;}
 .skur-group-panel .gp-mode-btn:hover:not(.is-active){background:var(--bg-layer1);color:var(--text-primary);}
 .skur-group-panel .gp-mode-btn.is-active{background:var(--brand-primary);color:#fff;}
+.skur-group-panel .gp-mode-wrap{position:relative;display:inline-flex;align-items:center;gap:6px;}
+.skur-group-panel .gp-mode-help{width:18px;height:18px;border-radius:50%;border:1px solid var(--border-default);background:var(--bg-layer1);color:var(--text-secondary);font:inherit;font-size:11px;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:help;padding:0;}
+.skur-group-panel .gp-mode-help:hover,.skur-group-panel .gp-mode-help:focus{border-color:var(--brand-primary);color:var(--brand-primary);background:var(--bg-layer2);outline:none;}
+.skur-group-panel .gp-mode-help-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:50;display:none;width:340px;padding:10px 12px;background:#1f2937;color:#f3f4f6;border:1px solid #374151;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:12px;line-height:1.5;text-align:left;}
+.skur-group-panel .gp-mode-help-pop strong{color:#fff;}
+.skur-group-panel .gp-mode-help-pop em{color:#9ca3af;font-style:normal;}
+.skur-group-panel .gp-mode-help-pop ul{margin:6px 0 0 0;padding-left:18px;}
+.skur-group-panel .gp-mode-help-pop li{margin:4px 0;}
+.skur-group-panel .gp-mode-help:hover + .gp-mode-help-pop,
+.skur-group-panel .gp-mode-help:focus + .gp-mode-help-pop,
+.skur-group-panel .gp-mode-help-pop:hover{display:block;}
 .skur-group-panel .gp-count{font-size:12px;color:var(--text-secondary);}
 .skur-group-panel .gp-actions{margin-left:auto;display:flex;gap:6px;}
 .skur-group-panel .gp-actions button{background:transparent;border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:4px 10px;font:inherit;font-size:12px;color:var(--text-secondary);cursor:pointer;}
@@ -4726,7 +4737,8 @@ function renderSkurGroups() {
         : `<div class="gp-recs-empty"><em>No members yet — tick VMs in the inventory below and use ➕ Add to group.</em></div>`;
       const mode = skurNormaliseMode(g.mode);
       const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'🎯 Right-sized',tip:'Tightest fit; minimises waste'} };
-      const modeSeg = `<div class="gp-mode-seg" role="group" aria-label="Sizing mode">${['balanced','cost','rightsized'].map(m => `<button class="gp-mode-btn${m===mode?' is-active':''}" title="${modeMeta[m].tip}" onclick="skurSetGroupMode('${escG(g.id)}','${m}')">${modeMeta[m].lbl}</button>`).join('')}</div>`;
+      const modeHelp = `<button type="button" class="gp-mode-help" tabindex="0" aria-label="What do these modes mean?">?</button><div class="gp-mode-help-pop" role="tooltip"><strong>Sizing modes</strong> control how the recommender ranks eligible SKUs for every VM in this group.<ul><li><strong>⚖ Balanced</strong> — closest fit while keeping ~30% headroom on CPU and RAM. Good default for production workloads with some growth.</li><li><strong>💰 Cost</strong> — cheapest SKU that still meets the VM's requirements (after the headroom floor). Picks smaller/older families when they fit.</li><li><strong>🎯 Right-sized</strong> — tightest fit; minimises wasted vCPU and RAM. Best for steady-state dev/test or workloads you've already profiled.</li></ul><em>All modes obey this group's Constraints (Premium IO, processor, burstable, retirement) and the active region's eligible SKU pool.</em></div>`;
+      const modeSeg = `<span class="gp-mode-wrap"><div class="gp-mode-seg" role="group" aria-label="Sizing mode">${['balanced','cost','rightsized'].map(m => `<button class="gp-mode-btn${m===mode?' is-active':''}" title="${modeMeta[m].tip}" onclick="skurSetGroupMode('${escG(g.id)}','${m}')">${modeMeta[m].lbl}</button>`).join('')}</div>${modeHelp}</span>`;
       // Stage 9: rebuilt header + toolbar + constraints chips + exceptions strip
       const totalVcpu = g.members.reduce((s,k) => { const v = byKey.get(k); return s + (v && Number(v.cpus) || 0); }, 0);
       const totalRam  = g.members.reduce((s,k) => { const v = byKey.get(k); return s + (v && Number(v.ram)  || 0); }, 0);
