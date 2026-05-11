@@ -566,9 +566,11 @@ body.dark .skur-rec-fam,[data-theme="dark"] .skur-rec-fam{filter:saturate(.75) b
 .skur-table thead tr.skur-filter-row th{padding:6px 8px;background:var(--bg-layer1);border-bottom:1px solid var(--border-subtle);text-transform:none;letter-spacing:0;font-weight:400;position:static;}
 .skur-table .skur-filter{width:100%;font:inherit;font-size:11px;padding:4px 6px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);box-sizing:border-box;}
 .skur-table .skur-filter:focus{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 2px rgba(0,120,212,.12);}
-.skur-table .skur-filter-clear{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-secondary);font-size:11px;cursor:pointer;font-family:inherit;}
-.skur-table .skur-filter-clear:hover:not(:disabled){color:var(--status-danger);border-color:var(--status-danger);}
-.skur-table .skur-filter-clear:disabled{opacity:.35;cursor:not-allowed;}
+.skur-table .skur-filter-wrap{position:relative;display:block;}
+.skur-table .skur-filter-wrap .skur-filter{padding-right:26px;width:100%;box-sizing:border-box;}
+.skur-table .skur-filter-clear{position:absolute;top:50%;right:4px;transform:translateY(-50%);display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border:0;border-radius:var(--radius-sm);background:transparent;color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:inherit;padding:0;line-height:1;transition:background .15s,color .15s,opacity .15s;}
+.skur-table .skur-filter-clear:hover:not(:disabled){background:var(--bg-layer2);color:var(--status-danger);}
+.skur-table .skur-filter-clear:disabled{opacity:0;pointer-events:none;}
 .skur-table tbody td{padding:7px 10px;border-bottom:1px solid var(--border-subtle);vertical-align:middle;}
 .skur-table tbody tr:hover{background:rgba(15,108,189,.06);}
 .skur-table .num{font-family:'Cascadia Code','Consolas',monospace;}
@@ -1566,8 +1568,8 @@ body.dark .skur-group-chip{color:#b794f4;}
           <table class="skur-table" id="skurTable">
             <thead>
               <tr class="skur-filter-row">
-                <th style="width:32px;"><button class="skur-filter-clear" id="skurFilterClear" title="Clear all filters" onclick="skurClearFilters()" disabled>✕</button></th>
-                <th><input type="text" class="skur-filter" data-f="name" placeholder="Search name…" oninput="skurOnFilter()" maxlength="100"></th>
+                <th style="width:32px;"></th>
+                <th><span class="skur-filter-wrap"><input type="text" class="skur-filter" data-f="name" placeholder="Search name…" oninput="skurOnFilter()" maxlength="100"><button class="skur-filter-clear" id="skurFilterClear" title="Clear all filters" aria-label="Clear all filters" onclick="skurClearFilters()" type="button" disabled>✕</button></span></th>
                 <th><input type="text" class="skur-filter" data-f="size" placeholder="e.g. 4/16" oninput="skurOnFilter()" maxlength="20"></th>
                 <th><select class="skur-filter" data-f="os" onchange="skurOnFilter()"><option value="">All OS</option></select></th>
                 <th><select class="skur-filter" data-f="dc" onchange="skurOnFilter()"><option value="">All DCs</option></select></th>
