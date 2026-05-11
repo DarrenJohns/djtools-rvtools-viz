@@ -1623,8 +1623,8 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th><select class="skur-filter" data-f="os" onchange="skurOnFilter()"><option value="">All OS</option></select></th>
                 <th><select class="skur-filter" data-f="dc" onchange="skurOnFilter()"><option value="">All DCs</option></select></th>
                 <th><select class="skur-filter" data-f="cluster" onchange="skurOnFilter()"><option value="">All clusters</option></select></th>
-                <th><select class="skur-filter" data-f="group" onchange="skurOnFilter()"><option value="">All groups</option></select></th>
                 <th><input type="text" class="skur-filter" data-f="tags" placeholder="key:value…" oninput="skurOnFilter()" maxlength="100"></th>
+                <th><select class="skur-filter" data-f="group" onchange="skurOnFilter()"><option value="">All groups</option></select></th>
               </tr>
               <tr>
                 <th style="width:32px;"><input type="checkbox" id="skurSelAll" onchange="skurToggleSelectAll(this.checked)" title="Select all visible"></th>
@@ -1633,8 +1633,8 @@ body.dark .skur-group-chip{color:#b794f4;}
                 <th class="skur-sortable" data-key="os" style="width:240px;" onclick="skurSort('os')">OS</th>
                 <th class="skur-sortable" data-key="dc" style="width:130px;" onclick="skurSort('dc')">Datacenter</th>
                 <th class="skur-sortable" data-key="cluster" style="width:140px;" onclick="skurSort('cluster')">Cluster</th>
-                <th class="skur-sortable" data-key="groups" style="min-width:220px;" onclick="skurSort('groups')">Group(s)</th>
                 <th class="skur-sortable" data-key="tags" style="min-width:240px;" onclick="skurSort('tags')">Tags</th>
+                <th class="skur-sortable" data-key="groups" style="min-width:220px;" onclick="skurSort('groups')">Group(s)</th>
               </tr>
             </thead>
             <tbody id="skurRows"></tbody>
@@ -6849,8 +6849,8 @@ function renderSkurVmGrid() {
         <td>${esc(v.os)||'—'}</td>
         <td>${esc(v.dc)||'—'}</td>
         <td>${esc(v.cluster)||'—'}</td>
-        <td>${groupHtml}</td>
         <td>${tagsHtml}</td>
+        <td>${groupHtml}</td>
       </tr>`;
     }).join('');
   }
