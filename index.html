@@ -8059,10 +8059,24 @@ function renderSkuRecStatCards() {
   const card = (ico, num, lbl, sub, cls) =>
     `<div class="sku-rec-statcard"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div></div>`;
   const ungrouped = Math.max(0, vms.length - groupedSet.size);
+  // 5) Available SKUs in the currently selected region (live catalog count;
+  //    falls back to seed for Australia East, 0 elsewhere if no live data).
+  let skuCount = 0;
+  let regionLabel = '';
+  try {
+    const reg = (typeof skurPlan !== 'undefined' && skurPlan && skurPlan.region) || '';
+    if (typeof skurCatalogForRegion === 'function') {
+      skuCount = (skurCatalogForRegion(reg) || []).length;
+    }
+    const regionObj = (typeof SKUR_AZURE_REGIONS !== 'undefined')
+      ? SKUR_AZURE_REGIONS.find(r => r.id === reg) : null;
+    regionLabel = regionObj ? regionObj.label : reg;
+  } catch (_) {}
   host.innerHTML = [
     card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
     card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
     card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
+    card('💠', skuCount.toLocaleString(), 'SKUs available', regionLabel ? `in ${regionLabel}` : ''),
   ].join('');
 }
 
