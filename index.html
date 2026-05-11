@@ -880,6 +880,15 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-group-panel .gp-cchip{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:3px;background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);cursor:pointer;user-select:none;}
 .skur-group-panel .gp-cchip:hover{background:var(--bg-layer2);box-shadow:0 0 0 1px var(--brand-primary);}
 .skur-group-panel .gp-cchip.is-on{background:rgba(15,108,189,.12);color:var(--brand-primary);border-color:rgba(15,108,189,.3);}
+.skur-group-panel .gp-cchip.is-suggested{border-color:#a35a00;color:#a35a00;background:rgba(163,90,0,.08);position:relative;}
+.skur-group-panel .gp-cchip.is-suggested:hover{box-shadow:0 0 0 1px #a35a00;}
+.skur-group-panel .gp-cchip-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#a35a00;margin-left:4px;vertical-align:middle;animation:gpRetPulse 1.6s ease-in-out infinite;}
+@keyframes gpRetPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.skur-group-panel .gp-ret-nudge{margin:6px 0 4px;padding:7px 10px;background:rgba(163,90,0,.08);border:1px solid rgba(163,90,0,.3);border-radius:var(--radius-sm);font-size:11px;color:var(--text-primary);}
+.skur-group-panel .gp-ret-nudge strong{color:#a35a00;}
+.skur-group-panel .gp-ret-nudge a{color:var(--brand-primary);text-decoration:none;font-weight:600;}
+.skur-group-panel .gp-ret-nudge a:hover{text-decoration:underline;}
+.skur-group-panel .gp-ret-nudge em{font-style:normal;font-family:var(--font-mono,'Consolas',monospace);}
 .skur-group-panel .gp-cband-elig{margin-left:auto;display:inline-flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:11px;}
 .skur-group-panel .gp-cband-elig strong{color:var(--text-primary);}
 .skur-group-panel .gp-cband-help{font-size:10px;font-style:italic;color:var(--text-tertiary);}
@@ -4378,8 +4387,8 @@ function skurCycleProcessor(groupId) {
 function skurCycleRetire(groupId) {
   const g = skurGroups.find(x => x.id === groupId); if (!g) return;
   const c = skurGroupConstraints(g);
-  // Cycle 'any' → 6 → 12 → 24 → 'any' (months until retirement window for filtering).
-  const order = ['any', 6, 12, 24];
+  // Cycle 'any' → 6 → 12 → 24 → 36 → 48 → 'any' (months until retirement window for filtering).
+  const order = ['any', 6, 12, 24, 36, 48];
   const cur = c.retireMonths == null ? 'any' : c.retireMonths;
   const idx = order.findIndex(x => String(x) === String(cur));
   c.retireMonths = order[((idx < 0 ? 0 : idx) + 1) % order.length];
@@ -4464,7 +4473,7 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
     : '';
   const ret = rec.retirement;
   const retInfo = ret ? (typeof _skurRetirementInfoFor === 'function' ? _skurRetirementInfoFor(rec.sku && rec.sku.name) : null) : null;
-  const retTitle = ret ? `This SKU's family${retInfo && retInfo.name ? ` (${retInfo.name})` : ''} is scheduled to retire on ${String(ret).slice(0,7)}. Consider migrating to a newer family before retirement.` : '';
+  const retTitle = ret ? `This SKU's family${retInfo && retInfo.name ? ` (${retInfo.name})` : ''} is scheduled to retire on ${String(ret).slice(0,7)}.\n\nTo steer the recommender away from retiring families, tighten the "Retire <" chip in this group's Constraints strip.` : '';
   const retTag = ret ? `<span class="retire-tag" title="${esc(retTitle)}">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
   const whyTxt = rec.why ? `<span class="why-hint"> · ${esc(rec.why)}</span>` : '';
   const sku = rec.sku;
@@ -4764,15 +4773,20 @@ function renderSkurGroups() {
       const retVal = (c.retireMonths == null || c.retireMonths === 'any') ? 'any' : c.retireMonths;
       const retLabel = retVal === 'any' ? 'any' : (retVal + 'mo');
       const retOn = retVal !== 'any';
+      const retiringAny = exc.retiringAny || 0;
+      const retSuggest = (retiringAny > 0 && !retOn);
+      const retChipTip = retSuggest
+        ? `${retiringAny} VM${retiringAny===1?'':'s'} recommended a retiring SKU family. Click to cycle 6 → 12 → 24 → 36 → 48 mo and exclude SKUs retiring within that window.`
+        : `Exclude SKUs retiring within this many months. Click to cycle 6 → 12 → 24 → 36 → 48 → any.`;
       const cband = `<div class="gp-cband">
         <span class="gp-cband-label">🛡️ Constraints</span>
         <span class="gp-cchip${c.requirePremiumIo?' is-on':''}" title="Require Premium SSD-capable SKUs" onclick="skurToggleConstraintChip('${escG(g.id)}','requirePremiumIo')">PremIO</span>
         <span class="gp-cchip${procOn?' is-on':''}" title="Click to cycle Any → Intel → AMD" onclick="skurCycleProcessor('${escG(g.id)}')">${escG(procLabel)}</span>
         <span class="gp-cchip${c.excludeBurstable?' is-on':''}" title="Exclude burstable B-series" onclick="skurToggleConstraintChip('${escG(g.id)}','excludeBurstable')">Excl burstable</span>
-        <span class="gp-cchip${retOn?' is-on':''}" title="Retirement window — click to cycle 6 → 12 → 24 → any" onclick="skurCycleRetire('${escG(g.id)}')">Retire &lt; ${escG(retLabel)}</span>
+        <span class="gp-cchip${retOn?' is-on':''}${retSuggest?' is-suggested':''}" title="${escG(retChipTip)}" onclick="skurCycleRetire('${escG(g.id)}')">Retire &lt; ${escG(retLabel)}${retSuggest?' <span class=\"gp-cchip-dot\" aria-hidden=\"true\"></span>':''}</span>
         <span class="gp-cband-elig"><strong>${eligibleCount}</strong> of ${totalCat} SKUs eligible</span>
         <span class="gp-cband-help">Click chips to toggle</span>
-      </div>`;
+      </div>${retSuggest ? `<div class="gp-ret-nudge" role="status">⏳ <strong>${retiringAny}</strong> VM${retiringAny===1?'':'s'} recommended a retiring SKU family. <a href="#" onclick="skurCycleRetire('${escG(g.id)}');return false;">Tighten the <em>Retire &lt;</em> constraint</a> to steer the recommender to a longer-lived family.</div>` : ''}`;
       const excHasAny = (exc.noMatch + exc.noEligible + exc.retiring) > 0;
       const excStrip = excHasAny ? `<div class="gp-exc-strip">
         <span class="gp-exc-label">⚠ Sizing exceptions:</span>
@@ -6496,7 +6510,7 @@ function _skurMemberKeysOf(groupId) {
   return g ? new Set(g.members) : null;
 }
 function skurExceptionCountsForGroup(g) {
-  const counts = { noMatch: 0, noEligible: 0, noInput: 0, oos: 0, retiring: 0 };
+  const counts = { noMatch: 0, noEligible: 0, noInput: 0, oos: 0, retiring: 0, retiringAny: 0 };
   if (!g || !Array.isArray(g.members)) return counts;
   const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
   for (const k of g.members) {
@@ -6507,7 +6521,10 @@ function skurExceptionCountsForGroup(g) {
     if (rec.state === 'no-match') counts.noMatch++;
     else if (rec.state === 'no-eligible') counts.noEligible++;
     else if (rec.state === 'no-input') counts.noInput++;
-    else if (rec.state === 'ok' && rec.retirement && _skurRetirementWithinMonths(rec.retirement, 12)) counts.retiring++;
+    else if (rec.state === 'ok' && rec.retirement) {
+      counts.retiringAny++;
+      if (_skurRetirementWithinMonths(rec.retirement, 12)) counts.retiring++;
+    }
   }
   return counts;
 }
@@ -8006,6 +8023,7 @@ function skurEligibleSkus(constraints, region) {
   const cat = skurCatalogForRegion(region || skurPlan.region);
   if (!constraints) return cat.slice();
   const c = constraints;
+  const retMonths = (c.retireMonths != null && c.retireMonths !== 'any' && isFinite(c.retireMonths)) ? Number(c.retireMonths) : null;
   return cat.filter(sku => {
     if (Array.isArray(c.families) && c.families.length && !c.families.includes(sku.family)) return false;
     if (c.excludeBurstable && sku.burstable) return false;
@@ -8013,6 +8031,10 @@ function skurEligibleSkus(constraints, region) {
     if (c.processor && c.processor !== 'any' && sku.processor !== c.processor) return false;
     if (c.minVcpu != null && sku.vcpu < c.minVcpu) return false;
     if (c.maxVcpu != null && sku.vcpu > c.maxVcpu) return false;
+    if (retMonths != null) {
+      const retIso = _skurRetirementFor(sku.name);
+      if (retIso && _skurRetirementWithinMonths(retIso, retMonths)) return false;
+    }
     return true;
   });
 }
