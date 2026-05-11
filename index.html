@@ -6862,13 +6862,32 @@ function _skurFamilyPrefixFromSkuName(name) {
   }
   return cap;
 }
+// Region → set of family prefixes available in that region's raw SKU list.
+// Used as a fallback when live data hasn't loaded yet (e.g. file:// where
+// fetch is blocked). Regenerate from /data with:
+//   for (const r of regions) {
+//     const j = JSON.parse(fs.readFileSync(`data/${r}.json`));
+//     // ... extract family prefix from each non-restricted s.name ...
+//   }
+const _SKUR_REGION_FAMILIES_FALLBACK = {
+  'australiaeast':   ['A','B','D','DC','DS','E','EC','F','FX','G','GS','HB','HC','HX','L','M','NC','ND'],
+  'newzealandnorth': ['A','B','D','DS','E','F','FX','L','M'],
+};
 // Set of family prefixes actually present in a region's raw catalog. Computed
 // lazily once per region and cached on the region entry.
 function _skurRegionFamilySet(region) {
-  if (!skurLiveData || !region) return null;
-  const entry = skurLiveData.byRegion[region];
-  if (!entry || !entry.available || !entry.familySet) return null;
-  return entry.familySet;
+  if (!region) return null;
+  if (skurLiveData) {
+    const entry = skurLiveData.byRegion[region];
+    if (entry && entry.available && entry.familySet) return entry.familySet;
+  }
+  // Fallback: file:// (or pre-init) can't fetch the live data files. We embed
+  // a tiny region→families map below derived from the published data so the
+  // picker still greys out unavailable workloads when the page is opened
+  // directly. Keep this in sync with the regions shipped in /data.
+  const fb = _SKUR_REGION_FAMILIES_FALLBACK[region];
+  if (fb) return fb._set || (fb._set = new Set(fb));
+  return null;
 }
 // True if `family` (workload-picker form, e.g. "DC") is present in the region.
 // When live data hasn't loaded yet we fail open (return true) so the picker
