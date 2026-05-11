@@ -4745,6 +4745,26 @@ function renderSkurGroups() {
   // Update header count pill
   const countPill = document.getElementById('skurGroupCountPill');
   if (countPill) countPill.textContent = String(orderedGroupsBase.length);
+  // Disable Excel export when there's nothing to export; per-option enable/disable too.
+  const xlsxSel = document.getElementById('skurXlsxSel');
+  if (xlsxSel) {
+    const total = orderedGroupsBase.length;
+    const pinnedCount = orderedGroupsBase.filter(g => g && g.pinned).length;
+    const hasActive = !!(skurActiveGroupId && orderedGroupsBase.some(g => g && g.id === skurActiveGroupId));
+    const optAll    = xlsxSel.querySelector('option[value="all"]');
+    const optPinned = xlsxSel.querySelector('option[value="pinned"]');
+    const optActive = xlsxSel.querySelector('option[value="active"]');
+    if (optAll)    optAll.disabled    = total === 0;
+    if (optPinned) optPinned.disabled = pinnedCount === 0;
+    if (optActive) optActive.disabled = !hasActive;
+    const allDisabled = total === 0;
+    xlsxSel.disabled = allDisabled;
+    xlsxSel.style.opacity = allDisabled ? '0.5' : '';
+    xlsxSel.style.cursor = allDisabled ? 'not-allowed' : '';
+    xlsxSel.title = allDisabled
+      ? 'Add at least one group to enable Excel export'
+      : 'Download a multi-sheet Excel report of the recommendations';
+  }
 
   // === Render active panel ===
   if (skurActiveGroupId === '__oos__') {
