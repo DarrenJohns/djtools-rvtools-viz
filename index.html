@@ -1557,7 +1557,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <select id="skurBulkAddTo" onchange="skurBulkAddToGroup(this.value);this.value='';">
               <option value="" disabled selected hidden>➕ Add to group…</option>
               <optgroup label="Existing groups" id="skurBulkGroupOpts"></optgroup>
-              <option value="__new__">+ New VM group…</option>
+              <option value="__new__">+ New manual group…</option>
               <option value="__remove__">↩ Remove from all groups</option>
             </select>
             <button class="bb-autogroup" id="skurAutoGroupBtn" title="Auto-group VMs by tag — pick specific tag values to include" onclick="skurOpenAutoGroupModal()">✨ Auto-group by tag</button>
@@ -5245,6 +5245,22 @@ function skurUpdateBulkBar() {
     tagBtn.disabled = (n === 0);
     tagBtn.style.opacity = n === 0 ? '0.55' : '';
     tagBtn.style.cursor = n === 0 ? 'not-allowed' : '';
+    tagBtn.title = n === 0 ? 'Tick one or more VMs in the inventory below first' : 'Add a manual tag to all selected VMs';
+  }
+  const addSel = document.getElementById('skurBulkAddTo');
+  if (addSel) {
+    addSel.disabled = (n === 0);
+    addSel.style.opacity = n === 0 ? '0.55' : '';
+    addSel.style.cursor = n === 0 ? 'not-allowed' : '';
+    addSel.title = n === 0 ? 'Tick one or more VMs in the inventory below first, then choose a group' : '';
+    const ph = addSel.querySelector('option[value=""]');
+    if (ph) ph.textContent = n === 0 ? '➕ Select VMs first…' : '➕ Add to group…';
+  }
+  const clrBtn = document.querySelector('#skurBulkBar .bb-clear');
+  if (clrBtn) {
+    clrBtn.disabled = (n === 0);
+    clrBtn.style.opacity = n === 0 ? '0.55' : '';
+    clrBtn.style.cursor = n === 0 ? 'not-allowed' : '';
   }
 }
 
