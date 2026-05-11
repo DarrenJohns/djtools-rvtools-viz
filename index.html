@@ -647,7 +647,7 @@ body.dark .skur-combo-option:hover,[data-theme="dark"] .skur-combo-option:hover{
 body.dark .skur-combo-option.is-active,[data-theme="dark"] .skur-combo-option.is-active{background:rgba(96,165,250,.16);border-left-color:#60a5fa;}
 .skur-combo-option-num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:700;color:var(--text-tertiary);background:rgba(0,0,0,.05);border-radius:5px;text-align:center;padding:3px 0;line-height:1.3;align-self:center;min-width:28px;}
 .skur-combo-option.is-active .skur-combo-option-num{background:var(--brand-primary);color:#fff;}
-.skur-combo-option.is-unavailable{opacity:.42;}
+.skur-combo-option.is-unavailable{opacity:.42;cursor:not-allowed;}
 .skur-combo-option.is-unavailable .skur-combo-option-id::after{content:" · n/a";color:#b91c1c;font-weight:600;}
 body.dark .skur-combo-option.is-unavailable .skur-combo-option-id::after,[data-theme="dark"] .skur-combo-option.is-unavailable .skur-combo-option-id::after{color:#fca5a5;}
 body.dark .skur-combo-option-num,[data-theme="dark"] .skur-combo-option-num{background:rgba(255,255,255,.08);}
@@ -6136,7 +6136,10 @@ function _skurBindWorkloadCombo() {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const it = visible[_SKUR_WORKLOAD_COMBO.activeIdx];
-      if (it) _skurSelectWorkloadFromCombo(it.value);
+      if (!it) return;
+      const reg = (typeof skurPlan !== 'undefined' && skurPlan && skurPlan.region) || '';
+      if (!_skurFamilyAvailableInRegion(it.family, reg)) return; // unavailable in current region
+      _skurSelectWorkloadFromCombo(it.canonId);
     } else if (e.key === 'Escape') {
       e.preventDefault(); _skurCloseWorkloadCombo(); trigger.focus();
     }
@@ -6144,6 +6147,7 @@ function _skurBindWorkloadCombo() {
   list.addEventListener('click', (e) => {
     const opt = e.target.closest('.skur-combo-option');
     if (!opt) return;
+    if (opt.classList.contains('is-unavailable')) return; // blocked: family not in region
     _skurSelectWorkloadFromCombo(opt.dataset.value);
   });
   list.addEventListener('mousemove', (e) => {
