@@ -6788,6 +6788,7 @@ function renderSkurVmGrid() {
   } else if (pagerWrap) {
     pagerWrap.remove();
   }
+  if (typeof skurUpdateBulkBar === 'function') skurUpdateBulkBar();
 }
 function skurOnFilter() {
   document.querySelectorAll('.skur-filter[data-f]').forEach(el => { skurFilters[el.dataset.f] = (el.value||'').trim(); });
