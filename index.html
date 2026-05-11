@@ -1492,7 +1492,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
             <button class="btn btn-danger skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
             <button class="btn skur-tagrules-add" id="skurRulesAddBtn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
-            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);margin-left:8px;" onclick="openSkurWorkloadRuleModal()" type="button">🎯 Add workload rule</button>
+            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" style="background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);margin-left:8px;" onclick="openSkurWorkloadRuleModal()" type="button">🔧 Add workload rule</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
             <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
@@ -1640,7 +1640,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- SKU Recommender: Workload rule add/edit modal (advanced — duplicated for iteration) -->
 <div class="modal-overlay" id="skurWorkloadRuleModal" onclick="if(event.target===this)closeSkurWorkloadRuleModal()">
   <div class="modal-card is-md" role="dialog" aria-modal="true" aria-labelledby="skurWorkloadRuleModalTitle">
-    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🎯 Add workload rule</h2></div>
+    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🔧 Add workload rule</h2></div>
     <div class="modal-body">
     <div class="skur-modal-row">
       <label>If</label>
@@ -6292,7 +6292,7 @@ let _skurEditingWorkloadRuleId = null;
 function openSkurWorkloadRuleModal(ruleId) {
   _skurEditingWorkloadRuleId = ruleId || null;
   const r = ruleId ? skurTagRules.find(x => x.id === ruleId) : null;
-  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🎯 Add workload rule';
+  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🔧 Add workload rule';
   _skurPopulateWorkloadFieldSelect(r ? r.field : 'name');
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
