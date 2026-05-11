@@ -515,8 +515,8 @@ footer strong{opacity:1;}
 .skur-section-h .skur-section-actions .bb-clear:disabled,.skur-section-h .skur-section-actions .bb-clear[disabled]{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);cursor:not-allowed;opacity:.7;}
 .skur-section-h .skur-section-actions .bb-clear:disabled:hover,.skur-section-h .skur-section-actions .bb-clear[disabled]:hover{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);}
 body.dark .skur-section-h .skur-section-actions .bb-clear:disabled,body.dark .skur-section-h .skur-section-actions .bb-clear[disabled],[data-theme="dark"] .skur-section-h .skur-section-actions .bb-clear:disabled,[data-theme="dark"] .skur-section-h .skur-section-actions .bb-clear[disabled]{background:transparent;color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.2);}
-#skurBulkAddTo:disabled,#skurBulkAddTo[disabled]{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);cursor:not-allowed;opacity:.7;}
-body.dark #skurBulkAddTo:disabled,body.dark #skurBulkAddTo[disabled],[data-theme="dark"] #skurBulkAddTo:disabled,[data-theme="dark"] #skurBulkAddTo[disabled]{background:transparent;color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.2);}
+#skurBulkAddTo:disabled,#skurBulkAddTo[disabled],#skurXlsxSel:disabled,#skurXlsxSel[disabled]{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);cursor:not-allowed;opacity:.7;}
+body.dark #skurBulkAddTo:disabled,body.dark #skurBulkAddTo[disabled],[data-theme="dark"] #skurBulkAddTo:disabled,[data-theme="dark"] #skurBulkAddTo[disabled],body.dark #skurXlsxSel:disabled,body.dark #skurXlsxSel[disabled],[data-theme="dark"] #skurXlsxSel:disabled,[data-theme="dark"] #skurXlsxSel[disabled]{background:transparent;color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.2);}
 .skur-section-h .skur-section-actions .bb-sep{color:var(--border-default);margin:0 2px;}
 .skur-section-h .skur-section-actions select{font:inherit;font-size:13px;padding:6px 14px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);line-height:1.4;}
 .skur-section-h .skur-section-actions .bb-autogroup{font:inherit;font-size:13px;padding:6px 14px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--brand-primary);cursor:pointer;font-weight:600;line-height:1.4;}
@@ -4766,8 +4766,6 @@ function renderSkurGroups() {
     if (optActive) optActive.disabled = !hasActive;
     const allDisabled = total === 0;
     xlsxSel.disabled = allDisabled;
-    xlsxSel.style.opacity = allDisabled ? '0.5' : '';
-    xlsxSel.style.cursor = allDisabled ? 'not-allowed' : '';
     xlsxSel.title = allDisabled
       ? 'Add at least one group to enable Excel export'
       : 'Download a multi-sheet Excel report of the recommendations';
