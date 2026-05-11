@@ -4399,7 +4399,7 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
     ? `<button class="alt-badge" title="${altCount} alternative SKU${altCount>1?'s':''} match — click to choose" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">+${altCount} alt ▾</button>`
     : '';
   const overrideBadge = rec.overridden
-    ? `<span class="override-badge" title="Manually overridden — click to reset to recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">manual ↺</span>`
+    ? `<span class="override-badge" title="Manually overridden — click to reset to recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">override ↺</span>`
     : '';
   const ret = rec.retirement;
   const retTag = ret ? `<span class="retire-tag">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
@@ -7388,7 +7388,7 @@ function _skurRetirementWithinMonths(retIso, months){
   return t <= cutoff && t >= Date.now() - 30*86400e3;
 }
 function _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden){
-  if (overridden) return 'manual choice';
+  if (overridden) return 'override';
   const fit = chosen && chosen.fit;
   if (!fit) return '';
   const minH = Math.min(fit.cpuHeadroom, fit.ramHeadroom);
