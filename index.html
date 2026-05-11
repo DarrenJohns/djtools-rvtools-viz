@@ -1471,8 +1471,6 @@ body.dark .skur-group-chip{color:#b794f4;}
         <button type="button" class="rb-fresh" onclick="skurDismissAutosave()">Start fresh</button>
       </div>
 
-      <div class="sku-rec-statcards" id="skuRecStatCards"></div>
-
       <div class="skur-plan-bar" id="skurPlanBar">
         <label class="pb-flabel" for="skurPlanRegion">🌏 Azure Region:</label>
         <select id="skurPlanRegion" class="pb-select" onchange="skurOnPlanChange('region',this.value)"></select>
@@ -1486,6 +1484,8 @@ body.dark .skur-group-chip{color:#b794f4;}
         </select>
         <span class="skur-freshness-pill" id="skurFreshnessPill" style="margin-left:auto;" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
       </div>
+
+      <div class="sku-rec-statcards" id="skuRecStatCards"></div>
 
       <div class="skur-section">
         <div class="skur-tagrules">
