@@ -709,7 +709,9 @@ body.dark .skur-combo-option mark,[data-theme="dark"] .skur-combo-option mark{ba
 .skur-combo-close{position:absolute;top:8px;right:10px;width:30px;height:30px;border:none;background:transparent;color:var(--text-tertiary);font-size:22px;line-height:1;cursor:pointer;border-radius:6px;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;}
 .skur-combo-close:hover{background:rgba(0,0,0,.06);color:var(--text-primary);}
 body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{background:rgba(255,255,255,.08);color:#f3f4f6;}
-.skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;font-size:14px;font-weight:400;line-height:1;padding:1px 0 0 0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;}
+.skur-tag-add{background:transparent;border:1px dashed var(--border-default);color:var(--text-tertiary);width:18px;height:18px;border-radius:50%;cursor:pointer;font:inherit;line-height:0;padding:0;margin:1px 6px 1px 0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;box-sizing:border-box;}
+.skur-tag-add svg{display:block;width:10px;height:10px;}
+.skur-tag-add svg line{stroke:currentColor;stroke-width:1.6;stroke-linecap:round;}
 .skur-tag-add:hover{background:var(--brand-primary);color:#fff;border-color:var(--brand-primary);border-style:solid;}
 .skur-tag-none{color:var(--text-tertiary);font-size:11px;font-style:italic;}
 
@@ -6824,7 +6826,7 @@ function renderSkurVmGrid() {
         ? gs.map(g => `<span class="skur-group-chip" title="In group ${esc(g.name)}">📂 ${esc(g.name)}</span>`).join('')
         : (oos ? '' : `<span class="skur-ungrouped">— ungrouped —</span>`));
       const tags = skurTagsForVm(v);
-      const addBtn = `<button class="skur-tag-add" data-vmkey="${esc(k)}" onclick="skurOpenAddTagModal(this.dataset.vmkey)" title="Add manual tag">+</button>`;
+      const addBtn = `<button class="skur-tag-add" data-vmkey="${esc(k)}" onclick="skurOpenAddTagModal(this.dataset.vmkey)" title="Add manual tag" aria-label="Add manual tag"><svg viewBox="0 0 10 10" aria-hidden="true" focusable="false"><line x1="5" y1="1.5" x2="5" y2="8.5"/><line x1="1.5" y1="5" x2="8.5" y2="5"/></svg></button>`;
       const tagsCore = tags.map(t => {
         if (t.origin === 'manual') {
           return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}"><span class="skur-tag-text">${esc(t.key)}:${esc(t.value)}</span><button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
