@@ -7465,9 +7465,24 @@ try { window.skurDebugScore = function(vmName, mode) {
 //   { state:'no-eligible', mode, groupName }                 — group constraints eliminate everything
 //   { state:'no-match',   mode, groupName, eligibleCount }   — eligible exists but VM exceeds every fit
 //   { state:'ok', sku, fit, score, mode, groupName, alts }   — happy path
-// === Stage 9.5 M4 — retirement lookup (populated by data loader from retirements.json) ===
+// === Stage 9.5 M4 — retirement lookup (seeded inline; refreshed from data/retirements.json when available) ===
 const _skurRetirementMap = Object.create(null); // { 'Standard_E8s_v3': '2025-08-01', ... }
 const _skurRetirementFamilyMap = Object.create(null); // { 'standardbsfamily': { date:'2028-11-01', name:'B v1-series', url:'...' } }
+// Inline seed mirrors data/retirements.json so retirement tags work on file:// previews and before fetch completes.
+const _SKUR_RETIREMENT_SEED = Object.freeze([
+  { family:'standardav2family',        name:'Av2-series',        date:'2028-11-01' },
+  { family:'standardamv2family',       name:'Amv2-series',       date:'2028-11-01' },
+  { family:'standardbsfamily',         name:'B v1-series',       date:'2028-11-01' },
+  { family:'standarddsfamily',         name:'Ds-series',         date:'2028-11-01' },
+  { family:'standarddfamily',          name:'D-series',          date:'2028-11-01' },
+  { family:'standarddsv2family',       name:'Dsv2-series',       date:'2028-11-01' },
+  { family:'standarddsv2promofamily',  name:'Dsv2 Promo-series', date:'2028-11-01' },
+  { family:'standarddv2family',        name:'Dv2-series',        date:'2028-11-01' },
+  { family:'standarddv2promofamily',   name:'Dv2 Promo-series',  date:'2028-11-01' },
+]);
+for (const r of _SKUR_RETIREMENT_SEED) {
+  _skurRetirementFamilyMap[r.family] = { date: r.date, name: r.name, url: 'https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen' };
+}
 function _skurArmFamilyForSku(skuName){
   if (!skuName) return null;
   const n = String(skuName);
