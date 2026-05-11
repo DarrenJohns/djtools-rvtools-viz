@@ -474,7 +474,8 @@ footer strong{opacity:1;}
 .skur-restore-banner .rb-fresh{font:inherit;font-size:13px;padding:7px 16px;border:1px solid var(--border-default);background:var(--bg-layer1);color:var(--text-primary);border-radius:var(--radius-sm);cursor:pointer;}
 .skur-restore-banner .rb-fresh:hover{background:var(--bg-layer2);}
 .sku-rec-statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 0;}
-.sku-rec-statcard{position:relative;background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:var(--radius-md,10px);padding:14px 18px;box-shadow:var(--shadow-sm,var(--shadow));display:flex;align-items:center;gap:14px;min-width:0;}
+.sku-rec-statcard{position:relative;background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:var(--radius-md,10px);padding:14px 18px;box-shadow:var(--shadow-sm,var(--shadow));display:flex;align-items:center;gap:14px;min-width:0;overflow:hidden;}
+.sku-rec-statcard::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent-strip,linear-gradient(90deg,#0078D4,#50E6FF));}
 .sku-rec-statcard .sc-ico{font-size:26px;line-height:1;flex-shrink:0;}
 .sku-rec-statcard .sc-body{display:flex;flex-direction:column;min-width:0;}
 .sku-rec-statcard .sc-num{font-size:24px;font-weight:700;color:var(--brand-primary);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
