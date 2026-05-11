@@ -4463,7 +4463,9 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
     ? `<span class="override-badge" title="Manually overridden — click to reset to recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">override ↺</span>`
     : '';
   const ret = rec.retirement;
-  const retTag = ret ? `<span class="retire-tag">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
+  const retInfo = ret ? (typeof _skurRetirementInfoFor === 'function' ? _skurRetirementInfoFor(rec.sku && rec.sku.name) : null) : null;
+  const retTitle = ret ? `This SKU's family${retInfo && retInfo.name ? ` (${retInfo.name})` : ''} is scheduled to retire on ${String(ret).slice(0,7)}. Consider migrating to a newer family before retirement.` : '';
+  const retTag = ret ? `<span class="retire-tag" title="${esc(retTitle)}">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
   const whyTxt = rec.why ? `<span class="why-hint"> · ${esc(rec.why)}</span>` : '';
   const sku = rec.sku;
   const fam = (sku.family||'X').toUpperCase();
@@ -7050,6 +7052,7 @@ async function skurInitLiveData() {
   const [metadata, regions] = await Promise.all([
     _skurFetchJson('data/metadata.json'),
     _skurFetchJson('data/regions.json'),
+    _skurLoadRetirements(),
   ]);
   if (!metadata) return; // pipeline hasn't published yet — stay on seed
   skurLiveData = { metadata, regions: Array.isArray(regions) ? regions : [], byRegion: {} };
@@ -7445,11 +7448,70 @@ try { window.skurDebugScore = function(vmName, mode) {
 //   { state:'no-eligible', mode, groupName }                 — group constraints eliminate everything
 //   { state:'no-match',   mode, groupName, eligibleCount }   — eligible exists but VM exceeds every fit
 //   { state:'ok', sku, fit, score, mode, groupName, alts }   — happy path
-// === Stage 9.5 M4 — retirement lookup (placeholder; populated by data loader when retirements.json is available) ===
+// === Stage 9.5 M4 — retirement lookup (populated by data loader from retirements.json) ===
 const _skurRetirementMap = Object.create(null); // { 'Standard_E8s_v3': '2025-08-01', ... }
+const _skurRetirementFamilyMap = Object.create(null); // { 'standardbsfamily': { date:'2028-11-01', name:'B v1-series', url:'...' } }
+function _skurArmFamilyForSku(skuName){
+  if (!skuName) return null;
+  const n = String(skuName);
+  // Only match the previous-gen families we currently care about retiring.
+  // Patterns mirror Azure's ARM `family` codes used in retirements.json.
+  // B v1 series — Standard_B1ls / B1s / B1ms / B2s / B4ms etc. (no _v2 suffix)
+  if (/^Standard_B\d+(ls|ms|s)?$/i.test(n)) return 'standardbsfamily';
+  // D v1 — Standard_D1 / D2 / D4 / D11 / D12 / D13 / D14 (no s, no _v2)
+  if (/^Standard_D(1|2|3|4|11|12|13|14)$/i.test(n)) return 'standarddfamily';
+  // Ds v1 — Standard_DS1 / DS2 / DS3 / DS4 / DS11 / DS12 / DS13 / DS14 (no _v2)
+  if (/^Standard_DS(1|2|3|4|11|12|13|14)$/i.test(n)) return 'standarddsfamily';
+  // D v2 / Dv2 Promo — Standard_D[1-15]_v2 (incl. _Promo)
+  if (/^Standard_D\d+_v2(_Promo)?$/i.test(n)) return n.toLowerCase().includes('promo') ? 'standarddv2promofamily' : 'standarddv2family';
+  // Ds v2 / Dsv2 Promo — Standard_DS[1-15]_v2 (incl. _Promo)
+  if (/^Standard_DS\d+_v2(_Promo)?$/i.test(n)) return n.toLowerCase().includes('promo') ? 'standarddsv2promofamily' : 'standarddsv2family';
+  // A v2 — Standard_A[1-8]_v2 / Standard_A[2-8]m_v2
+  if (/^Standard_A\d+m?_v2$/i.test(n)) return 'standardav2family';
+  // Am v2 — Standard_A[2-8]m_v2 (already covered above as av2; Amv2 was reserved variant)
+  return null;
+}
 function _skurRetirementFor(skuName){
   if (!skuName) return null;
-  return _skurRetirementMap[skuName] || _skurRetirementMap[skuName.toLowerCase()] || null;
+  // Prefer direct name lookup (future per-SKU data).
+  const direct = _skurRetirementMap[skuName] || _skurRetirementMap[skuName.toLowerCase()];
+  if (direct) return direct;
+  // Fall back to family lookup.
+  const fam = _skurArmFamilyForSku(skuName);
+  if (fam && _skurRetirementFamilyMap[fam]) return _skurRetirementFamilyMap[fam].date;
+  return null;
+}
+function _skurRetirementInfoFor(skuName){
+  if (!skuName) return null;
+  const fam = _skurArmFamilyForSku(skuName);
+  if (fam && _skurRetirementFamilyMap[fam]) return _skurRetirementFamilyMap[fam];
+  return null;
+}
+function _skurParseRetireDate(raw){
+  if (!raw) return null;
+  // Accept ISO (YYYY-MM-DD) or "Month YYYY" formats.
+  const s = String(raw).trim();
+  if (/^\d{4}-\d{2}(-\d{2})?$/.test(s)) return s.length === 7 ? `${s}-01` : s;
+  const m = s.match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (m) {
+    const months = { january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12' };
+    const mm = months[m[1].toLowerCase()];
+    if (mm) return `${m[2]}-${mm}-01`;
+  }
+  const t = Date.parse(s); if (isFinite(t)) { const d = new Date(t); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
+  return null;
+}
+async function _skurLoadRetirements(){
+  try {
+    const json = await _skurFetchJson('data/retirements.json');
+    if (!json || !Array.isArray(json.retirements)) return;
+    for (const r of json.retirements) {
+      const iso = _skurParseRetireDate(r.retireDate);
+      if (!iso) continue;
+      if (r.family) _skurRetirementFamilyMap[String(r.family).toLowerCase()] = { date: iso, name: r.name || null, url: r.learnMoreUrl || null };
+      if (r.skuName) _skurRetirementMap[r.skuName] = iso;
+    }
+  } catch (_) { /* stay silent — retirements are advisory */ }
 }
 function _skurRetirementWithinMonths(retIso, months){
   if (!retIso) return false;
