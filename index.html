@@ -446,6 +446,22 @@ footer strong{opacity:1;}
 .sku-rec-empty-icon{font-size:48px;margin-bottom:12px;}
 .sku-rec-empty h4{font-size:1.1rem;font-weight:700;color:var(--text);margin:6px 0 8px;}
 .sku-rec-empty p{font-size:.92rem;max-width:520px;margin:0 auto 18px;line-height:1.5;}
+/* SKUR onboarding guide card — sits at top of pane, collapsible, brand-tinted */
+.skur-guide{margin:14px 0 0;border:1px solid var(--border-default);border-left:4px solid var(--brand-primary);border-radius:var(--radius-md);background:var(--brand-tint);box-shadow:var(--shadow-sm);}
+.skur-guide-head{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;user-select:none;}
+.skur-guide-head h4{margin:0;font-size:var(--fs-lg);font-weight:700;color:var(--text-primary);}
+.skur-guide-toggle{margin-left:auto;background:transparent;border:0;color:var(--text-secondary);font-size:var(--fs-md);cursor:pointer;padding:4px 8px;border-radius:var(--radius-sm);font-family:inherit;line-height:1;transition:background .15s,color .15s;}
+.skur-guide-toggle:hover{background:var(--brand-tint-strong);color:var(--brand-primary);}
+.skur-guide-body{padding:0 16px 14px;font-size:var(--fs-md);color:var(--text-primary);line-height:1.5;}
+.skur-guide-lead{margin:0 0 12px;color:var(--text-secondary);}
+.skur-guide-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;}
+.skur-guide-step{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;background:var(--bg-layer1);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);}
+.skur-guide-num{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--brand-primary);color:#fff;font-size:var(--fs-sm);font-weight:700;display:inline-flex;align-items:center;justify-content:center;line-height:1;}
+.skur-guide-step-text{flex:1 1 auto;}
+.skur-guide-step-text strong{color:var(--text-primary);}
+.skur-guide-foot{margin:12px 0 0;font-size:var(--fs-sm);color:var(--text-secondary);line-height:1.5;}
+.skur-guide.is-collapsed .skur-guide-body{display:none;}
+.skur-guide.is-collapsed .skur-guide-head{padding-bottom:10px;}
 /* Stage 9.5: yellow restore-previous-session banner (mockup parity) */
 .skur-restore-banner{display:none;align-items:center;gap:14px;margin:14px 0 0;padding:12px 20px;background:var(--status-warn-bg);border:1px solid var(--status-warn-border);border-left:4px solid var(--status-warn);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);}
 .skur-restore-banner.is-shown{display:flex;}
@@ -1505,6 +1521,32 @@ body.dark .skur-group-chip{color:#b794f4;}
     </div>
     <!-- Live content when data is loaded -->
     <div id="skuRecContent" style="display:none;">
+
+      <!-- Onboarding guide (collapsible) -->
+      <section class="skur-guide" id="skurGuide" aria-label="How this works">
+        <div class="skur-guide-head" onclick="skurToggleGuide()" role="button" tabindex="0" aria-controls="skurGuideBody" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();skurToggleGuide();}">
+          <h4>📘 How this works</h4>
+          <button type="button" class="skur-guide-toggle" id="skurGuideToggle" aria-expanded="true" aria-controls="skurGuideBody" onclick="event.stopPropagation();skurToggleGuide();">▾</button>
+        </div>
+        <div class="skur-guide-body" id="skurGuideBody">
+          <p class="skur-guide-lead">Here we match your VMs to Azure VM sizes and provide initial pricing guidance. Work through the three steps below to go from raw inventory to a costed, exportable plan.</p>
+          <ol class="skur-guide-steps">
+            <li class="skur-guide-step">
+              <span class="skur-guide-num">1</span>
+              <span class="skur-guide-step-text">🏷️ <strong>Define tags</strong> — Apply tags to your VMs using any of the tagging options (manual <strong>🏷️ Tag selected</strong>, <em>Auto tag assignment</em> rules, or workload rules) so VMs are easy to find and group.</span>
+            </li>
+            <li class="skur-guide-step">
+              <span class="skur-guide-num">2</span>
+              <span class="skur-guide-step-text">📦 <strong>Create groups</strong> — Tick VMs in the inventory (use the filters to narrow down) and add them to a group. Use <strong>✨ Auto-group by tag</strong> to slice by tag values in one go, or <strong>➕ New manual group</strong> to hand-pick. Each group gets a recommended Azure SKU + monthly price.</span>
+            </li>
+            <li class="skur-guide-step">
+              <span class="skur-guide-num">3</span>
+              <span class="skur-guide-step-text">🎯 <strong>Refine &amp; export</strong> — Tune each group's Azure VM match, narrow down the recommendation, and get an initial view on pricing — then export to Excel (all groups, or just the pinned ones).</span>
+            </li>
+          </ol>
+          <p class="skur-guide-foot">💡 <strong>Tip:</strong> hit <strong>💾 Save workspace</strong> at any time to download a <code>.rvz</code> bundle of your data, tags, rules and groups — re-import it later from the Import tab to pick up exactly where you left off.</p>
+        </div>
+      </section>
 
       <!-- Stage 9.5: resume previous session banner -->
       <div class="skur-restore-banner" id="skurRestoreBanner" role="region" aria-label="Resume previous session">
@@ -3033,6 +3075,33 @@ function _skurFmtAgo(iso) {
     const d = Math.round(h / 24);
     return `${d}d ago`;
   } catch (_) { return ''; }
+}
+
+// SKUR onboarding guide — collapse/expand with localStorage persistence.
+const SKUR_GUIDE_KEY = 'skurGuideCollapsed';
+function skurToggleGuide() {
+  const card = document.getElementById('skurGuide');
+  if (!card) return;
+  const collapsed = !card.classList.contains('is-collapsed');
+  card.classList.toggle('is-collapsed', collapsed);
+  const btn = document.getElementById('skurGuideToggle');
+  if (btn) {
+    btn.textContent = collapsed ? '▸' : '▾';
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
+  try { localStorage.setItem(SKUR_GUIDE_KEY, collapsed ? '1' : '0'); } catch (_) {}
+}
+function _skurHydrateGuide() {
+  const card = document.getElementById('skurGuide');
+  if (!card) return;
+  let collapsed = false;
+  try { collapsed = localStorage.getItem(SKUR_GUIDE_KEY) === '1'; } catch (_) {}
+  card.classList.toggle('is-collapsed', collapsed);
+  const btn = document.getElementById('skurGuideToggle');
+  if (btn) {
+    btn.textContent = collapsed ? '▸' : '▾';
+    btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+  }
 }
 
 function _skurShowRestoreBanner(saved) {
@@ -8250,6 +8319,7 @@ function renderSkuRecStatCards() {
   if (!host) return;
   // Ensure plan bar is initialised whenever the recommender renders.
   initSkurPlanBar();
+  _skurHydrateGuide();
   updateSkurDataPill();
   skurUpdateFreshnessPill();
   const vms = allVMs || [];
