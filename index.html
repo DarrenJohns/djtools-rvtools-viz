@@ -7104,6 +7104,7 @@ document.addEventListener('skurPlanChanged', updateSkurDataPill);
 // Region change also affects per-group eligibility chips.
 document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
 document.addEventListener('skurPlanChanged', () => { try { renderSkurVmGrid(); } catch (_) {} });
+document.addEventListener('skurPlanChanged', () => { try { renderSkuRecStatCards(); } catch (_) {} });
 // On region change, lazily load that region's live data if available, then re-render.
 document.addEventListener('skurPlanChanged', (ev) => {
   if (!skurLiveData) return;
@@ -7112,6 +7113,7 @@ document.addEventListener('skurPlanChanged', (ev) => {
     try { updateSkurDataPill(); } catch (_) {}
     try { renderSkurGroups(); } catch (_) {}
     try { renderSkurVmGrid(); } catch (_) {}
+    try { renderSkuRecStatCards(); } catch (_) {}
     try {
       const bd = document.getElementById('skurWorkloadRuleComboBackdrop');
       if (bd && bd.style.display !== 'none') _skurRenderWorkloadCombo();
