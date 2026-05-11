@@ -7446,7 +7446,7 @@ function _skurRetirementWithinMonths(retIso, months){
   return t <= cutoff && t >= Date.now() - 30*86400e3;
 }
 function _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden){
-  if (overridden) return 'override';
+  if (overridden) return '';
   const fit = chosen && chosen.fit;
   if (!fit) return '';
   const minH = Math.min(fit.cpuHeadroom, fit.ramHeadroom);
