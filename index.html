@@ -512,6 +512,11 @@ footer strong{opacity:1;}
 .skur-section-h .skur-section-actions .bb-count{color:var(--brand-primary);font-weight:700;}
 .skur-section-h .skur-section-actions .bb-clear{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-primary);cursor:pointer;font:inherit;font-size:13px;padding:6px 14px;border-radius:var(--radius-sm);line-height:1.4;}
 .skur-section-h .skur-section-actions .bb-clear:hover{background:var(--bg-layer2);}
+.skur-section-h .skur-section-actions .bb-clear:disabled,.skur-section-h .skur-section-actions .bb-clear[disabled]{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);cursor:not-allowed;opacity:.7;}
+.skur-section-h .skur-section-actions .bb-clear:disabled:hover,.skur-section-h .skur-section-actions .bb-clear[disabled]:hover{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);}
+body.dark .skur-section-h .skur-section-actions .bb-clear:disabled,body.dark .skur-section-h .skur-section-actions .bb-clear[disabled],[data-theme="dark"] .skur-section-h .skur-section-actions .bb-clear:disabled,[data-theme="dark"] .skur-section-h .skur-section-actions .bb-clear[disabled]{background:transparent;color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.2);}
+#skurBulkAddTo:disabled,#skurBulkAddTo[disabled]{background:transparent;color:var(--text-muted,#888);border-color:rgba(0,0,0,.18);cursor:not-allowed;opacity:.7;}
+body.dark #skurBulkAddTo:disabled,body.dark #skurBulkAddTo[disabled],[data-theme="dark"] #skurBulkAddTo:disabled,[data-theme="dark"] #skurBulkAddTo[disabled]{background:transparent;color:rgba(255,255,255,.4);border-color:rgba(255,255,255,.2);}
 .skur-section-h .skur-section-actions .bb-sep{color:var(--border-default);margin:0 2px;}
 .skur-section-h .skur-section-actions select{font:inherit;font-size:13px;padding:6px 14px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);line-height:1.4;}
 .skur-section-h .skur-section-actions .bb-autogroup{font:inherit;font-size:13px;padding:6px 14px;border:1px solid var(--brand-primary);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--brand-primary);cursor:pointer;font-weight:600;line-height:1.4;}
@@ -5345,8 +5350,6 @@ function skurUpdateBulkBar() {
   const addSel = document.getElementById('skurBulkAddTo');
   if (addSel) {
     addSel.disabled = (n === 0);
-    addSel.style.opacity = n === 0 ? '0.55' : '';
-    addSel.style.cursor = n === 0 ? 'not-allowed' : '';
     addSel.title = n === 0 ? 'Tick one or more VMs in the inventory below first, then choose a group' : '';
     const ph = addSel.querySelector('option[value=""]');
     if (ph) ph.textContent = n === 0 ? '➕ Select VMs first…' : '➕ Add to group…';
@@ -5354,8 +5357,6 @@ function skurUpdateBulkBar() {
   const clrBtn = document.querySelector('#skurBulkBar .bb-clear');
   if (clrBtn) {
     clrBtn.disabled = (n === 0);
-    clrBtn.style.opacity = n === 0 ? '0.55' : '';
-    clrBtn.style.cursor = n === 0 ? 'not-allowed' : '';
   }
 }
 
