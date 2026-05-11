@@ -6573,7 +6573,14 @@ function renderSkurVmGrid() {
           return `<span class="skur-tag-chip manual" title="Manual tag · ${esc(t.key)}:${esc(t.value)}"><span class="skur-tag-text">${esc(t.key)}:${esc(t.value)}</span><button class="skur-tag-x" data-vmkey="${esc(k)}" data-tagkey="${esc(t.key)}" data-tagval="${esc(t.value)}" onclick="skurRemoveManualTagFromBtn(this)" title="Remove manual tag">✕</button></span>`;
         }
         if (t.key === 'workload') {
-          return `<span class="skur-tag-chip workload" title="Workload (advanced rule) · ${esc(t.key)}:${esc(t.value)}">🎯 ${esc(t.key)}:${esc(t.value)}</span>`;
+          const wlIt = (typeof _skurResolveWorkloadId === 'function') ? _skurResolveWorkloadId(t.value) : null;
+          const wlTipParts = [`Workload (advanced rule) · ${t.key}:${t.value}`];
+          if (wlIt) {
+            wlTipParts.push(`${wlIt.name}${wlIt.family ? ` (Family ${wlIt.family}${wlIt.series ? ' · ' + wlIt.series : ''})` : ''}`);
+            if (wlIt.desc) wlTipParts.push(wlIt.desc);
+          }
+          const wlTip = wlTipParts.join('\n');
+          return `<span class="skur-tag-chip workload" title="${esc(wlTip)}">🎯 ${esc(t.key)}:${esc(t.value)}</span>`;
         }
         return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
       }).join('');
