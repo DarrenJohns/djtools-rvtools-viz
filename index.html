@@ -476,6 +476,12 @@ footer strong{opacity:1;}
 .sku-rec-statcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:14px 0 0;}
 .sku-rec-statcard{position:relative;background:var(--bg-layer1,var(--card-bg));border:1px solid var(--border-default,var(--border));border-radius:var(--radius-md,10px);padding:14px 18px;box-shadow:var(--shadow-sm,var(--shadow));display:flex;align-items:center;gap:14px;min-width:0;overflow:hidden;}
 .sku-rec-statcard::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent-strip,linear-gradient(90deg,#0078D4,#50E6FF));}
+.sku-rec-statcard.danger { --accent-strip: linear-gradient(90deg,#c4314b,#ea868f); }
+.sku-rec-statcard.success{ --accent-strip: linear-gradient(90deg,#0e7a0d,#75b798); }
+.sku-rec-statcard.warning{ --accent-strip: linear-gradient(90deg,#e06b20,#feb272); }
+.sku-rec-statcard.danger .sc-num{color:var(--danger);}
+.sku-rec-statcard.success .sc-num{color:var(--success);}
+.sku-rec-statcard.warning .sc-num{color:var(--warning);}
 .sku-rec-statcard .sc-ico{font-size:26px;line-height:1;flex-shrink:0;}
 .sku-rec-statcard .sc-body{display:flex;flex-direction:column;min-width:0;}
 .sku-rec-statcard .sc-num{font-size:24px;font-weight:700;color:var(--brand-primary);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -8353,7 +8359,7 @@ function renderSkuRecStatCards() {
     const helpHtml = help
       ? `<button type="button" class="sc-help" aria-label="What does this mean?" tabindex="0">?</button><div class="sc-help-pop">${help}</div>`
       : '';
-    return `<div class="sku-rec-statcard"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div>${helpHtml}</div>`;
+    return `<div class="sku-rec-statcard${cls?' '+cls:''}"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div>${helpHtml}</div>`;
   };
   const ungrouped = Math.max(0, vms.length - groupedSet.size);
   // 5) Available SKUs in the currently selected region (live catalog count;
@@ -8630,8 +8636,8 @@ function renderStorageDashboard() {
     <div class="card"><div class="card-value">${ds.length}</div><div class="card-label">Datastores</div></div>
     <div class="card"><div class="card-value">${(totalCapGB/1024).toFixed(1)} TB</div><div class="card-label">Total Capacity</div></div>
     <div class="card"><div class="card-value">${(totalUsedGB/totalCapGB*100).toFixed(0)}%</div><div class="card-label">Avg Utilisation</div></div>
-    <div class="card" ${critical?'style="border-color:var(--danger)"':''}><div class="card-value" ${critical?'style="color:var(--danger)"':''}>${critical}</div><div class="card-label">Critical (&lt;15% free)</div></div>
-    <div class="card" ${overProv?'style="border-color:var(--warning)"':''}><div class="card-value" ${overProv?'style="color:var(--warning)"':''}>${overProv}</div><div class="card-label">Over-provisioned</div></div>
+    <div class="card${critical?' danger':''}"><div class="card-value">${critical}</div><div class="card-label">Critical (&lt;15% free)</div></div>
+    <div class="card${overProv?' warning':''}"><div class="card-value">${overProv}</div><div class="card-label">Over-provisioned</div></div>
     <div class="card"><div class="card-value">${(totalProvGB/totalCapGB*100).toFixed(0)}%</div><div class="card-label">Prov. Ratio</div></div>`;
   // Datastore Utilisation Distribution — bucket datastores by % used so the shape of the estate is visible
   const isDark = document.body.classList.contains('dark');
@@ -8718,8 +8724,8 @@ function renderSnapshotHealth() {
   document.getElementById('snapshotCards').innerHTML = `
     <div class="card"><div class="card-value">${enriched.length}</div><div class="card-label">Snapshots</div></div>
     <div class="card"><div class="card-value">${totalSizeGB.toFixed(1)} GB</div><div class="card-label">Total Size</div></div>
-    <div class="card" ${stale?'style="border-color:var(--warning)"':''}><div class="card-value" ${stale?'style="color:var(--warning)"':''}>${stale}</div><div class="card-label">Stale (&gt;30 days)</div></div>
-    <div class="card" ${critical?'style="border-color:var(--danger)"':''}><div class="card-value" ${critical?'style="color:var(--danger)"':''}>${critical}</div><div class="card-label">Critical (&gt;90 days)</div></div>`;
+    <div class="card${stale?' warning':''}"><div class="card-value">${stale}</div><div class="card-label">Stale (&gt;30 days)</div></div>
+    <div class="card${critical?' danger':''}"><div class="card-value">${critical}</div><div class="card-label">Critical (&gt;90 days)</div></div>`;
   paginateTable('snap', 'snapBody', enriched.map(s => {
     const cls = s.ageDays > 90 ? 'color:var(--danger);font-weight:700' : s.ageDays > 30 ? 'color:var(--warning)' : '';
     return `<tr><td>${esc(s.vm)}</td><td>${esc(s.name)}</td><td>${esc(s.desc)}</td><td style="${cls}">${s.ageDays}</td><td>${s.sizeGB}</td><td>${s.status}</td><td>${esc(s.dc)}</td></tr>`;
@@ -8816,12 +8822,12 @@ function renderHealthScore() {
   const warnings = byType['Warning'] || 0;
   const infos = byType['Info'] || 0;
   const score = Math.max(0, 100 - (zombies * 10) - (warnings * 5) - (infos * 1));
-  const scoreColor = score >= 80 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--danger)';
+  const scoreCls = score >= 80 ? 'success' : score >= 50 ? 'warning' : 'danger';
   document.getElementById('healthCards').innerHTML = `
-    <div class="card" style="border-color:${scoreColor}"><div class="card-value" style="color:${scoreColor}">${score}/100</div><div class="card-label">Health Score</div></div>
+    <div class="card ${scoreCls}"><div class="card-value">${score}/100</div><div class="card-label">Health Score</div></div>
     <div class="card"><div class="card-value">${health.length}</div><div class="card-label">Total Issues</div></div>
-    <div class="card" ${zombies?'style="border-color:var(--danger)"':''}><div class="card-value" ${zombies?'style="color:var(--danger)"':''}>${zombies}</div><div class="card-label">Zombie Files</div></div>
-    <div class="card" ${warnings?'style="border-color:var(--warning)"':''}><div class="card-value" ${warnings?'style="color:var(--warning)"':''}>${warnings}</div><div class="card-label">Warnings</div></div>
+    <div class="card${zombies?' danger':''}"><div class="card-value">${zombies}</div><div class="card-label">Zombie Files</div></div>
+    <div class="card${warnings?' warning':''}"><div class="card-value">${warnings}</div><div class="card-label">Warnings</div></div>
     <div class="card"><div class="card-value">${infos}</div><div class="card-label">Info</div></div>`;
   paginateTable('health', 'healthTBody', health.map(h => {
     const sev = h.type === 'Zombie' ? '🔴 Critical' : h.type === 'Warning' ? '🟠 Warning' : '🔵 Info';
@@ -8973,7 +8979,7 @@ function _applyDiskFilters() {
     <div class="card"><div class="card-value">${(totalCapGB/1024).toFixed(1)} TB</div><div class="card-label">Total Capacity</div></div>
     <div class="card"><div class="card-value" style="color:var(--success)">${thinPct}%</div><div class="card-label">Thin Provisioned</div></div>
     <div class="card"><div class="card-value">${100-thinPct}%</div><div class="card-label">Thick Provisioned</div></div>
-    <div class="card" ${complexVMs?'style="border-color:var(--warning)"':''}><div class="card-value" ${complexVMs?'style="color:var(--warning)"':''}>${complexVMs}</div><div class="card-label">VMs with 4+ Disks</div></div>
+    <div class="card${complexVMs?' warning':''}"><div class="card-value">${complexVMs}</div><div class="card-label">VMs with 4+ Disks</div></div>
     <div class="card"><div class="card-value">${avgDisk} GB</div><div class="card-label">Avg Disk Size</div></div>`;
   const isDark = document.body.classList.contains('dark');
   const gridColor = isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.1)';
@@ -9057,10 +9063,10 @@ function renderNetworkTopology() {
   document.getElementById('networkCards').innerHTML = `
     <div class="card"><div class="card-value">${totalNICs}</div><div class="card-label">Total NICs</div></div>
     <div class="card"><div class="card-value">${networks.length}</div><div class="card-label">Networks / VLANs</div></div>
-    <div class="card" ${multiHomed?'style="border-color:var(--warning)"':''}><div class="card-value" ${multiHomed?'style="color:var(--warning)"':''}>${multiHomed}</div><div class="card-label">Multi-homed VMs</div></div>
-    <div class="card" ${disconnected?'style="border-color:var(--danger)"':''}><div class="card-value" ${disconnected?'style="color:var(--danger)"':''}>${disconnected}</div><div class="card-label">Disconnected NICs</div></div>
+    <div class="card${multiHomed?' warning':''}"><div class="card-value">${multiHomed}</div><div class="card-label">Multi-homed VMs</div></div>
+    <div class="card${disconnected?' danger':''}"><div class="card-value">${disconnected}</div><div class="card-label">Disconnected NICs</div></div>
     <div class="card"><div class="card-value">${Object.keys(adapterTypes).length}</div><div class="card-label">Adapter Types</div></div>
-    <div class="card" ${legacyAdapters?'style="border-color:var(--warning)"':''}><div class="card-value" ${legacyAdapters?'style="color:var(--warning)"':''}>${legacyAdapters}</div><div class="card-label">Legacy Adapters</div></div>`;
+    <div class="card${legacyAdapters?' warning':''}"><div class="card-value">${legacyAdapters}</div><div class="card-label">Legacy Adapters</div></div>`;
   // Charts
   const isDark = document.body.classList.contains('dark');
   const gridColor = isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.1)';
@@ -9166,8 +9172,8 @@ function renderResourceAllocation() {
     <div class="card"><div class="card-value">${totalvRAM.toFixed(0)} GB</div><div class="card-label">Total vRAM${memData.length?'':' (no vMemory tab)'}</div></div>
     <div class="card"><div class="card-value">${cpuReserved}</div><div class="card-label">CPU Reservations</div></div>
     <div class="card"><div class="card-value">${memReserved}</div><div class="card-label">Memory Reservations</div></div>
-    <div class="card" ${cpuLimited?'style="border-color:var(--warning)"':''}><div class="card-value" ${cpuLimited?'style="color:var(--warning)"':''}>${cpuLimited}</div><div class="card-label">CPU Limited</div></div>
-    <div class="card" ${memLimited?'style="border-color:var(--warning)"':''}><div class="card-value" ${memLimited?'style="color:var(--warning)"':''}>${memLimited}</div><div class="card-label">Memory Limited</div></div>`;
+    <div class="card${cpuLimited?' warning':''}"><div class="card-value">${cpuLimited}</div><div class="card-label">CPU Limited</div></div>
+    <div class="card${memLimited?' warning':''}"><div class="card-value">${memLimited}</div><div class="card-label">Memory Limited</div></div>`;
   const isDark = document.body.classList.contains('dark');
   const gridColor = isDark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.1)';
   const textColor = isDark ? '#8B949E' : '#6B7280';
