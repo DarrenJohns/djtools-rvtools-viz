@@ -8060,10 +8060,9 @@ function renderSkuRecStatCards() {
     `<div class="sku-rec-statcard"><span class="sc-ico">${ico}</span><div class="sc-body"><div class="sc-num${cls?' '+cls:''}">${num}</div><div class="sc-lbl">${lbl}</div><div class="sc-sub">${sub}</div></div></div>`;
   const ungrouped = Math.max(0, vms.length - groupedSet.size);
   host.innerHTML = [
-    card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
     card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
+    card('🏷️', tagAssignments.toLocaleString(), 'Tag assignments', `${taggedVms} VM${taggedVms === 1 ? '' : 's'} matched`),
     card('📂', groups.length.toLocaleString(), 'VM groups', `${pinnedCount} pinned`),
-    card('💰', fmtMoney(totalCost), 'Est. compute / mo', '+ storage / licensing — see Excel', 'is-money'),
   ].join('');
 }
 
