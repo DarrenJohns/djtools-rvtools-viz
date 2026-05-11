@@ -1513,14 +1513,12 @@ body.dark .skur-group-chip{color:#b794f4;}
           🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span>
           <div class="skur-section-actions" id="skurBulkBar">
             <button class="bb-clear" onclick="skurClearSelection()">Clear selection (<span id="skurBulkCount">0</span>)</button>
-            <span class="bb-sep">|</span>
             <select id="skurBulkAddTo" onchange="skurBulkAddToGroup(this.value);this.value='';">
               <option value="" disabled selected hidden>➕ Add to group…</option>
               <optgroup label="Existing groups" id="skurBulkGroupOpts"></optgroup>
               <option value="__new__">+ New VM group…</option>
               <option value="__remove__">↩ Remove from all groups</option>
             </select>
-            <span class="bb-sep">|</span>
             <button class="bb-autogroup" id="skurAutoGroupBtn" title="Auto-group VMs by tag — pick specific tag values to include" onclick="skurOpenAutoGroupModal()">✨ Auto-group by tag</button>
             <button class="bb-autogroup" id="skurBulkAddTagBtn" title="Add a manual tag to all selected VMs" onclick="skurOpenBulkAddTagModal()">🏷️ Tag selected</button>
           </div>
