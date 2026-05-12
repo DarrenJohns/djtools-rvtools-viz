@@ -11,6 +11,8 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'config.json'
+      - 'data/**'
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
@@ -36,6 +38,11 @@ jobs:
         run: |
           mkdir -p staging
           cp index.html staging/
+          # SWA deploy is a full replace of the served site, so any file not
+          # staged here is removed from production. Carry over config.json and
+          # the data/ folder (SKU pricing + region catalog) explicitly.
+          if [ -f config.json ]; then cp config.json staging/; fi
+          if [ -d data ]; then cp -r data staging/data; fi
 
       - name: Deploy to Azure Static Web Apps
         env:
