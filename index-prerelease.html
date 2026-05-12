@@ -2512,7 +2512,7 @@ function handleFile(file) {
 // The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
 // at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
 // .rvz scenarios or workspace.json files.
-const APP_VERSION = '1.3.0-beta';
+const APP_VERSION = '1.3.1-beta';
 // Keep footer label in sync with APP_VERSION on load.
 document.addEventListener('DOMContentLoaded', () => {
   const f = document.getElementById('appVersionFooter');
