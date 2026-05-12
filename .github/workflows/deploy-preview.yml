@@ -1,7 +1,7 @@
 # Deploy RVTools Visualiser PRERELEASE to Azure Static Web Apps
 #
-# Triggers on push to non-main branches when index.html changes.
-# Stages the feature branch's index.html as `index-prerelease.html`,
+# Triggers on push to non-main branches when index-prerelease.html changes.
+# Stages the feature branch's index-prerelease.html directly,
 # and re-stages main's index.html so production `/` is untouched.
 # Result: https://<swa>/index-prerelease.html is updated; production `/` stays on main's build.
 
@@ -11,7 +11,7 @@ on:
   push:
     branches-ignore: [main]
     paths:
-      - 'index.html'
+      - 'index-prerelease.html'
       - 'config.json'
       - 'data/**'
       - '.github/workflows/deploy-preview.yml'
@@ -41,7 +41,7 @@ jobs:
         run: |
           mkdir -p staging
           # Feature-branch build published as index-prerelease.html
-          cp index.html staging/index-prerelease.html
+          cp index-prerelease.html staging/index-prerelease.html
           # Pull main's index.html so production `/` (index.html) is preserved
           git fetch origin main --depth=1
           git show origin/main:index.html > staging/index.html
