@@ -12,6 +12,8 @@ on:
     branches-ignore: [main]
     paths:
       - 'index.html'
+      - 'config.json'
+      - 'data/**'
       - '.github/workflows/deploy-preview.yml'
   workflow_dispatch:
 
@@ -43,6 +45,11 @@ jobs:
           # Pull main's index.html so production `/` (index.html) is preserved
           git fetch origin main --depth=1
           git show origin/main:index.html > staging/index.html
+          # Carry over config + data folder so the SWA full-replace doesn't
+          # wipe the live SKU pricing files (data/*.json) that the prerelease
+          # AND production both fetch at runtime.
+          if [ -f config.json ]; then cp config.json staging/; fi
+          if [ -d data ]; then cp -r data staging/data; fi
 
       - name: Deploy to Azure Static Web Apps
         env:
