@@ -194,9 +194,9 @@ body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linea
 body.dark .tab-strip,[data-theme="dark"] .tab-strip{background:rgba(30,33,40,0.55);}
 .tab-strip::-webkit-scrollbar{height:6px;}
 .tab-strip .tab{flex:0 0 auto;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text-muted);padding:12px 14px;cursor:pointer;font-size:.88rem;font-weight:600;white-space:nowrap;transition:color .15s,border-color .15s;font-family:inherit;user-select:none;}
-.tab-strip .tab:hover{color:var(--text);}
 .tab-strip .tab.active{color:var(--primary);border-bottom-color:var(--primary);}
 .tab-strip .tab.hidden{display:none;}
+.tab-strip .tab .tab-preview-tag{display:inline-block;margin-left:4px;padding:1px 5px;font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--brand-primary);background:var(--brand-tint);border:1px solid var(--brand-tint-strong);border-radius:4px;vertical-align:1px;}
 .empty-data-pane{padding:32px 16px;}
 .empty-data-pane.active{display:block;}
 .empty-data-card{max-width:520px;margin:60px auto;padding:40px 32px;background:linear-gradient(180deg,#f0f7ff 0%,#fafcff 100%);border:2px dashed #a0c4e8;border-radius:var(--radius-lg);text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -212,7 +212,6 @@ body.dark .empty-data-card,[data-theme="dark"] .empty-data-card{background:linea
 .tab-pane .section-body{max-height:none!important;overflow:visible!important;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:18px!important;}
 .tab-pane .section-header{cursor:default;}
 .tab-pane .section-toggle{display:none;}
-/* Stage 9.5 mockup parity: SKU Recommender presents each sub-section as its
    own top-level card (per spec), instead of wrapping everything in one big
    pane card. Lift the outer card chrome and let the inner .skur-section
    cards stand on their own. */
@@ -804,6 +803,21 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
 .skur-groups-head h4{margin:0;font-size:14px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:10px;}
 .skur-groups-head h4 .skur-count-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
+.skur-export-control{margin-left:auto;position:relative;display:inline-flex;align-items:center;min-width:232px;}
+.skur-export-control .skur-export-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:.92;}
+.skur-export-control::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-tertiary);pointer-events:none;}
+#skurXlsxSel.skur-export-select{-webkit-appearance:none;appearance:none;width:100%;height:34px;padding:0 34px 0 36px;border:1px solid var(--border-default);border-radius:8px;background:var(--bg-layer1);color:var(--text-primary);font:inherit;font-size:13px;font-weight:600;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;}
+#skurXlsxSel.skur-export-select:hover{border-color:var(--brand-primary);background:var(--bg-layer2);}
+#skurXlsxSel.skur-export-select:focus-visible{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 3px rgba(15,108,189,.14);}
+#skurXlsxSel.skur-export-select option{font-weight:500;}
+.skur-export-control #skurXlsxSel.skur-export-select:disabled,
+.skur-export-control #skurXlsxSel.skur-export-select[disabled]{background:var(--bg-layer2);color:var(--text-tertiary);border-color:var(--border-default);box-shadow:none;cursor:not-allowed;opacity:1;}
+.skur-export-control #skurXlsxSel.skur-export-select:disabled:hover,
+.skur-export-control #skurXlsxSel.skur-export-select[disabled]:hover{background:var(--bg-layer2);border-color:var(--border-default);}
+.skur-export-control:has(#skurXlsxSel.skur-export-select:disabled) .skur-export-icon,
+.skur-export-control:has(#skurXlsxSel.skur-export-select[disabled]) .skur-export-icon,
+.skur-export-control:has(#skurXlsxSel.skur-export-select:disabled)::after,
+.skur-export-control:has(#skurXlsxSel.skur-export-select[disabled])::after{opacity:.45;}
 .skur-overflow{display:none;}
 /* Rail search + filters + sort (Stage 9) */
 .skur-rail-toolbar{display:flex;flex-direction:column;gap:6px;padding:6px 6px 4px;border-bottom:1px solid var(--border-subtle);margin:-8px -8px 6px;background:var(--bg-layer1);border-top-left-radius:var(--radius-md);border-top-right-radius:var(--radius-md);}
@@ -909,15 +923,12 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .gp-toolbar .gp-toggle .gp-tg-slider::before{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
 .skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider{background:var(--status-success);}
 .skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider::before{transform:translateX(14px);}
-.skur-group-panel .gp-toolbar .gp-tb-excel{font:inherit;font-size:11px;height:30px;padding:0 12px;border:1px solid var(--border-default);border-radius:6px;background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1;transition:background .15s,border-color .15s,color .15s;}
-.skur-group-panel .gp-toolbar .gp-tb-excel:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-group-panel .gp-toolbar .gp-tb-rename{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
 .skur-group-panel .gp-toolbar .gp-tb-rename:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-group-panel .gp-toolbar .gp-tb-rename svg{display:block;}
 .skur-group-panel .gp-toolbar .gp-tb-delete{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
 .skur-group-panel .gp-toolbar .gp-tb-delete:hover{background:var(--bg-layer2);border-color:var(--status-danger);color:var(--status-danger);}
 .skur-group-panel .gp-toolbar .gp-tb-delete svg{display:block;}
-.skur-group-panel .gp-toolbar .gp-tb-excel + .gp-tb-rename,
 .skur-group-panel .gp-toolbar .gp-tb-rename + .gp-tb-delete{margin-left:-4px;}
 .skur-group-panel .gp-cband{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin:6px 0 4px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:11px;}
 .skur-group-panel .gp-cband-label{font-weight:700;}
@@ -933,6 +944,11 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .gp-ret-nudge a{color:var(--brand-primary);text-decoration:none;font-weight:600;}
 .skur-group-panel .gp-ret-nudge a:hover{text-decoration:underline;}
 .skur-group-panel .gp-ret-nudge em{font-style:normal;font-family:var(--font-mono,'Consolas',monospace);}
+.skur-group-panel .gp-workload-strip{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;padding:7px 10px;margin:6px 0 4px;background:var(--status-danger-bg);border:1px solid var(--status-danger-border);border-radius:var(--radius-sm);font-size:11px;color:var(--text-primary);}
+.skur-group-panel .gp-workload-strip .gp-workload-label{font-weight:700;color:var(--status-danger);}
+.skur-group-panel .gp-workload-strip .gp-workload-copy{flex:1 1 320px;line-height:1.45;}
+.skur-group-panel .gp-workload-strip .gp-workload-chips{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.skur-group-panel .gp-workload-strip .gp-workload-more{color:var(--text-secondary);font-style:italic;}
 .skur-group-panel .gp-cband-elig{margin-left:auto;display:inline-flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:11px;}
 .skur-group-panel .gp-cband-elig strong{color:var(--text-primary);}
 .skur-group-panel .gp-cband-help{font-size:10px;font-style:italic;color:var(--text-tertiary);}
@@ -966,10 +982,10 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .alt-badge:hover{background:rgba(15,108,189,.18);border-color:var(--brand-primary);}
 .skur-group-panel .override-badge{display:inline-flex;align-items:center;gap:2px;background:var(--status-warn-bg);border:1px solid var(--status-warn-border);color:var(--status-warn);font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;margin-left:4px;letter-spacing:.02em;vertical-align:1px;}
 .skur-group-panel .override-badge:hover{background:rgba(196,127,0,.20);}
-.skur-group-panel .workload-badge{display:inline-flex;align-items:center;gap:2px;background:var(--status-danger-bg);border:1px solid var(--status-danger-border);color:var(--status-danger);font:inherit;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;margin-left:4px;letter-spacing:.02em;vertical-align:1px;}
-.skur-group-panel .workload-badge:hover{background:rgba(220,38,38,.18);}
-body.dark .skur-group-panel .workload-badge,[data-theme="dark"] .skur-group-panel .workload-badge{background:rgba(248,113,113,.16);color:#fca5a5;border-color:rgba(248,113,113,.45);}
-body.dark .skur-group-panel .workload-badge:hover,[data-theme="dark"] .skur-group-panel .workload-badge:hover{background:rgba(248,113,113,.26);}
+.workload-badge{display:inline-flex;align-items:center;gap:2px;background:var(--status-danger-bg);border:1px solid var(--status-danger-border);color:var(--status-danger);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;margin-left:4px;letter-spacing:.02em;vertical-align:1px;}
+.workload-badge:hover{background:rgba(220,38,38,.18);}
+body.dark .workload-badge,[data-theme="dark"] .workload-badge{background:rgba(248,113,113,.16);color:#fca5a5;border-color:rgba(248,113,113,.45);}
+body.dark .workload-badge:hover,[data-theme="dark"] .workload-badge:hover{background:rgba(248,113,113,.26);}
 .skur-group-panel .retire-tag{display:inline-block;color:var(--status-warn,#a35a00);font-size:10px;font-weight:600;letter-spacing:.02em;margin-left:4px;}
 .skur-group-panel .why-hint{color:var(--text-tertiary);font-style:italic;font-size:11px;}
 .skur-group-panel .sku-name{font-family:var(--font-mono,'Consolas',monospace);color:var(--brand-primary);font-weight:600;}
@@ -1127,8 +1143,8 @@ body.dark .skur-group-chip{color:#b794f4;}
   <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
   <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Health</button>
-  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Risks</button>
-  <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">☁️ Azure VMs &amp; Pricing</button>
+  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🚨 Risks</button>
+  <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">☁️ Azure VMs &amp; Pricing <span class="tab-preview-tag">PREVIEW</span></button>
 </nav>
 
 <!-- Demo-mode reminder shown on non-Import tabs while sample data is loaded -->
@@ -1431,7 +1447,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 
 <!-- RISK QUADRANT -->
 <div class="section tab-pane" id="risk" data-tab="migration">
-  <div class="section-header"><h3>🎯 Risk Quadrant</h3></div>
+  <div class="section-header"><h3>🚨 Risk Quadrant</h3></div>
   <div class="section-body open" id="riskBody">
   <div style="background:rgba(255,140,0,.08);border:1px solid rgba(255,140,0,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;color:var(--text);">
     <strong>⚠️ Disclaimer:</strong> This visualisation provides a high-level indication only and is not intended to be a thorough migration planning tool. For in-depth discovery and assessment, you should strongly consider using <a href="https://learn.microsoft.com/en-us/azure/migrate/migrate-services-overview" target="_blank" style="font-weight:600;">Azure Migrate</a>.
@@ -1600,7 +1616,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
             <button class="btn btn-danger skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
             <button class="btn skur-tagrules-add" id="skurRulesAddBtn" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
-            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" onclick="openSkurWorkloadRuleModal()" type="button">🔧 Add workload rule</button>
+            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" onclick="openSkurWorkloadRuleModal()" type="button">🎯 Add workload rule</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
             <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
@@ -1657,12 +1673,15 @@ body.dark .skur-group-chip{color:#b794f4;}
         <div class="skur-groups-card">
           <div class="skur-groups-head">
             <h4>📂 Sizing and pricing groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
-            <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📊 Excel ▾</option>
-              <option value="all">All groups</option>
-              <option value="pinned">Pinned groups only</option>
-              <option value="active">Active group only</option>
-            </select>
+            <div class="skur-export-control" title="Download a multi-sheet Excel report of the recommendations">
+              <span class="skur-export-icon" aria-hidden="true">📊</span>
+              <select id="skurXlsxSel" class="skur-export-select" title="Download a multi-sheet Excel report of the recommendations" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
+                <option value="" disabled selected hidden>Export to Excel</option>
+                <option value="all">All groups</option>
+                <option value="pinned">Pinned groups only</option>
+                <option value="active">Active group only</option>
+              </select>
+            </div>
             <button class="btn skur-tagrules-add" onclick="newSkurGroup()">➕ New Manual Group</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid above and use the bulk bar to add them to a group, or click <strong>New Manual Group</strong> to create an empty one.</p>
@@ -1744,7 +1763,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- SKU Recommender: Workload rule add/edit modal (advanced — duplicated for iteration) -->
 <div class="modal-overlay" id="skurWorkloadRuleModal" onclick="if(event.target===this)closeSkurWorkloadRuleModal()">
   <div class="modal-card is-md" role="dialog" aria-modal="true" aria-labelledby="skurWorkloadRuleModalTitle">
-    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🔧 Add workload rule</h2></div>
+    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🎯 Add workload rule</h2></div>
     <div class="modal-body">
     <div class="skur-modal-row">
       <label>If</label>
@@ -4525,7 +4544,7 @@ function _skurFmtConstraintSummary(c) {
 function _skurEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function _skurFmtPct(n){ return `${Math.round(n*100)}%`; }
 function _skurHeadroomCls(h){ return h >= 0.20 ? 'good' : (h >= 0.10 ? 'warn' : 'bad'); }
-function _skurModeEmoji(m){ return m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖'); }
+function _skurModeEmoji(m){ return m === 'cost' ? '💰' : (m === 'rightsized' ? '📏' : '⚖'); }
 function skurRenderRecCell(rec){
   const esc = _skurEsc;
   const conf = skurConfidenceFor(rec);
@@ -4536,19 +4555,25 @@ function skurRenderRecCell(rec){
   if (rec.state === 'oos') return `<span class="skur-rec-none" title="VM marked out of scope">— OOS —</span>`;
   if (rec.state === 'no-input') return `${confDot}<span class="skur-rec-none" title="Missing vCPU or RAM on this VM">no input</span>`;
   if (rec.state === 'no-eligible') {
-    const wlNote = rec.workloadConstrained && rec.workloadFamilies
-      ? ` (workload tag restricts to: ${esc(rec.workloadFamilies.join(', '))})`
+    const CATALOG_FAMS = ['B','D','E','F','L','M'];
+    const wlFams = (rec.workloadConstrained && Array.isArray(rec.workloadFamilies)) ? rec.workloadFamilies : null;
+    const outOfScope = wlFams && wlFams.length && !wlFams.some(f => CATALOG_FAMS.includes(f));
+    const wlNote = wlFams
+      ? ` (workload tag restricts to: ${esc(wlFams.join(', '))})`
       : '';
-    return `${confDot}<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints${wlNote} leave 0 eligible SKUs">no eligible SKU</span>`;
+    const scopeHint = outOfScope
+      ? `\nFamily ${wlFams.join('/')} is not in the current catalog scope (${CATALOG_FAMS.join(',')}).`
+      : '';
+    const visible = outOfScope ? `no ${wlFams.join('/')}-family SKU in catalog` : 'no eligible SKU';
+    return `${confDot}<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints${wlNote} leave 0 eligible SKUs${scopeHint}">${esc(visible)}</span>`;
   }
   if (rec.state === 'no-match') return `${confDot}<span class="skur-rec-none" title="VM exceeds every eligible SKU's vCPU/RAM in group '${esc(rec.groupName||'')}'">VM too large</span>`;
   const sku = rec.sku;
-  const fam = (sku.family||'X').toUpperCase();
   const altsTip = rec.alts && rec.alts.length ? `\nAlts: ${rec.alts.map(s=>s.name).join(', ')}` : '';
   const ctx = rec.groupName ? `Group "${rec.groupName}" · ${rec.mode}` : `ungrouped · ${rec.mode}`;
   const tip = `${sku.name} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${sku.processor||'any'}${sku.burstable?' · burstable':''}\n${ctx}${altsTip}`;
   return `<span class="skur-rec-cell" title="${esc(tip)}">
-    ${confDot}<span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="rc-name">${esc(sku.name)}</span>
+    ${confDot}<span class="rc-name">${esc(sku.name)}</span>
     <span class="rc-spec">${sku.vcpu} vCPU · ${sku.ramGb} GB${sku.burstable?' · burst':''}</span>
   </span>`;
 }
@@ -4575,9 +4600,21 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
   const removeBtn = `<button class="gp-row-remove" title="Remove from group" onclick="skurRemoveMemberFromGroup('${esc(g.id)}','${escK}')">✕</button>`;
   const vmCell = `<span class="gp-recs-vm" title="${esc(v.name||'')} — ${v.cpus??'?'} vCPU / ${v.ram??'?'} GB"><strong>${esc(v.name||'(unknown)')}</strong><span class="gp-recs-vmspec">${v.cpus??'?'} / ${v.ram??'?'}</span></span>`;
   if (!rec || rec.state !== 'ok' || !rec.sku) {
+    // Even with no eligible SKU, show the workload badge so users can see why.
+    let wlBadge = '';
+    if (rec && rec.workloadConstrained) {
+      const wlTag = rec.workloadTag || 'workload';
+      const famList = (rec.workloadFamilies || []).join(', ');
+      const { label } = skurFormatWorkloadBadgeLabel({ name: rec.workloadName, tag: wlTag, canonical: wlTag, desc: rec.workloadDesc });
+      let fullTip = `Workload (advanced rule) · ${wlTag}`;
+      if (rec.workloadName) fullTip += `\n${rec.workloadName}`;
+      if (rec.workloadDesc) fullTip += `\n${rec.workloadDesc}`;
+      fullTip += `\nConstraint pool for this VM: ${famList || 'none'}`;
+      wlBadge = `<span class="workload-badge" title="${esc(fullTip)}">🎯 ${esc(label)}</span>`;
+    }
     return `<div class="gp-recs-row">
       ${vmCell}
-      <span class="gp-recs-sku">${skurRenderRecCell(rec)}</span>
+      <span class="gp-recs-sku">${skurRenderRecCell(rec)}${wlBadge}</span>
       <span class="gp-recs-hr">${skurRenderHeadroomCell(rec)}</span>
       <span class="gp-recs-cost">${skurRenderCostCell(rec)}</span>
       <span class="gp-recs-actions">${removeBtn}</span>
@@ -4585,25 +4622,35 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
   }
   // SKU cell with badges + why + retirement
   const altCount = Math.max(0, ((rec.ranked && rec.ranked.length) || 1) - 1);
-  // Workload-constrained VMs: unified workload badge replaces alt + override badges.
+  // Badge rail: workload constraint, then alternatives, then override (if present).
+  let workloadBadge = '';
   let altBadge = '';
   let overrideBadge = '';
-  if (rec.workloadConstrained) {
-    const famList = (rec.workloadFamilies || []).join(', ');
-    if (rec.overridden) {
-      overrideBadge = `<button class="workload-badge" title="🏷️ Workload constraint active (${esc(famList)}) · SKU manually chosen within that pool — click to reset to workload-recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">🏷️ workload override ↺</button>`;
-    } else {
-      altBadge = altCount > 0
-        ? `<button class="workload-badge" title="🏷️ Workload tag constrains pool to ${esc(famList)} · ${altCount} alternative${altCount>1?'s':''} — click to choose" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">🏷️ workload ▾</button>`
-        : `<span class="workload-badge" title="🏷️ Workload tag constrains pool to ${esc(famList)}">🏷️ workload</span>`;
+    if (rec.workloadConstrained) {
+      const famList = (rec.workloadFamilies || []).join(', ');
+      const wlTag = rec.workloadTag || 'workload';
+      const canonical = wlTag;
+      const name = rec.workloadName;
+      const desc = rec.workloadDesc;
+      const { label, tip } = skurFormatWorkloadBadgeLabel({ name, tag: wlTag, canonical, desc });
+      let fullTip = `Workload (advanced rule) · ${wlTag}`;
+      if (name) fullTip += `\n${name}`;
+      if (desc) fullTip += `\n${desc}`;
+      fullTip += `\nConstraint pool for this VM: ${famList || 'none'}`;
+      fullTip += `\nRanking mode: ${rec.mode || 'balanced'}`;
+      workloadBadge = `<span class="workload-badge" title="${esc(fullTip)}">🎯 ${esc(label)}</span>`;
     }
-  } else {
-    altBadge = altCount > 0
-      ? `<button class="alt-badge" title="${altCount} alternative SKU${altCount>1?'s':''} match — click to choose" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">+${altCount} alt ▾</button>`
-      : '';
-    overrideBadge = rec.overridden
-      ? `<span class="override-badge" title="Manually overridden — click to reset to recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">override ↺</span>`
-      : '';
+  if (altCount > 0) {
+    const altTitle = rec.workloadConstrained
+      ? `Alternatives in constrained pool · ${altCount} SKU${altCount>1?'s':''}\nFamilies: ${esc((rec.workloadFamilies||[]).join(', ') || 'none')}\nMode: ${esc(rec.mode||'balanced')}\nClick to choose a different SKU.`
+      : `${altCount} alternative SKU${altCount>1?'s':''} match\nMode: ${esc(rec.mode||'balanced')}\nClick to choose.`;
+    altBadge = `<button class="alt-badge" title="${altTitle}" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">+${altCount} alt ▾</button>`;
+  }
+  if (rec.overridden) {
+    const ovTitle = rec.workloadConstrained
+      ? `Manual override is active.\nWorkload constraint still applies (${esc((rec.workloadFamilies||[]).join(', ') || 'none')}).\nClick to reset to workload-recommended SKU.`
+      : `Manual override is active.\nClick to reset to recommended SKU.`;
+    overrideBadge = `<span class="override-badge" title="${ovTitle}" onclick="skurResetOverride('${esc(g.id)}','${escK}')">override ↺</span>`;
   }
   const ret = rec.retirement;
   const retInfo = ret ? (typeof _skurRetirementInfoFor === 'function' ? _skurRetirementInfoFor(rec.sku && rec.sku.name) : null) : null;
@@ -4611,11 +4658,10 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
   const retTag = ret ? `<span class="retire-tag" title="${esc(retTitle)}">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
   const whyTxt = rec.why ? `<span class="why-hint"> · ${esc(rec.why)}</span>` : '';
   const sku = rec.sku;
-  const fam = (sku.family||'X').toUpperCase();
   const conf = skurConfidenceFor(rec);
   const confDot = `<span class="skur-conf-dot lvl-${conf.level}" title="Confidence: ${esc(conf.label)}\n${conf.reasons.map(r=>'• '+r).join('\n')}"></span>`;
   const skuCell = `<span class="gp-recs-sku" title="${esc(sku.name)} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${esc(sku.processor||'any')}${sku.burstable?' · burstable':''}">
-    <span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="sku-name">${esc(sku.name)}</span>${altBadge}${overrideBadge}${whyTxt}${retTag}
+    <span class="sku-name">${esc(sku.name)}</span>${workloadBadge}${altBadge}${overrideBadge}${whyTxt}${retTag}
   </span>`;
   // Inline +HR% · Conf
   const f = rec.fit; const minH = (f ? Math.min(f.cpuHeadroom, f.ramHeadroom) : 0);
@@ -4630,6 +4676,15 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
     ${costCell}
     <span class="gp-recs-actions">${removeBtn}</span>
   </div>`;
+}
+
+// Standardized workload badge label helper: truncates to 24 chars, shows canonical in tooltip
+function skurFormatWorkloadBadgeLabel({ name, tag, canonical, desc }) {
+  const base = name || tag || canonical || '';
+  const label = base.length > 24 ? base.slice(0, 21) + '…' : base;
+  let tip = canonical || base;
+  if (desc) tip += '\n' + desc;
+  return { label, tip };
 }
 
 function renderSkurGroups() {
@@ -4683,7 +4738,7 @@ function renderSkurGroups() {
   // === Render rail ===
   const dups = skurDupVmKeys();
   const totalCat = skurCatalogForRegion(skurPlan.region).length;
-  const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
+  const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '📏' : '⚖');
   // Pinned groups float to top, preserving original creation order within each bucket.
   const orderedGroupsBase = skurGroups.map((g, i) => ({ g, i }))
     .sort((a, b) => ((b.g.pinned?1:0) - (a.g.pinned?1:0)) || (a.i - b.i))
@@ -4844,6 +4899,7 @@ function renderSkurGroups() {
         ? `<span class="gp-cost-label">Est. monthly</span> <span style="color:var(--text-tertiary);">—</span>`
         : `<span class="gp-cost-label">Est. monthly</span> <span class="gp-cost">${escG(skurFormatMoney(totalCost, skurPlan.currency))}</span>`;
       const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+      const workloadSummary = _skurGroupWorkloadSummary(g, byKey);
       const recRows = g.members.map(k => {
         const v = byKey.get(k); if (!v) return null;
         let rec = null; try { rec = skurRecommendForVm(v); } catch (_) {}
@@ -4899,8 +4955,8 @@ function renderSkurGroups() {
           </div>`
         : `<div class="gp-recs-empty"><em>No members yet — tick VMs in the inventory below and use ➕ Add to group.</em></div>`;
       const mode = skurNormaliseMode(g.mode);
-      const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'🎯 Right-sized',tip:'Tightest fit; minimises waste'} };
-      const modeHelp = `<button type="button" class="gp-mode-help" tabindex="0" aria-label="What do these modes mean?">?</button><div class="gp-mode-help-pop" role="tooltip"><strong>Sizing modes</strong> control how the recommender ranks eligible SKUs for every VM in this group.<ul><li><strong>⚖ Balanced</strong> — closest fit while keeping ~30% headroom on CPU and RAM. Good default for production workloads with some growth.</li><li><strong>💰 Cost</strong> — cheapest SKU that still meets the VM's requirements (after the headroom floor). Picks smaller/older families when they fit.</li><li><strong>🎯 Right-sized</strong> — tightest fit; minimises wasted vCPU and RAM. Best for steady-state dev/test or workloads you've already profiled.</li></ul><em>All modes obey this group's Constraints (Premium IO, processor, burstable, retirement) and the active region's eligible SKU pool.</em></div>`;
+      const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'📏 Right-sized',tip:'Tightest fit; minimises waste'} };
+      const modeHelp = `<button type="button" class="gp-mode-help" tabindex="0" aria-label="What do these modes mean?">?</button><div class="gp-mode-help-pop" role="tooltip"><strong>Sizing modes</strong> control how the recommender ranks eligible SKUs for every VM in this group.<ul><li><strong>⚖ Balanced</strong> — closest fit while keeping ~30% headroom on CPU and RAM. Good default for production workloads with some growth.</li><li><strong>💰 Cost</strong> — cheapest SKU that still meets the VM's requirements (after the headroom floor). Picks smaller/older families when they fit.</li><li><strong>📏 Right-sized</strong> — tightest fit; minimises wasted vCPU and RAM. Best for steady-state dev/test or workloads you've already profiled.</li></ul><em>All modes obey this group's Constraints (Premium IO, processor, burstable, retirement) and the active region's eligible SKU pool. If a VM carries a workload tag, that tagged VM is narrowed again to the workload-specific families before the mode ranks candidates.</em></div>`;
       const modeSeg = `<span class="gp-mode-wrap"><div class="gp-mode-seg" role="group" aria-label="Sizing mode">${['balanced','cost','rightsized'].map(m => `<button class="gp-mode-btn${m===mode?' is-active':''}" title="${modeMeta[m].tip}" onclick="skurSetGroupMode('${escG(g.id)}','${m}')">${modeMeta[m].lbl}</button>`).join('')}</div>${modeHelp}</span>`;
       // Stage 9: rebuilt header + toolbar + constraints chips + exceptions strip
       const totalVcpu = g.members.reduce((s,k) => { const v = byKey.get(k); return s + (v && Number(v.cpus) || 0); }, 0);
@@ -4939,6 +4995,25 @@ function renderSkurGroups() {
         <span class="gp-cband-elig"><strong>${eligibleCount}</strong> of ${totalCat} SKUs eligible</span>
         <span class="gp-cband-help">Click chips to toggle</span>
       </div>${retSuggest ? `<div class="gp-ret-nudge" role="status">⏳ <strong>${retiringAny}</strong> VM${retiringAny===1?'':'s'} recommended a retiring SKU family. <a href="#" onclick="skurCycleRetire('${escG(g.id)}');return false;">Tighten the <em>Retire &lt;</em> constraint</a> to steer the recommender to a longer-lived family.</div>` : ''}`;
+      const workloadChips = workloadSummary
+        ? workloadSummary.workloads.slice(0, 3).map(item => {
+            const families = item.families && item.families.length ? ` · families ${item.families.join(', ')}` : '';
+            return `<span class="workload-badge" title="${escG(item.count)} VM${item.count===1?'':'s'} tagged as ${escG(item.name)}${escG(families)}">🏷️ ${escG(item.name)}${item.count > 1 ? ` · ${item.count}` : ''}</span>`;
+          }).join('')
+        : '';
+      const workloadMore = workloadSummary && workloadSummary.workloads.length > 3
+        ? `<span class="gp-workload-more">+${workloadSummary.workloads.length - 3} more</span>`
+        : '';
+      const workloadCopy = workloadSummary
+        ? (workloadSummary.mixed
+            ? `Mixed workload tags in this group. Tagged VMs keep the current <strong>${escG(modeMeta[mode].lbl)}</strong> mode, but each tagged VM is constrained to its own workload-specific families before ranking. Untagged VMs still use the normal group pool.`
+            : `This group has <strong>${workloadSummary.taggedVmCount}</strong> workload-tagged VM${workloadSummary.taggedVmCount===1?'':'s'}. ${workloadSummary.workloads[0] ? `<strong>${escG(workloadSummary.workloads[0].name)}</strong> narrows only those tagged VMs to ${escG((workloadSummary.workloads[0].families || []).join(', ') || 'workload-specific families')}.` : 'The workload tag narrows only those tagged VMs.'} Balanced, Cost, and Right-sized still rank inside that narrowed pool.`)
+        : '';
+      const workloadStrip = workloadSummary ? `<div class="gp-workload-strip" role="status">
+        <span class="gp-workload-label">🏷️ Workload rules</span>
+        <span class="gp-workload-copy">${workloadCopy}</span>
+        <span class="gp-workload-chips">${workloadChips}${workloadMore}</span>
+      </div>` : '';
       const excHasAny = (exc.noMatch + exc.noEligible + exc.retiring) > 0;
       const excStrip = excHasAny ? `<div class="gp-exc-strip">
         <span class="gp-exc-label">⚠ Sizing exceptions:</span>
@@ -4963,7 +5038,7 @@ function renderSkurGroups() {
           <button class="gp-corner-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin group to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌</button>
         </div>
         <div class="gp-toolbar">
-          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">📅 <select class="gp-term" title="Pricing term" onchange="skurSetGroupTerm('${escG(g.id)}', this.value)">${termOpts}</select></span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);"><select class="gp-term" title="Pricing term" onchange="skurSetGroupTerm('${escG(g.id)}', this.value)">${termOpts}</select></span>
           <label class="gp-toggle" title="Azure Hybrid Use Benefit (waives Windows licensing surcharge for eligible Windows VMs)">
             <span>AHUB</span>
             <input type="checkbox" ${ahubOn?'checked':''} onchange="skurSetGroupAhub('${escG(g.id)}', this.checked)">
@@ -4971,11 +5046,11 @@ function renderSkurGroups() {
           </label>
           ${modeSeg}
           <span class="gp-tb-spacer"></span>
-          <button class="gp-tb-excel" title="Export this group to Excel" onclick="skurExportExcel('active')">📊 Excel</button>
           <button class="gp-tb-rename" title="Rename group" aria-label="Rename group" onclick="renameSkurGroup('${escG(g.id)}')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
           <button class="gp-tb-delete" title="Delete group" aria-label="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
         </div>
         ${cband}
+        ${workloadStrip}
         ${excStrip}
         ${recsTable}`;
       // Stage 9.5: wire active-group pagination buttons (uses shared renderPagination helper)
@@ -5784,7 +5859,14 @@ function renderSkurTagRules() {
     const rowCls = [isChk ? 'checked' : '', r.kind === 'workload' ? 'is-workload' : ''].filter(Boolean).join(' ');
     return `<tr data-rid="${esc(r.id)}"${rowCls ? ` class="${rowCls}"` : ''}>
       <td class="tr-check"><input type="checkbox" class="skur-rule-check" data-rid="${esc(r.id)}" onclick="skurOnRuleCheck(this)"${isChk ? ' checked' : ''}></td>
-      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em>${r.kind === 'workload' ? `<span class="skur-rule-kind-badge" title="Advanced workload rule — emits the workload tag shown">🎯 workload${r.tagValue ? ' → ' + esc(r.tagValue) : ''}</span>` : ''}</td>
+      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em>${r.kind === 'workload' ? (() => {
+        const wlIt = (typeof _skurResolveWorkloadId === 'function') ? _skurResolveWorkloadId(r.tagValue) : null;
+        const canonical = r.tagValue || 'workload';
+        const name = r.workloadName || (wlIt && wlIt.name) || '';
+        const desc = r.workloadDesc || (wlIt && wlIt.desc) || '';
+        const { label, tip } = skurFormatWorkloadBadgeLabel({ name, tag: r.tagValue, canonical, desc });
+        return `<span class="workload-badge" title="Advanced workload rule — emits the workload tag shown\n${esc(tip)}">🎯 ${esc(label)}</span>`;
+      })() : ''}</td>
       <td class="tr-key">${esc(r.tagKey)}</td>
       <td class="tr-val">${esc(r.tagValue)}</td>
       <td class="tr-matches${cnt===0?' is-zero':''}"${cnt===0?' title="This rule isn\'t applied to any VMs — auto-group won\'t list it. Edit the condition to fix."':''}><strong>${cnt}</strong> VM${cnt===1?'':'s'}${cnt===0?' ⚠':''}</td>
@@ -6172,6 +6254,53 @@ function _skurWorkloadFamiliesForVm(vm) {
     }
   }
   return families.length ? families : null;
+}
+function _skurWorkloadInfoForVm(vm) {
+  if (!vm) return null;
+  const tags = (typeof skurTagsForVm === 'function') ? skurTagsForVm(vm) : [];
+  const wlTag = tags.find(t => t.key === 'workload');
+  if (!wlTag) return null;
+  const item = _skurResolveWorkloadId(wlTag.value);
+  if (!item) return null;
+  return {
+    canonId: item.canonId || wlTag.value,
+    tagValue: `${wlTag.key}:${item.canonId || wlTag.value}`,
+    name: item.name || item.value || wlTag.value,
+    family: item.family || '',
+    series: item.series || '',
+    desc: item.desc || '',
+    families: _skurWorkloadFamiliesForVm(vm) || [],
+  };
+}
+function _skurGroupWorkloadSummary(g, byKey) {
+  if (!g || !Array.isArray(g.members) || !g.members.length) return null;
+  const items = new Map();
+  let taggedVmCount = 0;
+  for (const vmKey of g.members) {
+    const vm = byKey ? byKey.get(vmKey) : null;
+    const info = _skurWorkloadInfoForVm(vm);
+    if (!info) continue;
+    taggedVmCount++;
+    const row = items.get(info.canonId) || {
+      canonId: info.canonId,
+      name: info.name,
+      families: info.families.slice(),
+      count: 0,
+    };
+    row.count++;
+    items.set(info.canonId, row);
+  }
+  if (!taggedVmCount) return null;
+  const workloads = [...items.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+  });
+  return {
+    taggedVmCount,
+    totalVmCount: g.members.length,
+    workloads,
+    mixed: workloads.length > 1,
+  };
 }
 // Type prefix for the canonical workload id (e.g. 'workload-gen-01'). Stable —
 // adding a new type would need its own prefix here.
@@ -6572,7 +6701,7 @@ let _skurEditingWorkloadRuleId = null;
 function openSkurWorkloadRuleModal(ruleId) {
   _skurEditingWorkloadRuleId = ruleId || null;
   const r = ruleId ? skurTagRules.find(x => x.id === ruleId) : null;
-  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🔧 Add workload rule';
+  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🎯 Add workload rule';
   _skurPopulateWorkloadFieldSelect(r ? r.field : 'name');
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
@@ -6876,13 +7005,12 @@ function renderSkurVmGrid() {
         }
         if (t.key === 'workload') {
           const wlIt = (typeof _skurResolveWorkloadId === 'function') ? _skurResolveWorkloadId(t.value) : null;
-          const wlTipParts = [`Workload (advanced rule) · ${t.key}:${t.value}`];
-          if (wlIt) {
-            wlTipParts.push(`${wlIt.name}${wlIt.family ? ` (Family ${wlIt.family}${wlIt.series ? ' · ' + wlIt.series : ''})` : ''}`);
-            if (wlIt.desc) wlTipParts.push(wlIt.desc);
-          }
-          const wlTip = wlTipParts.join('\n');
-          return `<span class="skur-tag-chip workload" title="${esc(wlTip)}">🎯 ${esc(t.key)}:${esc(t.value)}</span>`;
+          const canonical = t.value;
+          const name = wlIt && wlIt.name;
+          const desc = wlIt && wlIt.desc;
+          const { label, tip } = skurFormatWorkloadBadgeLabel({ name, tag: t.value, canonical, desc });
+          const wlTip = `Workload (advanced rule) · ${t.key}:${t.value}` + (tip ? `\n${tip}` : '');
+          return `<span class="skur-tag-chip workload" title="${esc(wlTip)}">🎯 ${esc(label)}</span>`;
         }
         return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
       }).join('');
@@ -7196,7 +7324,11 @@ function _skurNormaliseLiveSkus(skus, prices) {
   for (const s of skus) {
     if (!s || !s.name) continue;
     const fam = _skurDeriveFamily(s.name);
-    if (!['B','D','E','F'].includes(fam)) continue; // limit to GP/burst/memory/compute (matches seed scope)
+    // Catalog scope: B/D/E/F/L/M. DC/EC (confidential compute) collapse to D/E
+    // via the single-letter derivation; FX (compute) collapses to F. GPU (N*),
+    // HPC (H*) and legacy A/G are deliberately excluded — they need family-aware
+    // scoring (GPU count, RDMA, etc.) that the current ranker doesn't model.
+    if (!['B','D','E','F','L','M'].includes(fam)) continue;
     const sizeKey = String(s.name).replace(/^Standard_/, '');
     const p = prices[sizeKey];
     if (!p || typeof p.linux !== 'number' || !isFinite(p.linux) || p.linux <= 0) continue;
@@ -7573,7 +7705,7 @@ function bumpImportTiles(){
 const SKUR_SIZING_MODES = Object.freeze({
   balanced:   { id:'balanced',   label:'Balanced',    icon:'⚖', desc:'~30% headroom on vCPU and RAM' },
   cost:       { id:'cost',       label:'Cost',        icon:'💰', desc:'cheapest with ≥10% headroom' },
-  rightsized: { id:'rightsized', label:'Right-sized', icon:'🎯', desc:'tightest fit; minimises waste' },
+  rightsized: { id:'rightsized', label:'Right-sized', icon:'📏', desc:'tightest fit; minimises waste' },
 });
 function skurNormaliseMode(mode) { return SKUR_SIZING_MODES[mode] ? mode : 'balanced'; }
 // Headroom thresholds (configurable later via plan settings).
@@ -7884,10 +8016,13 @@ function skurRenderApList(){
   // Sub-line
   const subEl = document.getElementById('skurApSub');
   if (subEl) {
+    const wlNote = (rec && rec.workloadConstrained && Array.isArray(rec.workloadFamilies) && rec.workloadFamilies.length)
+      ? ` · workload pool <strong>${_skurEsc(rec.workloadFamilies.join(', '))}</strong>`
+      : '';
     const totalLabel = (filtered.length === ranked.length)
       ? `${ranked.length} eligible SKU${ranked.length===1?'':'s'}`
       : `${filtered.length} of ${ranked.length} SKUs match`;
-    subEl.innerHTML = `${vm.cpus||'?'} vCPU · ${vm.ram||'?'} GB · ${_skurEsc(vm.os||vm.guestOS||'unknown OS')} — group <strong>${_skurEsc(g.name)}</strong> (${_skurEsc(skurNormaliseMode(g.mode))}) · ${_skurEsc(totalLabel)}`;
+    subEl.innerHTML = `${vm.cpus||'?'} vCPU · ${vm.ram||'?'} GB · ${_skurEsc(vm.os||vm.guestOS||'unknown OS')} — group <strong>${_skurEsc(g.name)}</strong> (${_skurEsc(skurNormaliseMode(g.mode))})${wlNote} · ${_skurEsc(totalLabel)}`;
   }
   const arrow = k => (_skurApSort.key === k) ? (_skurApSort.dir === 1 ? '↑' : '↓') : '↕';
   const head = `<div class="skur-ap-row head">
@@ -7963,18 +8098,35 @@ function skurRecommendForVm(vm) {
   // Other constraints (premiumIO, processor, retire) are already baked into eligible; we just narrow families.
   let workloadConstrained = false;
   let workloadFamilies = null;
+  let workloadName = null;
+  let workloadTag = null;
+  let workloadFamily = null;
+  let workloadSeries = null;
+  let workloadDesc = null;
   if (group) {
-    const wlFamilies = _skurWorkloadFamiliesForVm(vm);
-    if (wlFamilies) {
+    const wlInfo = _skurWorkloadInfoForVm(vm);
+    const wlFamilies = wlInfo && Array.isArray(wlInfo.families) ? wlInfo.families : null;
+    if (wlFamilies && wlFamilies.length) {
       const famSet = new Set(wlFamilies);
-      eligible = (eligible || []).filter(s => famSet.has(s.family));
+      // Replace semantics: workload tag overrides the group's families constraint.
+      // Rebuild the pool from the catalog with all group constraints EXCEPT families,
+      // then narrow to the workload's families. Otherwise a group locked to e.g.
+      // ['B','D','E','F'] would zero out any L-tagged VM before we ever look at L.
+      const gc = skurGroupConstraints(group) || {};
+      const gcNoFam = { ...gc, families: [] };
+      eligible = skurEligibleSkus(gcNoFam, skurPlan.region).filter(s => famSet.has(s.family));
       workloadConstrained = true;
       workloadFamilies = wlFamilies;
+      workloadName = wlInfo && wlInfo.name ? wlInfo.name : null;
+      workloadTag = wlInfo && wlInfo.tagValue ? wlInfo.tagValue : null;
+      workloadFamily = wlInfo && wlInfo.family ? wlInfo.family : null;
+      workloadSeries = wlInfo && wlInfo.series ? wlInfo.series : null;
+      workloadDesc = wlInfo && wlInfo.desc ? wlInfo.desc : null;
     }
   }
-  if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName, workloadConstrained, workloadFamilies };
+  if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName, workloadConstrained, workloadFamilies, workloadName, workloadTag, workloadFamily, workloadSeries, workloadDesc };
   const ranked = skurRankCandidates(vm, eligible, mode, skurPlan);
-  if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length, workloadConstrained, workloadFamilies };
+  if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length, workloadConstrained, workloadFamilies, workloadName, workloadTag, workloadFamily, workloadSeries, workloadDesc };
   // Apply manual SKU override if set on the group.
   // If the stored override is outside the workload-constrained pool, idx === -1 and we silently ignore it.
   let chosenIdx = 0;
@@ -7997,6 +8149,11 @@ function skurRecommendForVm(vm) {
     overridden,
     workloadConstrained,
     workloadFamilies,
+    workloadName,
+    workloadTag,
+    workloadFamily,
+    workloadSeries,
+    workloadDesc,
     why: _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden),
     retirement: _skurRetirementFor(chosen.sku && chosen.sku.name) || null,
   };
@@ -8153,6 +8310,54 @@ function skurExportExcel(scope) {
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows.map(_safeRow)), 'Summary');
 
+  // Sheet: Notifications (captures group-level nudge/summary insights shown in UI)
+  const notifRows = [['Type','Group','Severity','Count','Details','Suggested_Action']];
+  groups.forEach(g => {
+    const exc = skurExceptionCountsForGroup(g);
+    const c = skurGroupConstraints(g);
+    const retVal = (c.retireMonths == null || c.retireMonths === 'any') ? 'any' : c.retireMonths;
+    const retOn = retVal !== 'any';
+    const blocked = Number(exc && exc.noEligible || 0);
+    const retiringAny = Number(exc && exc.retiringAny || 0);
+    if (retiringAny > 0 && !retOn) {
+      notifRows.push([
+        'retiring-family-nudge',
+        g.name,
+        'warning',
+        retiringAny,
+        `${retiringAny} VM${retiringAny===1?'':'s'} recommended a retiring SKU family.`,
+        'Set Retire < constraint (for example 12 months) to steer to longer-lived families.',
+      ]);
+    }
+    if (blocked > 0) {
+      notifRows.push([
+        'constraints-blocked',
+        g.name,
+        'warning',
+        blocked,
+        `${blocked} VM${blocked===1?'':'s'} have no eligible SKU under the current group constraints.`,
+        'Loosen one or more constraints (family, processor, Premium IO, burstable exclusion, or Retire <) and re-check recommendations.',
+      ]);
+    }
+    const ws = _skurGroupWorkloadSummary(g, byKey);
+    if (ws && ws.taggedVmCount > 0) {
+      const topTags = (ws.workloads || []).slice(0, 5).map(w => `${w.name} (${w.count})`).join('; ');
+      notifRows.push([
+        'workload-summary',
+        g.name,
+        ws.mixed ? 'warning' : 'info',
+        ws.taggedVmCount,
+        `${ws.taggedVmCount} of ${ws.totalVmCount} VMs are workload-tagged. Top tags: ${topTags || 'n/a'}`,
+        ws.mixed
+          ? 'Consider splitting mixed workload groups for cleaner constraint behavior and reporting.'
+          : 'Workload-tagged VMs are constrained individually; sizing mode still applies inside that pool.',
+      ]);
+    }
+  });
+  if (notifRows.length > 1) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(notifRows.map(_safeRow)), 'Notifications');
+  }
+
   // Sheet: All recommendations (combined)
   const allRows = [['Group','Mode', ...vmRowHeaders]];
   groups.forEach(g => g.members.forEach(k => {
@@ -8161,7 +8366,7 @@ function skurExportExcel(scope) {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allRows.map(_safeRow)), 'All recommendations');
 
   // Per-group sheets (Excel sheet name max 31 chars; must avoid : \ / ? * [ ])
-  const usedNames = new Set(['Summary','All recommendations']);
+  const usedNames = new Set(['Summary','All recommendations', ...(notifRows.length > 1 ? ['Notifications'] : [])]);
   const sanitiseSheetName = (raw, idx) => {
     let n = String(raw || ('Group '+(idx+1))).replace(/[:\\\/\?\*\[\]]/g, '_').trim();
     if (n.length > 28) n = n.slice(0, 28);
@@ -8466,9 +8671,9 @@ function renderSkuRecStatCards() {
   const eligibleHelp = [
     "<strong>Eligible SKUs</strong> are the VM sizes the recommender can pick from in this region.",
     "",
-    "Today that's the latest-gen B / D / E / F families with Linux pay-as-you-go pricing &mdash; the safe defaults that fit most general-purpose VMware workloads.",
+    "Today that covers the burstable, general-purpose, memory-optimised, compute-optimised, storage-optimised and large-memory families (B / D / E / F / L / M, including DC / EC confidential-compute and FX variants) with Linux pay-as-you-go pricing &mdash; the families that fit the vast majority of VMware workloads.",
     "",
-    "Azure offers ~1,200+ SKUs per region in total (GPU, HPC, memory-optimised M-series, confidential compute, older generations). Those are excluded for now because they need specialised scoring and pricing before they'd produce sensible recommendations.",
+    "Azure offers ~1,200+ SKUs per region in total. GPU (N-series), HPC (H-series) and legacy A / G families are excluded for now because they need specialised scoring (GPU count, RDMA fabric, etc.) before they'd produce sensible recommendations.",
   ].join('<br>');
   host.innerHTML = [
     card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
