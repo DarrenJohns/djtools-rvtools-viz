@@ -3,6 +3,20 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **L and M family support** in the SKU Recommender. Storage-optimised (L) and memory-optimised (M) SKUs are now ranked alongside B/D/E/F; the Group Constraints modal exposes `L` and `M` checkboxes; new groups default to all six families.
+- **OS-aware pricing.** Per-VM monthly cost now uses the Linux *or* Windows hourly rate depending on the VM's guest OS (parsed from RVTools "OS according to the VMware Tools" / "OS according to the configuration file" / "OS" / "Guest OS"). The Azure pricing pipeline already published both rates — the recommender now reads them.
+- **Functional Azure Hybrid Benefit (AHUB).** Toggling AHUB on a group waives the Windows licence surcharge for Windows VMs in that group (prices fall back to the Linux rate). The "AHUB applied" pill is unchanged.
+- **Indicative Azure Family Fit chart** on the Topology page now buckets into all six families (B/D/E/F/L/M).
+
+### Changed
+
+- Catalog meta strings (data-pill tooltip / details popup) describe B/D/E/F/L/M scope and the new OS-aware pricing behaviour.
+- The cost path internally threads a per-VM `plan` object (term + AHUB + OS) so every cost-rendering surface stays consistent.
+
 ## [1.1.0-beta] — SKU Recommender beta
 
 A new "what would this look like in Azure?" tier on top of the existing readiness work.

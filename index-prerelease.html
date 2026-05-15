@@ -1880,6 +1880,8 @@ body.dark .skur-group-chip{color:#b794f4;}
         <label><input type="checkbox" value="D" onchange="updateSkurConstraintsPreview()"><span class="fam-key">D</span><span class="fam-sub">general</span></label>
         <label><input type="checkbox" value="E" onchange="updateSkurConstraintsPreview()"><span class="fam-key">E</span><span class="fam-sub">memory</span></label>
         <label><input type="checkbox" value="F" onchange="updateSkurConstraintsPreview()"><span class="fam-key">F</span><span class="fam-sub">compute</span></label>
+        <label><input type="checkbox" value="L" onchange="updateSkurConstraintsPreview()"><span class="fam-key">L</span><span class="fam-sub">storage</span></label>
+        <label><input type="checkbox" value="M" onchange="updateSkurConstraintsPreview()"><span class="fam-key">M</span><span class="fam-sub">memory-opt</span></label>
       </div>
     </div>
     <div class="skur-modal-row">
@@ -4459,10 +4461,10 @@ function skurRemoveMemberFromGroup(groupId, vmKey) {
   }
 }
 function _skurGroupPlan(g) {
-  // Stage 9: per-group term + AHUB overlay over the global skurPlan. AHUB has no
-  // pricing impact yet (catalog only carries Linux pricing) but the field is
-  // tracked so the UI can surface the "AHUB applied" state and so workspace.json
-  // round-trips it.
+  // Per-group term + AHUB overlay over the global skurPlan. AHUB now drives a
+  // real pricing effect: when true, Windows VMs price at the Linux rate (waives
+  // the Windows licence surcharge). When false, Windows VMs use the Windows
+  // rate. Linux/Other VMs are unaffected.
   return Object.assign({}, skurPlan, {
     term: (g && g.term) || skurPlan.term || 'payg',
     ahub: !!(g && g.ahub),
@@ -4478,7 +4480,8 @@ function _skurGroupTotalMonthlyCost(g) {
     if (skurOOSEntry(v)) continue;
     const rec = skurRecommendForVm(v);
     if (!rec || rec.state !== 'ok' || !rec.sku) continue;
-    const m = skurMonthlyCost(rec.sku, plan);
+    // rec.plan carries per-group term + AHUB + per-VM OS for correct Linux/Windows pricing.
+    const m = skurMonthlyCost(rec.sku, rec.plan || plan);
     if (typeof m === 'number' && isFinite(m)) { sum += m; any = true; }
   }
   return any ? sum : null;
@@ -7331,7 +7334,13 @@ function _skurNormaliseLiveSkus(skus, prices) {
     if (!['B','D','E','F','L','M'].includes(fam)) continue;
     const sizeKey = String(s.name).replace(/^Standard_/, '');
     const p = prices[sizeKey];
-    if (!p || typeof p.linux !== 'number' || !isFinite(p.linux) || p.linux <= 0) continue;
+    if (!p) continue;
+    // OS-aware pricing: keep both Linux and Windows hourly USD on the catalog
+    // entry. Either may be null if that OS variant isn't published for this SKU
+    // in this region. Skip only if BOTH are missing.
+    const linux   = (typeof p.linux   === 'number' && isFinite(p.linux)   && p.linux   > 0) ? p.linux   : null;
+    const windows = (typeof p.windows === 'number' && isFinite(p.windows) && p.windows > 0) ? p.windows : null;
+    if (linux == null && windows == null) continue;
     if (Array.isArray(s.restrictions) && s.restrictions.length) continue; // skip region/zone-restricted
     out.push({
       name: s.name,
@@ -7341,7 +7350,11 @@ function _skurNormaliseLiveSkus(skus, prices) {
       processor: _skurDeriveProcessor(s.name),
       premiumIo: !!s.premiumIO,
       burstable: fam === 'B',
-      hourlyUsd: p.linux,
+      // Back-compat: hourlyUsd is the Linux price (falls back to Windows when Linux is unknown).
+      // New per-OS fields drive OS-aware pricing via _skurBaseHourlyUsd().
+      hourlyUsd: linux != null ? linux : windows,
+      linuxUsd: linux,
+      windowsUsd: windows,
     });
   }
   return out;
@@ -7415,10 +7428,27 @@ function skurCatalogForRegion(region) {
   if (region === 'australiaeast') return SKUR_SKU_CATALOG_AUE;
   return [];
 }
+// Resolve the right base USD hourly for a SKU given an OS + AHUB context.
+// Reads plan.os ('Windows' | 'Linux' | 'Other') and plan.ahub (boolean).
+// Windows VMs without AHUB use the Windows price (includes the OS licence
+// surcharge); Windows VMs with AHUB and all non-Windows VMs use the Linux price.
+// Falls back gracefully when one of the per-OS prices is unknown (e.g. seed
+// catalog only has Linux, or a SKU only publishes a Windows price).
+function _skurBaseHourlyUsd(sku, plan) {
+  if (!sku) return null;
+  const os    = plan && plan.os;
+  const ahub  = !!(plan && plan.ahub);
+  const linux   = (sku.linuxUsd   != null) ? sku.linuxUsd   : sku.hourlyUsd;
+  const windows = (sku.windowsUsd != null) ? sku.windowsUsd : null;
+  if (os === 'Windows' && !ahub && windows != null) return windows;
+  if (linux != null) return linux;
+  return windows; // last-resort fallback
+}
 function skurEffectiveHourlyUsd(sku, plan) {
-  if (!sku || sku.hourlyUsd == null) return null;
+  const base = _skurBaseHourlyUsd(sku, plan);
+  if (base == null) return null;
   const term = SKUR_TERM_DISCOUNTS[(plan && plan.term) || 'payg'] || 1;
-  return sku.hourlyUsd * term;
+  return base * term;
 }
 function skurEffectiveHourly(sku, plan) {
   const usd = skurEffectiveHourlyUsd(sku, plan);
@@ -7487,10 +7517,10 @@ function skurShowDataPillInfo() {
       `Regions with data: ${m && m.regionsWithData ? m.regionsWithData : '?'} of ${m && m.physicalRegionCount ? m.physicalRegionCount : '?'} physical`,
       ``,
       `Selected region: ${regionLabel} → ${cat.length} of ${entry ? entry.rawCount : '?'} raw SKUs after eligibility filter`,
-      `Filter: B-series (burstable), Dxx (general), Exx (memory), Fxx (compute) · region-restricted SKUs excluded`,
+      `Filter: B (burstable), D (general), E (memory), F (compute), L (storage), M (memory-optimised) · region-restricted SKUs excluded`,
       ``,
       `⚠ Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
-      `AHUB pricing is decorative until Windows pricing flows through the pipeline.`,
+      `Windows VMs use the published Windows hourly rate; toggle AHUB on a group to price them at the Linux rate (BYO licence).`,
     ];
     alert(lines.join('\n'));
     return;
@@ -7510,7 +7540,7 @@ function skurShowDataPillInfo() {
     ``,
     `⚠ All prices are approximate public-list values for illustration only.`,
     `Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
-    `AHUB pricing is decorative until Windows pricing lands with the Phase 1 data pipeline.`,
+    `Seed catalog ships Linux pricing only — Windows VMs price at the Linux rate until live data loads.`,
   ];
   alert(lines.join('\n'));
 }
@@ -7749,11 +7779,14 @@ function skurScoreRightsized(fit, sku, plan) {
 }
 function skurScoreSku(mode, vm, sku, plan) {
   const fit = skurFitFor(vm, sku); if (!fit) return Infinity;
+  // Enrich plan with this VM's OS family so the cost helpers pick the correct
+  // Linux/Windows base price (AHUB on the plan still waives the Windows surcharge).
+  const planForVm = Object.assign({}, plan || {}, { os: getOSFamily(vm && vm.os) });
   switch (skurNormaliseMode(mode)) {
-    case 'cost':       return skurScoreCost(fit, sku, plan);
-    case 'rightsized': return skurScoreRightsized(fit, sku, plan);
+    case 'cost':       return skurScoreCost(fit, sku, planForVm);
+    case 'rightsized': return skurScoreRightsized(fit, sku, planForVm);
     case 'balanced':
-    default:           return skurScoreBalanced(fit, sku, plan);
+    default:           return skurScoreBalanced(fit, sku, planForVm);
   }
 }
 function skurRankCandidates(vm, eligible, mode, plan) {
@@ -7773,7 +7806,7 @@ try { window.skurDebugScore = function(vmName, mode) {
   if (!vm) return { error: `VM not found: ${vmName}` };
   const eligible = skurCatalogForRegion(skurPlan.region);
   const ranked = skurRankCandidates(vm, eligible, mode || 'balanced', skurPlan);
-  return ranked.slice(0, 5).map(r => ({ sku: r.sku.name, vcpu: r.sku.vcpu, ramGb: r.sku.ramGb, hourlyUsd: r.sku.hourlyUsd, score: r.score.toFixed(4) }));
+  return ranked.slice(0, 5).map(r => ({ sku: r.sku.name, vcpu: r.sku.vcpu, ramGb: r.sku.ramGb, linuxUsd: r.sku.linuxUsd, windowsUsd: r.sku.windowsUsd, score: r.score.toFixed(4) }));
 }; } catch (_) {}
 
 // === Phase 5 slice 4: per-VM recommendation resolver ===
@@ -7973,6 +8006,8 @@ function skurRenderApList(){
   if (!g || !vm) { list.innerHTML = '<div class="skur-ap-empty">Group or VM no longer available.</div>'; return; }
   const rec = skurRecommendForVm(vm);
   const ranked = (rec && Array.isArray(rec.ranked)) ? rec.ranked : [];
+  // Per-VM pricing context (term + AHUB + OS) for alt-list cost rendering.
+  const vmPlan = (rec && rec.plan) ? rec.plan : Object.assign({}, _skurGroupPlan(g), { os: getOSFamily(vm.os) });
   // Recommended = mode-default first ranked SKU (ignoring override).
   // Apply workload family filter to match skurRecommendForVm's eligible pool.
   let eligible = skurEligibleSkusForGroup(g, skurPlan.region);
@@ -7981,7 +8016,7 @@ function skurRenderApList(){
     const famSet = new Set(wlFamilies);
     eligible = eligible.filter(s => famSet.has(s.family));
   }
-  const recRanked = (eligible && eligible.length) ? skurRankCandidates(vm, eligible, skurNormaliseMode(g.mode), skurPlan) : [];
+  const recRanked = (eligible && eligible.length) ? skurRankCandidates(vm, eligible, skurNormaliseMode(g.mode), vmPlan) : [];
   const recName = (recRanked[0] && recRanked[0].sku && recRanked[0].sku.name) || (ranked[0] && ranked[0].name) || null;
   const currName = (rec && rec.sku && rec.sku.name) || null;
   let recs = ranked.map((sku, i) => {
@@ -7990,7 +8025,7 @@ function skurRenderApList(){
     const ramH = (sku.ramGb - ram) / sku.ramGb;
     const headroom = Math.round(Math.min(cpuH, ramH) * 100);
     let cost = null;
-    try { cost = skurMonthlyCost(sku, skurPlan); } catch (_) { cost = null; }
+    try { cost = skurMonthlyCost(sku, vmPlan); } catch (_) { cost = null; }
     return { sku, rank: i, headroom, cost: (cost == null || !isFinite(cost)) ? null : cost };
   });
   const f = _skurApFilters; const nq = f.name.toLowerCase();
@@ -8125,7 +8160,11 @@ function skurRecommendForVm(vm) {
     }
   }
   if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName, workloadConstrained, workloadFamilies, workloadName, workloadTag, workloadFamily, workloadSeries, workloadDesc };
-  const ranked = skurRankCandidates(vm, eligible, mode, skurPlan);
+  // OS-aware pricing context: per-group plan carries term + AHUB; per-VM enrichment
+  // adds the OS family so cost helpers pick the right Linux/Windows base price.
+  const groupPlan = group ? _skurGroupPlan(group) : Object.assign({}, skurPlan);
+  const vmPlan = Object.assign({}, groupPlan, { os: getOSFamily(vm.os) });
+  const ranked = skurRankCandidates(vm, eligible, mode, vmPlan);
   if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length, workloadConstrained, workloadFamilies, workloadName, workloadTag, workloadFamily, workloadSeries, workloadDesc };
   // Apply manual SKU override if set on the group.
   // If the stored override is outside the workload-constrained pool, idx === -1 and we silently ignore it.
@@ -8154,6 +8193,7 @@ function skurRecommendForVm(vm) {
     workloadFamily,
     workloadSeries,
     workloadDesc,
+    plan: vmPlan, // carries term + ahub + os so downstream cost helpers stay correct
     why: _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden),
     retirement: _skurRetirementFor(chosen.sku && chosen.sku.name) || null,
   };
@@ -8161,7 +8201,9 @@ function skurRecommendForVm(vm) {
 }
 function skurRecCostMonthly(rec) {
   if (!rec || rec.state !== 'ok' || !rec.sku) return null;
-  return skurMonthlyCost(rec.sku, skurPlan);
+  // Prefer the plan attached when the rec was produced (carries per-group term +
+  // AHUB + per-VM OS). Fall back to the global plan for older callers.
+  return skurMonthlyCost(rec.sku, rec.plan || skurPlan);
 }
 
 // CSV export — per-group / all / OOS / everything
@@ -8433,7 +8475,7 @@ function skurConfidenceFor(rec) {
 
 // === Phase 5 slice 2 (resumed): per-group eligibility filter ===
 const SKUR_GROUP_CONSTRAINT_DEFAULTS = Object.freeze({
-  families: ['B','D','E','F'],
+  families: ['B','D','E','F','L','M'],
   excludeBurstable: false,
   requirePremiumIo: false,
   processor: 'any',
@@ -9151,12 +9193,17 @@ function renderTopology() {
   const clusterCount = Object.values(dcMap).reduce((s, c) => s + Object.keys(c).length, 0);
   const hostCount = hasHostData ? hosts.length : '—';
   const vmsPerHost = hasHostData && hosts.length ? (vms.length / hosts.length).toFixed(1) : '—';
-  // Azure family mapping
-  const families = { 'B-series': 0, 'D-series': 0, 'E-series': 0, 'F-series': 0 };
+  // Azure family mapping (Indicative Azure Family Fit chart on the Topology page).
+  // Heuristic bucketing using RVTools cpu/ram/disk — not the SKU recommender.
+  // Order matters: check M (memory monsters) and L (storage-heavy) first so they
+  // don't get swallowed by the high-ratio E bucket or the general-purpose D bucket.
+  const families = { 'B-series': 0, 'D-series': 0, 'E-series': 0, 'F-series': 0, 'L-series': 0, 'M-series': 0 };
   vms.forEach(v => {
-    const cpu = v.cpus || 1; const ram = v.ram || 1;
+    const cpu = v.cpus || 1; const ram = v.ram || 1; const disk = v.disk || 0;
     const ratio = ram / cpu;
-    if (cpu <= 2 && ram <= 8) families['B-series']++;
+    if (ram >= 192) families['M-series']++;            // very high RAM — SAP/HANA-class
+    else if (disk >= 1000) families['L-series']++;     // storage-heavy (NVMe/Lsv profile)
+    else if (cpu <= 2 && ram <= 8) families['B-series']++;
     else if (ratio >= 8) families['E-series']++;
     else if (ratio <= 2) families['F-series']++;
     else families['D-series']++;
@@ -9191,10 +9238,10 @@ function renderTopology() {
       },
       scales:{x:{grid:{color:gridColor}, ticks:{color:textColor}, beginAtZero:true, title:{display:true,text:'VM count'}}, y:{grid:{color:gridColor}, ticks:{font:{size:11},color:textColor}}}}
   });
-  // Azure SKU chart
+  // Azure SKU chart (B, D, E, F, L, M)
   const skuLabels = Object.keys(families);
   const skuData = Object.values(families);
-  const skuColors = ['#50E6FF','#0078D4','#8661C5','#107C10'];
+  const skuColors = ['#50E6FF','#0078D4','#8661C5','#107C10','#FFB900','#D83B01'];
   if (charts['azureSKU']) charts['azureSKU'].destroy();
   charts['azureSKU'] = new Chart(document.getElementById('chartAzureSKU'), {
     type:'doughnut', data:{ labels:skuLabels, datasets:[{data:skuData, backgroundColor:skuColors}] },
