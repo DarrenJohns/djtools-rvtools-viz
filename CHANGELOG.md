@@ -3,6 +3,12 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — Patch
+
+### Fixed
+
+- **Data Refresh Summary modal** now shows real VM and disk SKU totals instead of `—`. The previous fallback referenced a `SKUR_VM_CATALOG` identifier that no longer exists, and the metadata file didn't carry totals. Two-pronged fix: the modal now sums `skuCount` across loaded per-region catalogs when metadata lacks totals, and the monthly data pipeline writes `totalVmSkus` / `totalDiskSkus` into `data/metadata.json`.
+
 ## [1.1.0] — GA release
 
 The first general-availability release of the v1.1 line. Graduates the SKU Recommender out of beta, adds full multi-currency support, OS-aware Windows pricing with functional Azure Hybrid Benefit, an L/M family expansion, and a series of workspace / UI / data-pipeline hardening fixes.

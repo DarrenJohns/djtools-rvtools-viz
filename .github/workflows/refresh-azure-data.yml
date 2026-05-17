@@ -198,6 +198,24 @@ jobs:
           Write-Host "[OK] Disk SKU data refresh complete"
         shell: pwsh
 
+      - name: Update metadata totals (VM + disk SKU counts)
+        run: |
+          $metaFile = "data/metadata.json"
+          if (-not (Test-Path $metaFile)) { Write-Host "[WARN] metadata.json missing - skipping totals"; exit 0 }
+          $meta = Get-Content $metaFile -Raw | ConvertFrom-Json
+          $totalVm = 0; $totalDisk = 0
+          foreach ($name in $meta.availableRegions) {
+            $vmFile   = "data/$name.json"
+            $diskFile = "data/$name-disks.json"
+            if (Test-Path $vmFile)   { $totalVm   += [int](Get-Content $vmFile   -Raw | ConvertFrom-Json).skuCount }
+            if (Test-Path $diskFile) { $totalDisk += [int](Get-Content $diskFile -Raw | ConvertFrom-Json).diskCount }
+          }
+          $meta | Add-Member -NotePropertyName totalVmSkus   -NotePropertyValue $totalVm   -Force
+          $meta | Add-Member -NotePropertyName totalDiskSkus -NotePropertyValue $totalDisk -Force
+          $meta | ConvertTo-Json | Set-Content $metaFile -Encoding UTF8
+          Write-Host "[OK] Metadata totals updated: $totalVm VM SKUs, $totalDisk disk SKUs"
+        shell: pwsh
+
       - name: Deploy to Azure Static Web Apps
         if: github.ref == 'refs/heads/main'
         run: |
