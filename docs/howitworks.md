@@ -1,6 +1,6 @@
 # 🔬 How It Works — RVTools Visualiser Under the Hood
 
-> **A technical deep-dive into how every feature is built — one HTML file, two CDN libraries, pure vanilla JavaScript.**
+> **A technical deep-dive into how every feature is built — one HTML file, three CDN libraries, pure vanilla JavaScript.**
 
 ---
 
@@ -12,11 +12,12 @@ The entire app lives in a single `index.html` file with three embedded sections:
 |---------|---------|
 | `<style>` | CSS using custom properties for light/dark theming, responsive grid, connected-dots SVG background |
 | `<body>` | Semantic HTML — hero, demo bar, drop zone, filters, sections, tables |
-| `<script>` | Vanilla JavaScript — multi-tab parsing, charting, filtering, pagination, export |
+| `<script>` | Vanilla JavaScript — multi-tab parsing, charting, filtering, pagination, export, scenario bundling |
 
-**CDN dependencies:**
+**CDN dependencies (all SRI-pinned):**
 - **[Chart.js](https://www.chartjs.org/)** — every chart, including the Risk Quadrant scatter
-- **[SheetJS](https://sheetjs.com/)** — `.xlsx` parsing
+- **[SheetJS](https://sheetjs.com/)** — `.xlsx` parsing (loaded both in main thread and in the parse worker)
+- **[JSZip](https://stuk.github.io/jszip/)** — `.rvz` scenario bundling (real ZIP read/write in the browser)
 
 **Why single-file?** It deploys to any static host (Azure SWA, S3, GitHub Pages) with zero build step, and you can open `index.html` locally and it just works.
 
@@ -174,6 +175,28 @@ These two scores place each VM on the Risk Quadrant scatter.
 
 ---
 
+## 🎯 SKU Recommender
+
+The SKU recommender is a self-contained module sitting alongside the readiness layer. It consumes the same `allVMs` array but renders into its own collapsible section.
+
+**State.** Three top-level pieces — `skurPlan` (region/currency/term/headroom), `skurGroups` (sizing groups with mode + members + pinned flag), and `skurOutOfScope` (key → reason+note map). Tag rules and selection sit in their own collections. Every meaningful state change dispatches a `skurPlanChanged` event with `{detail:{field}}` — the data pill, group rail, recommendation grid, and live-data lazy-loader all subscribe and re-render.
+
+**Live data loader.** `skurInitLiveData()` runs on `DOMContentLoaded` (and lazily on region change). It fetches `data/metadata.json` to discover available regions, then `data/<region>.json` (capability) + `data/<region>-pricing.json` (retail prices, keyed by *size* — `A1_v2`, not `Standard_A1_v2`). `_skurNormaliseLiveSkus()` filters to B/D/E/F/L/M families (DC/EC confidential-compute collapse to D/E, FX collapses to F; GPU/HPC excluded), drops region-restricted SKUs, infers processor family from the name suffix (`a` → AMD, `p` → ARM, else Intel), and joins capability + per-OS price into the `{name, family, vcpu, ramGb, hourlyUsd, linuxUsd, windowsUsd, …}` shape the ranker expects. Per-VM OS (parsed from RVTools) drives which base rate is used; a group's AHUB toggle waives the Windows surcharge for Windows VMs in that group. On `file://` the loader silently no-ops (browsers block `fetch()` from local files); the recommender falls back to the seed catalog (Linux pricing only).
+
+**Ranking.** `skurRankCandidates(vm, eligible, mode, plan)` maps every eligible SKU through `skurFitFor(vm, sku)` (returns `null` if the SKU can't fit the VM) and `skurScore<Mode>(fit, sku, plan)`:
+
+- **Balanced** — distance from headroom target on both CPU and RAM, with a small cost tiebreaker.
+- **Cost** — cheapest hourly rate that satisfies the minimum headroom floor.
+- **Rightsized** — waste-normalised (waste / vm-size) on both axes with cost tiebreaker.
+
+The top score wins; ranks 2–3 become alternates. Confidence is computed from min headroom + burstable family flag.
+
+**Duplicate handling.** `parseRVToolsData()` deduplicates after mapping using a stable key — UUID first, then `name|cluster|dc` composite. First occurrence wins; the dropped count is exposed on `window.rvtoolsDupInfo` and surfaced in the file-load banner and the Excel Summary sheet.
+
+**Exports.** CSV uses `_downloadCSV(prefix, headers, rows)` to emit a 21-column row per VM. Excel builds an `XLSX.utils.book_new()` workbook with Summary / All-recommendations / per-group / OOS / Plan sheets — sheet names sanitised to strip `: \ / ? * [ ]` and capped at 28 chars (Excel's 31-char limit minus a dedupe-suffix budget). All numeric cells stay numeric so Excel can chart them.
+
+---
+
 ## 📊 Charts — Chart.js Integration
 
 `renderCharts()` (and each per-section render function) creates Chart.js instances. Before re-creating a chart we destroy any existing instance on that canvas to avoid memory leaks during filter changes:
@@ -211,6 +234,95 @@ function applyFilters() {
   renderCharts();    // 6 analytics charts
   // Risk Quadrant, Wave table, Inventory table read from allVMs and are unaffected
 }
+```
+
+---
+
+## 💾 Save / Resume / Share Pipeline *(v1.1.0)*
+
+Phase 8 added persistence and round-trip without giving up the single-file privacy-first model. There's no server, no upload — everything lives in the browser's own storage layers.
+
+### Storage layers
+
+| Layer | Purpose | Lifetime |
+|-------|---------|----------|
+| `window.__rvtoolsCurrent` | In-memory handle to current source bytes + fingerprint | Tab |
+| **IndexedDB** (`rvtools-viz` / `sourceBytes`) | SHA-256-keyed source xlsx bytes for cross-session resume | Per-origin, persistent |
+| **localStorage** (`rvtools.autosave.v1`) | Workspace snapshot stamped with dataset fingerprint | Per-origin, persistent |
+| **BroadcastChannel** + **storage event** | Cross-tab "another tab is editing" signal | Tab lifetime |
+
+### File detection
+
+`detectFileKind(buffer)` reads magic bytes (PK zip, OLE compound, JSON `{`/`[` after BOM) — extension is a hint only. For zip buffers, `detectZipKind()` peeks for `manifest.json` to discriminate `.rvz` scenarios from plain `.xlsx`.
+
+### Web Worker xlsx parsing
+
+`_parseSheetsViaWorker()` builds a worker via Blob URL, `importScripts` SheetJS from the CDN, and transfers the `ArrayBuffer` (zero-copy detach). The worker emits progress (`loading-lib`, `parsing`, `extracting <tab>`) via toasts. A sync fallback (`_parseSheetsSync`) covers `file://` CSP / Worker-blocked scenarios. Because postMessage detaches the buffer, callers `slice(0)` a clone *before* dispatch when the bytes are also needed for IDB persistence.
+
+### Stable VM identity
+
+`computeVmIdentity(vm)` stamps `vm.identity = {key, name, vcenter, datacenter, cluster, moRef, instanceUuid, biosUuid}` with key precedence:
+
+```
+iuid:<instanceUuid>   ← strongest, globally unique
+buid:<biosUuid>
+mo:<vcenter>|<moRef>
+nm:<name>|<cluster>|<dc>   ← last resort, name-based
+```
+
+Group memberships and OOS marks reference these keys, so renames and folder moves don't break workspace state across re-exports.
+
+### .rvz scenario format
+
+Real ZIP via JSZip:
+
+```
+manifest.json     {schema, appVersion, label, exportedAt, sourceFilename,
+                   vmCount, byteSha256, workspaceSchema}
+workspace.json    {schema, appVersion, exportedAt,
+                   groups, outOfScope, tagRules, planSettings}
+rvtools.xlsx      verbatim source bytes (NEVER reserialised)
+```
+
+`buildScenarioRvz({xlsxBuffer, sourceFilename, label})` → `{blob, manifest}`.
+`parseScenarioRvz(buffer)` → `{manifest, workspace, xlsxBuffer}` — validates manifest, runs `migrateWorkspace()`, warns on `byteSha256` mismatch.
+
+### Workspace JSON
+
+`exportWorkspaceJson(kind)` produces either a full snapshot or a rules-only template (no VM-derived data). Import goes through `importWorkspaceJson()` → `migrateWorkspace()` → `_reconcileWorkspaceMembers()`:
+
+- Members matching current `allVMs` keys are restored.
+- Unmatched IDs preserved on `workspace.unresolvedVmRefs` (and per-group `_unresolved`) so a re-export round-trips back to the original dataset.
+
+### Schema migration
+
+`WORKSPACE_SCHEMA_VERSION` + `WORKSPACE_MIGRATIONS = {1:..., 2:...}` form a chain walker. Anything older walks forward; anything newer than the current app version is rejected with a clear "created by a newer app version" message.
+
+### Autosave + cross-tab
+
+```
+[every 8s + beforeunload]
+   ↓
+_skurAutosaveTick()
+   ↓ (if not paused, JSON changed, our savedAt newer than existing)
+localStorage['rvtools.autosave.v1'] = { savedAt, dataset:{fingerprint,...}, workspace }
+   ↓
+broadcast { type:'autosave', savedAt, fingerprint }
+   ↓
+[other tabs]
+   ↓ BroadcastChannel onmessage / storage event
+showCrossTabBanner('⏸ Autosave paused — another tab is editing this workspace.')
+_skurOtherTabPresent = true
+```
+
+On next page load, `_skurMaybeResumeAutosave()` compares the saved `dataset.fingerprint` to `window.__rvtoolsCurrent.fingerprint`:
+
+- **Match** → silent restore.
+- **Mismatch** → confirm modal: apply matched + keep unmatched, or discard.
+
+### CSV/Excel injection guard
+
+`_safeCell(value)` prefixes `'` to any string starting with `=`, `+`, `-`, `@`, or tab. Applied to all CSV cells (via the `_downloadCSV` writer) and all Excel rows (via `_safeRow` mapping over every `XLSX.utils.aoa_to_sheet` callsite in `skurExportExcel`). This means a malicious `Annotation` field in RVTools data can't trigger formula execution / DDE when the export is opened in Excel by a downstream consumer.
 ```
 
 ---

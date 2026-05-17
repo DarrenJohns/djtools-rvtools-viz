@@ -1,21 +1,21 @@
 # 📋 RVTools Visualiser — Specification
 
-> **Version:** v1.0.0-beta
-> **Format:** Single HTML file with CDN dependencies (Chart.js + SheetJS)
+> **Version:** v1.1.0
+> **Format:** Single HTML file with CDN dependencies (Chart.js + SheetJS + JSZip)
 > **Audience:** VMware administrators, migration planners, infrastructure architects
 
 ---
 
 ## 1. Overview
 
-RVTools Visualiser is a browser-based tool that parses RVTools VMware Excel exports and renders an interactive dashboard with executive summaries, infrastructure deep-dives, charts, and migration-readiness analysis. Everything runs client-side — no data ever leaves the browser.
+RVTools Visualiser is a browser-based tool that parses RVTools VMware Excel exports and renders an interactive dashboard with executive summaries, infrastructure deep-dives, charts, migration-readiness analysis, and a per-VM Azure SKU recommender. Everything runs client-side — no data ever leaves the browser.
 
 ### Design Constraints
 
 - **Single file** — all HTML, CSS, and JavaScript live in `index.html`
-- **CDN dependencies only** — Chart.js for charts, SheetJS for `.xlsx` parsing
+- **CDN dependencies only** — Chart.js (charts), SheetJS (`.xlsx` parsing), JSZip (`.rvz` scenario bundling) — all pinned with SRI
 - **Privacy-first** — no server-side processing, no telemetry, no uploads
-- **Offline capable** — exported HTML snapshots run without internet
+- **Offline capable** — exported HTML snapshots run without internet; scenario / workspace files round-trip locally
 - **No build step** — file deploys as-is
 - **Hosting** — Azure Static Web Apps (Free SKU)
 - **CI/CD** — GitHub Actions on `ubuntu-latest` → SWA CLI deploy
@@ -143,7 +143,31 @@ Each section is collapsed by default. A section auto-hides if the tab that power
 | 🎯 **Risk Quadrant** | Scatter plot of every VM, X = Migration Complexity, Y = Business Impact, coloured by readiness group. Includes an Azure Migrate signpost. |
 | 🌊 **Readiness Groups** | Searchable, sortable, paginated table of VMs grouped by readiness with per-VM notes |
 
-### 4.4 Bottom
+### 4.4 Azure SKU Recommender (collapsible, beta)
+
+A second-tier "what would this look like in Azure?" view, layered on top of the readiness analysis.
+
+| Section | Description |
+|---------|-------------|
+| **Plan settings bar** | Region, currency, term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model, headroom targets. Changes fan out to every group + VM via a `skurPlanChanged` event. |
+| **Tag rules** | JSON-serialisable rules over annotations / folders / clusters. Auto-cluster VMs by any tag value into sizing groups. |
+| **Sizing groups** | Each group has a name, optimisation mode (Balanced / Cost / Rightsized), members (VM keys), and an optional pin flag. Two view modes (rail+panel and 4-column board) persisted in `localStorage['skur.groupsView']`. |
+| **Inventory grid + bulk bar** | Multi-select VMs to add to group, create new group, remove from all groups, or mark out-of-scope. Bulk bar shows breakdown (grouped / ungrouped / OOS). >5-VM OOS prompts confirmation. |
+| **CSV / Excel exports** | CSV: 5 scopes (Active / Pinned / All / OOS / Everything), 21-column schema. Excel: multi-sheet workbook (Summary / All recommendations / per-group / OOS / Plan), 3 scopes (All / Pinned / Active), Excel-safe sheet-name sanitisation. |
+
+**SKU catalog source.** Live JSON loader (`skurInitLiveData` / `_skurLoadRegionData`) consumes `data/<region>.json`, `<region>-pricing.json`, `<region>-disks.json`, plus shared `regions.json` + `metadata.json`. The normaliser scopes to families B/D/E/F/L/M (DC/EC confidential-compute collapse to D/E, FX collapses to F; GPU/HPC excluded) and stores both Linux and Windows hourly rates so the recommender can price per-VM by OS. Falls back to an inline seed catalog (Linux pricing only) when offline / on `file://`. Catalog refresh is automated via the `refresh-azure-data.yml` workflow (monthly cron) — see [`docs/data-pipeline.md`](data-pipeline.md).
+
+**Stable VM identity.** Every parsed VM gets `vm.identity = {key, name, vcenter, datacenter, cluster, moRef, instanceUuid, biosUuid}`. The `key` is a normalized composite preferring strong IDs over name so manual tags / OOS / group membership survive VM rename: `iuid:<instanceUuid>` → `buid:<biosUuid>` → `mo:<vcenter>|<moRef>` → `nm:<name>|<cluster>|<dc>` (last resort). All in-app keying (`skurVmKey`, OOS map, group members, dedupe in `parseRVToolsData`) flows through this single identity.
+
+**Recommendation algorithm (per VM).**
+1. If the VM is out-of-scope → return `{state:'oos'}`.
+2. If `cpus`/`ram` missing → return `{state:'no-input', mode:'balanced'}`.
+3. Resolve eligibility — if VM belongs to exactly one group, use that group's mode + filtered SKU list; else balanced + full regional catalog.
+4. Score every eligible SKU by mode (Balanced = distance from headroom target on both axes + cost tiebreaker; Cost = cheapest with min headroom; Rightsized = waste-normalised + cost tiebreaker).
+5. Pick top score → recommended SKU; next two → alternates. Fit object carries CPU/RAM headroom + waste counts.
+6. Confidence: **High** = full inputs + min headroom ≥ 20% + non-burstable. **Medium** = headroom 10–20% or burstable. **Low** = no inputs, no eligible, no match, or unhealthy state.
+
+### 4.5 Bottom
 
 | Section | Description |
 |---------|-------------|
@@ -203,6 +227,109 @@ A `scatter` chart with one dataset per readiness group (colour-coded). Hover rev
 
 ---
 
+## 7. Save / Resume / Share *(v1.1.0)*
+
+### 7.1 Vocabulary
+
+| Term | Meaning | File extension |
+|------|---------|----------------|
+| **RVTools file** | Raw multi-tab workbook exported from RVTools — one-way *in* | `.xlsx` |
+| **Scenario** | Bundle of source data + workspace customisations — round-trips | `.rvz` |
+| **Workspace** | Just the user customisations (groups, OOS, rules, plan settings) — round-trips | `.json` |
+| **Report** | Output for sharing analysis — one-way *out* | `.csv` / `.xlsx` / `.html` |
+
+### 7.2 Scenario file (`.rvz`)
+
+A real ZIP container produced via JSZip. Layout:
+
+```
+manifest.json     {schema, appVersion, label, exportedAt, sourceFilename,
+                   vmCount, byteSha256, workspaceSchema}
+workspace.json    {schema, appVersion, exportedAt,
+                   groups, outOfScope, tagRules, planSettings}
+rvtools.xlsx      verbatim source bytes (NEVER reserialised)
+```
+
+- The xlsx bytes are stored **verbatim** so all original formatting, formulas, and tabs are preserved on reopen.
+- `byteSha256` mismatch on reopen logs a warning but doesn't reject (the bytes are authoritative).
+- `manifest.schema > RVZ_SCHEMA_VERSION` → rejected with a clear message ("file created by a newer app version").
+- `workspace.schema` walks through `migrateWorkspace()` so older scenarios upgrade transparently.
+
+### 7.3 Workspace JSON
+
+Two flavours, both written via the same `_collectWorkspaceSnapshot()`:
+
+| Flavour | Contents | Use case |
+|---------|----------|----------|
+| **Full workspace** | groups + outOfScope + tagRules + planSettings | Restore the same dataset; share with others who have the same RVTools file |
+| **Rules template** | tagRules + planSettings only | Share standard-issue tagging conventions or plan defaults across customers — contains zero VM-derived data |
+
+### 7.4 Reconciliation
+
+Workspace JSON applied to a different dataset is reconciled non-destructively:
+
+- VM IDs that match the current `allVMs` keys are restored.
+- Unmatched VM IDs are preserved on `workspace.unresolvedVmRefs` (and per-group `_unresolved`) so a re-export round-trips back to the original.
+- A confirm modal surfaces matched / unmatched / group / rule counts before applying.
+
+### 7.5 Stable VM identity
+
+Every VM gets `vm.identity = {key, name, vcenter, datacenter, cluster, moRef, instanceUuid, biosUuid}` with the key chosen by precedence:
+
+1. `iuid:<instanceUuid>` — preferred (globally unique vCenter ID)
+2. `buid:<biosUuid>` — fallback (unique within an org)
+3. `mo:<vcenter>|<moRef>` — fallback (unique per vCenter)
+4. `nm:<name>|<cluster>|<dc>` — last resort
+
+This makes group memberships and OOS marks survive VM renames, cluster moves, and re-exports as long as one of the strong IDs is present.
+
+### 7.6 Source-bytes persistence
+
+After every successful parse, `_persistSourceBytes()`:
+
+1. Computes SHA-256 of the raw bytes via SubtleCrypto → fingerprint.
+2. Stores `{xlsxBuffer, fingerprint, sourceFilename, vmCount}` on `window.__rvtoolsCurrent`.
+3. Writes the bytes to IndexedDB (`rvtools-viz` database, `sourceBytes` store, keyed by fingerprint) for cross-session resume.
+
+This makes the Save scenario button work without re-uploading the original file.
+
+### 7.7 Autosave
+
+| Aspect | Behaviour |
+|--------|-----------|
+| Trigger | `setInterval` every 8s while data is loaded; flushes on `beforeunload` |
+| Storage | `localStorage['rvtools.autosave.v1']` — `{savedAt, dataset:{fingerprint, sourceFilename, vmCount}, workspace}` |
+| Resume | On `_persistSourceBytes` → if same `fingerprint` then silent restore; else reconciliation modal; if user cancels, autosave is discarded |
+| Conflict | Refuses to overwrite an existing autosave with a `savedAt` newer than ours |
+
+### 7.8 Cross-tab coordination
+
+Two tabs open at once must not clobber each other:
+
+| Channel | Works on | Mechanism |
+|---------|----------|-----------|
+| `BroadcastChannel('rvtools-viz')` | http(s) | Tabs `hello` on startup; on `autosave` event from a peer the receiving tab pauses |
+| `storage` event | file:// + http(s) | Listens for `localStorage` writes from other tabs; pauses if peer's `savedAt > ours` |
+
+When a tab pauses, a top-of-page amber banner (`role=alert`, `aria-live=assertive`) is shown with a Dismiss button.
+
+### 7.9 File detection
+
+The drop zone accepts `.xlsx`, `.xls`, `.rvz`, `.json`. Routing is **content-based**, not extension-based:
+
+| Magic bytes | Routed to |
+|-------------|-----------|
+| `PK\x03\x04` (zip) | `detectZipKind()` peeks for `manifest.json`: yes → scenario flow; no → xlsx flow |
+| `D0 CF 11 E0` (OLE compound) | xlsx (legacy `.xls`) |
+| `{` or `[` after BOM/whitespace | workspace JSON flow |
+| anything else | rejected with a clear message |
+
+### 7.10 CSV / Excel export hardening
+
+All exported cells are wrapped via `_safeCell()` which prefixes a single quote to any value starting with `=`, `+`, `-`, `@`, or tab. This neutralises Excel formula injection and DDE attacks if the export is opened in Excel by a downstream consumer.
+
+---
+
 ## 7. Tables & Pagination
 
 All ten data tables share a consistent look and a single pagination helper:
@@ -234,7 +361,26 @@ Two CSV exports are available:
 
 Filename pattern: `rvtools_export_YYYYMMDD_HHMMSS.csv`
 
-### 8.2 Offline HTML snapshot ("Save Locally")
+### 8.2 SKU Recommender CSV
+
+Per-VM recommendation rows for one of five scopes — **Active group** / **Pinned** / **All groups** / **Out-of-scope** / **Everything**. Filename pattern: `rvtools_skur_<scope>_YYYY-MM-DD.csv`.
+
+Columns (21): `Group, Mode, VM, OS, vCPU, RAM_GB, Cluster, Datacentre, Powered, OOS_Reason, Recommended_SKU, SKU_Family, SKU_vCPU, SKU_RAM_GB, Monthly_Cost, Currency, CPU_Headroom_Pct, RAM_Headroom_Pct, Confidence, State, Alt_SKUs`.
+
+### 8.3 SKU Recommender Excel workbook
+
+Multi-sheet `.xlsx` for one of three scopes (All / Pinned / Active). Filename pattern: `rvtools_skur_YYYY-MM-DD[_<scope>].xlsx`.
+
+Sheets:
+- **Summary** — group, mode, members, eligible SKUs, total monthly $/region currency, pinned flag, grand total + OOS count + duplicates-collapsed flag (when present).
+- **All recommendations** — every grouped VM as a row, prefixed with Group + Mode columns.
+- **One sheet per group** — Excel-safe sheet name (strip `: \ / ? * [ ]`, cap at 28 chars, dedupe with suffix).
+- **Out of scope** — present only when OOS VMs exist; columns: VM / OS / vCPU / RAM_GB / Cluster / Datacentre / Reason / Note.
+- **Plan** — every `skurPlan` key/value, export timestamp, catalog source (seed / live / live-pending / unavailable).
+
+Numeric cells (vCPU, RAM, costs, headroom %) are written as numbers, not strings, so Excel can chart and aggregate them directly.
+
+### 8.4 Offline HTML snapshot ("Save Locally")
 
 A single self-contained `.html` file that contains:
 - All charts as base64 PNGs (`canvas.toDataURL()`)

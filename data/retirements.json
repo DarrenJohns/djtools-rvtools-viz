@@ -1,0 +1,60 @@
+{
+  "lastUpdated": "2025-07-14",
+  "source": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-retirement",
+  "retirements": [
+    {
+      "family": "standardav2family",
+      "name": "Av2-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standardamv2family",
+      "name": "Amv2-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standardbsfamily",
+      "name": "B v1-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standarddsfamily",
+      "name": "Ds-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standarddfamily",
+      "name": "D-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standarddsv2family",
+      "name": "Dsv2-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standarddsv2promofamily",
+      "name": "Dsv2 Promo-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standarddv2family",
+      "name": "Dv2-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    },
+    {
+      "family": "standarddv2promofamily",
+      "name": "Dv2 Promo-series",
+      "retireDate": "November 2028",
+      "learnMoreUrl": "https://learn.microsoft.com/en-us/azure/virtual-machines/sizes-previous-gen"
+    }
+  ]
+}

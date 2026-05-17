@@ -15,3 +15,12 @@ desktop.ini
 # Temporary
 tmp/
 temp/
+
+# Pipeline transient
+data/*-raw.json
+deploy-staging/
+
+
+node_modules/
+package-lock.json
+_smoke*.js
