@@ -3,19 +3,36 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] — GA release
+
+The first general-availability release of the v1.1 line. Graduates the SKU Recommender out of beta, adds full multi-currency support, OS-aware Windows pricing with functional Azure Hybrid Benefit, an L/M family expansion, and a series of workspace / UI / data-pipeline hardening fixes.
 
 ### Added
 
+- **Full 17-currency pricing.** The Azure VMs & Pricing currency selector now exposes every currency supported by the Azure Retail Prices API: USD (default), AUD, BRL, CAD, CHF, CNY, DKK, EUR, GBP, INR, JPY, KRW, NOK, NZD, RUB, SEK, TWD. Prices are fetched directly from the API in the selected currency (no client-side FX conversion). The pricing client caches the SKU metadata once per region and lazily fetches the per-currency pricing file on demand.
 - **L and M family support** in the SKU Recommender. Storage-optimised (L) and memory-optimised (M) SKUs are now ranked alongside B/D/E/F; the Group Constraints modal exposes `L` and `M` checkboxes; new groups default to all six families.
 - **OS-aware pricing.** Per-VM monthly cost now uses the Linux *or* Windows hourly rate depending on the VM's guest OS (parsed from RVTools "OS according to the VMware Tools" / "OS according to the configuration file" / "OS" / "Guest OS"). The Azure pricing pipeline already published both rates — the recommender now reads them.
-- **Functional Azure Hybrid Benefit (AHUB).** Toggling AHUB on a group waives the Windows licence surcharge for Windows VMs in that group (prices fall back to the Linux rate). The "AHUB applied" pill is unchanged.
+- **Functional Azure Hybrid Benefit (AHUB).** Toggling AHUB on a group waives the Windows licence surcharge for Windows VMs in that group (prices fall back to the Linux rate).
 - **Indicative Azure Family Fit chart** on the Topology page now buckets into all six families (B/D/E/F/L/M).
+- **Loaded-state UI** for the Azure VMs & Pricing tab — a clear "data loaded" header card with region / currency / SKU-count summary instead of the prior ambiguous empty state.
+- **Monthly pipeline fan-out across 17 currencies.** `refresh-azure-data.yml` now loops the supported currency set per region, producing `<region>-pricing.json` (USD, backward-compatible) plus `<region>-pricing-<cur>.json` for the other 16. Stale-region cleanup also sweeps `pricing-*.json`.
 
 ### Changed
 
-- Catalog meta strings (data-pill tooltip / details popup) describe B/D/E/F/L/M scope and the new OS-aware pricing behaviour.
+- **GA versioning.** Renumbered from the in-flight `1.3.x-beta` pre-release line to `1.1.0` GA. The `1.1.0-beta` SKU Recommender preview is now the GA `1.1.0` release.
+- **Pricing model.** Removed the illustrative hard-coded `SKUR_FX_RATES_USD` table. All currency display values come straight from the Azure Retail Prices API. Term discounts (RI / Spot) remain industry-average approximations and are clearly labelled.
+- Catalog meta strings (data-pill tooltip / details popup) describe B/D/E/F/L/M scope, OS-aware pricing, and the live multi-currency source.
 - The cost path internally threads a per-VM `plan` object (term + AHUB + OS) so every cost-rendering surface stays consistent.
+- Live-data and seed-data disclaimer copy reflects the multi-currency + OS-aware model.
+
+### Fixed
+
+- **Workspace state reset on new RVTools import.** Loading a new `.xlsx` over an existing session previously left `skurGroups`, `skurOutOfScope`, `skurTagRules`, and `skurManualTags` populated with stale entries from the previous dataset. Now correctly cleared at the top of `_applyParsedSheets` and `loadSampleData`; `.rvz` / workspace JSON / autosave-resume paths are unaffected (they apply their own explicit snapshots).
+- **Blank "Start here" tab on fresh page load** when no dataset was present — the welcome content now renders reliably on first paint.
+
+## [Unreleased]
+
+*(none — see 1.1.0 above)*
 
 ## [1.1.0-beta] — SKU Recommender beta
 

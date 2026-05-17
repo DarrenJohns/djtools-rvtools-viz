@@ -122,6 +122,18 @@ The deployment pipeline:
 
 ---
 
+## What's New in v1.1.0
+
+The v1.1.0 GA release graduates the Azure SKU Recommender out of beta and adds three substantial capability lifts:
+
+- **Full 17-currency pricing.** The currency dropdown now exposes every currency supported by the Azure Retail Prices API. Switching currency refetches the pricing file natively — no client-side FX conversion, no illustrative rate table.
+- **OS-aware Windows pricing + functional AHUB.** Per-VM monthly cost now reflects the guest OS (Windows vs Linux), and toggling Azure Hybrid Benefit on a group genuinely waives the Windows licence surcharge.
+- **L and M family expansion.** Storage- and memory-optimised SKUs are ranked alongside B/D/E/F.
+
+Plus a series of UX and data-pipeline hardening fixes (workspace state resets cleanly on new imports, loaded-state UI on the Azure tab, monthly pipeline fans out across all 17 currencies).
+
+---
+
 ## What's New in v1.2.0-beta
 
 The latest release lands a full **save / resume / share** layer on top of the existing dashboard, without giving up the privacy-first model. Talk-track demo flow:

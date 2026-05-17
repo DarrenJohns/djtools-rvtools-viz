@@ -10,7 +10,7 @@
 
 [![Deploy](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml/badge.svg)](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml)
 ![Azure](https://img.shields.io/badge/Azure-SWA-0078D4)
-![Version](https://img.shields.io/badge/version-1.2.0--beta-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Built with](https://img.shields.io/badge/built_with-Copilot_CLI-8957e5)
 ![Hosted on](https://img.shields.io/badge/hosted_on-Azure_SWA-0078D4)
@@ -46,7 +46,7 @@
 | **Helpful errors** | If your file isn't an RVTools export, you'll get a friendly message that tells you what's wrong, not a stack trace |
 | **vInfo-only fallback** | Only have a single tab? You still get the core dashboards — extra tabs simply unlock more depth |
 
-### 💾 Save & resume your work *(new in v1.2.0-beta)*
+### 💾 Save & resume your work *(new in v1.1.0)*
 
 | Feature | What it does |
 |---------|-------------|
@@ -102,16 +102,16 @@
 | **Per-VM notes** | Plain-English migration recommendations based on OS age, power state, and resource profile |
 | **Azure Migrate signpost** | The app makes it clear this is an indicative view — links out to Azure Migrate for proper assessment |
 
-### 🎯 Azure SKU Recommender *(beta)*
+### 🎯 Azure SKU Recommender
 
-A second-tier "what would this look like in Azure?" layer. Driven by **live Azure pricing + capability data** for AU East and NZ North out of the box, with a monthly auto-refresh pipeline.
+A second-tier "what would this look like in Azure?" layer. Driven by **live Azure pricing + capability data** for AU East and NZ North out of the box, with a monthly auto-refresh pipeline covering **all 17 currencies** supported by the Azure Retail Prices API (USD default; AUD, BRL, CAD, CHF, CNY, DKK, EUR, GBP, INR, JPY, KRW, NOK, NZD, RUB, SEK, TWD).
 
 | Feature | What it does |
 |---------|-------------|
 | **Sizing groups** | Group VMs by tag, name pattern, cluster, or manual selection. Each group picks an optimisation mode: **Balanced** (best-fit), **Cost** (cheapest that fits), or **Rightsized** (minimise waste). Pin groups to keep them top-of-rail. |
 | **Live SKU catalog** | 945+ B/D/E/F-family SKUs per region, refreshed monthly from the Azure CLI + Retail Prices API. Restricted SKUs filtered out, processor family inferred from the name (Intel/AMD/ARM). |
 | **Per-VM recommendation** | Each in-scope VM gets a recommended SKU, two alternates, monthly cost, CPU/RAM headroom %, and a confidence rating (High / Medium / Low). |
-| **Plan controls** | Region, currency, term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model, and headroom targets — change anywhere and every group + VM re-evaluates. |
+| **Plan controls** | Region, currency (17 options, all sourced natively from the Azure Retail Prices API), term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model with **Azure Hybrid Benefit (AHUB)** toggle for Windows VMs, and headroom targets — change anywhere and every group + VM re-evaluates. |
 | **Tag rules + auto-grouping** | Build rules over RVTools annotations / folders / clusters; auto-cluster VMs into sizing groups by any tag value. |
 | **Out-of-scope handling** | Mark VMs as Decommission / Retain on-prem / Already migrated / Other (with note). Excluded from cost roll-ups + recommendations; restorable in bulk. |
 | **Bulk actions** | Multi-select VMs in the inventory and add to group, create new group, remove from all groups, or mark out-of-scope (with destructive-action confirmation > 5 VMs). Selection breakdown shows grouped / ungrouped / OOS counts. |
@@ -120,7 +120,7 @@ A second-tier "what would this look like in Azure?" layer. Driven by **live Azur
 | **Excel workbook export** | Multi-sheet `.xlsx` with **Summary** (group totals, grand total, dup flag), **All recommendations** combined, **one sheet per group** (Excel-safe sheet names), **Out of scope** (when present), and **Plan** (every plan setting + catalog source + timestamp). Three scopes: All / Pinned / Active. |
 | **Group rail or board view** | Choose vertical rail + active-group panel, or 4-column responsive board overview of compact group cards. View choice persisted in `localStorage`. |
 
-> The recommender is in **beta**. Recommendations are indicative — Azure Migrate remains the authoritative tool for production cutover sizing.
+> Recommendations are indicative — Azure Migrate remains the authoritative tool for production cutover sizing.
 
 ### 🔍 Explore, filter, and export
 

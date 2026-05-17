@@ -13,7 +13,8 @@
 #   data/metadata.json
 #   data/retirements.json
 #   data/<region>.json            (VM SKUs, normalized)
-#   data/<region>-pricing.json    (PAYG pricing)
+#   data/<region>-pricing.json    (PAYG pricing in USD)
+#   data/<region>-pricing-<cur>.json  (PAYG pricing in AUD/BRL/CAD/CHF/CNY/DKK/EUR/GBP/INR/JPY/KRW/NOK/NZD/RUB/SEK/TWD)
 #   data/<region>-disks.json      (Disk SKUs, normalized)
 #   data/history/<region>-YYYY-MM.json  (previous-month archive)
 
@@ -78,7 +79,10 @@ jobs:
                 $raw = az vm list-skus --location $name --resource-type virtualMachines --all @subArgs -o json 2>$null
                 if (-not $raw -or $raw -eq "[]") {
                   Write-Host "  [WARN] No VM SKUs for $name - removing stale data if present"
-                  foreach ($f in @("$dataDir/$name.json","$dataDir/$name-disks.json","$dataDir/$name-pricing.json")) {
+                  $stale = @("$dataDir/$name.json","$dataDir/$name-disks.json","$dataDir/$name-pricing.json")
+                  # Also clear any non-USD pricing files for this region.
+                  $stale += (Get-ChildItem -Path $dataDir -Filter "$name-pricing-*.json" -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+                  foreach ($f in $stale) {
                     if (Test-Path $f) { Remove-Item $f; Write-Host "  [CLEAN] Removed $f" }
                   }
                   break
@@ -151,19 +155,24 @@ jobs:
           Write-Host "[OK] Retirement data refresh complete"
         shell: pwsh
 
-      - name: Fetch pricing data
+      - name: Fetch pricing data (all supported currencies)
         run: |
           $config = Get-Content "config.json" | ConvertFrom-Json
+          # Azure Retail Prices API supports 17 currencies. USD ships as <region>-pricing.json
+          # (backward compat); others ship as <region>-pricing-<lowerCur>.json.
+          $currencies = @('USD','AUD','BRL','CAD','CHF','CNY','DKK','EUR','GBP','INR','JPY','KRW','NOK','NZD','RUB','SEK','TWD')
           foreach ($region in $config.targetRegions) {
             $name = $region.name
             $dataFile = "data/$name.json"
-            $pricingFile = "data/$name-pricing.json"
-            if (Test-Path $dataFile) {
-              Write-Host "Fetching pricing for $name..."
-              python scripts/fetch-pricing.py $dataFile $pricingFile
+            if (-not (Test-Path $dataFile)) { continue }
+            foreach ($cur in $currencies) {
+              $suffix = if ($cur -eq 'USD') { '' } else { "-$($cur.ToLower())" }
+              $pricingFile = "data/$name-pricing$suffix.json"
+              Write-Host "Fetching pricing for $name ($cur)..."
+              python scripts/fetch-pricing.py $dataFile $pricingFile $cur
             }
           }
-          Write-Host "[OK] Pricing data refresh complete"
+          Write-Host "[OK] Pricing data refresh complete (17 currencies x $($config.targetRegions.Count) regions)"
         shell: pwsh
 
       - name: Fetch disk SKU data

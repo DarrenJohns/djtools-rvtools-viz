@@ -178,6 +178,46 @@ body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linea
 .file-info.error .help-line{display:block;margin-top:6px;font-weight:500;color:var(--text);opacity:.85;font-size:.82rem;}
 #resetBtn:hover{background:var(--card-bg);color:var(--text);border-color:var(--text-muted);}
 
+/* LOADED STATE — polished card + quicknav + compact re-import row.
+   When #dropZone has class .has-data the welcome banner, big tiles, privacy
+   line and old file-status-bar are hidden, and #loadedView is shown. */
+#dropZone.has-data .ic-welcome,
+#dropZone.has-data .ic-tiles,
+#dropZone.has-data .ic-privacy,
+#dropZone.has-data .file-status-bar{display:none!important;}
+#loadedView{display:none;}
+#dropZone.has-data #loadedView{display:block;}
+.loaded-card{background:linear-gradient(135deg,rgba(16,124,16,.10),rgba(0,120,212,.06));border:1px solid rgba(16,124,16,.30);border-radius:var(--radius-lg);padding:20px 22px;display:flex;align-items:center;gap:18px;box-shadow:var(--shadow-sm);}
+.loaded-icon{font-size:32px;line-height:1;flex-shrink:0;}
+.loaded-body{flex:1;min-width:0;}
+.loaded-title{font-size:1rem;font-weight:700;color:var(--text);margin:0 0 4px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;}
+.loaded-filename{color:var(--brand-primary);word-break:break-all;}
+.loaded-meta{font-size:.82rem;color:var(--text-muted);margin:0;display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+.loaded-meta span{display:inline-flex;align-items:center;gap:5px;}
+.loaded-chip-full{background:rgba(16,124,16,.15);color:#0a5d0a;border-radius:12px;padding:2px 9px;font-size:.74rem;font-weight:600;}
+.loaded-chip-vinfo{background:rgba(0,120,212,.10);color:#0078d4;border-radius:12px;padding:2px 9px;font-size:.74rem;font-weight:600;}
+.loaded-chip-warn{background:rgba(201,119,0,.15);color:#8a5a00;border-radius:12px;padding:2px 9px;font-size:.74rem;font-weight:600;}
+.loaded-tabs{font-size:.78rem;color:var(--text-muted);margin:6px 0 0;line-height:1.45;}
+.loaded-tabs strong{color:var(--text);font-weight:600;}
+body.dark .loaded-card,[data-theme="dark"] .loaded-card{background:linear-gradient(135deg,rgba(16,124,16,.18),rgba(0,120,212,.10));border-color:rgba(16,124,16,.45);}
+body.dark .loaded-chip-full,[data-theme="dark"] .loaded-chip-full{background:rgba(16,124,16,.25);color:#7fd47f;}
+body.dark .loaded-chip-vinfo,[data-theme="dark"] .loaded-chip-vinfo{background:rgba(0,120,212,.20);color:#79bdf5;}
+body.dark .loaded-chip-warn,[data-theme="dark"] .loaded-chip-warn{background:rgba(201,119,0,.25);color:#f2c068;}
+@media (max-width:600px){.loaded-card{flex-direction:column;align-items:stretch;text-align:left;}.loaded-card .btn-danger{align-self:flex-start;}}
+.loaded-quicknav{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+.qn-card{background:var(--card-bg,#fff);border:1px solid var(--border-default,#e2e8f0);border-radius:var(--radius-md);padding:16px 18px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:4px;transition:border-color .15s,box-shadow .15s,transform .15s;cursor:pointer;}
+.qn-card:hover,.qn-card:focus-visible{border-color:var(--brand-primary);box-shadow:0 4px 16px var(--brand-tint);transform:translateY(-2px);outline:none;}
+.qn-icon{font-size:22px;line-height:1;}
+.qn-title{font-size:.95rem;font-weight:700;color:var(--text);margin:0;}
+.qn-desc{font-size:.78rem;color:var(--text-muted);margin:0;line-height:1.4;}
+body.dark .qn-card,[data-theme="dark"] .qn-card{background:rgba(30,33,40,.6);}
+.loaded-another{margin-top:18px;background:var(--card-bg,#fff);border:1px solid var(--border-default,#e2e8f0);border-radius:var(--radius-md);padding:14px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.loaded-another-label{font-size:.85rem;color:var(--text-muted);font-weight:500;margin-right:auto;}
+.loaded-another-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.loaded-another .btn-ghost{font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:7px;background:transparent;color:var(--brand-primary);border:1px solid var(--brand-tint-strong,rgba(15,108,189,.25));cursor:pointer;transition:background .15s;}
+.loaded-another .btn-ghost:hover{background:var(--brand-tint);}
+body.dark .loaded-another,[data-theme="dark"] .loaded-another{background:rgba(30,33,40,.6);}
+
 /* SECTION */
 .section{padding:20px 24px;max-width:1400px;margin:0 auto;}
 .section-title{font-size:1.35rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px;color:var(--text);user-select:none;}
@@ -194,9 +234,9 @@ body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linea
 body.dark .tab-strip,[data-theme="dark"] .tab-strip{background:rgba(30,33,40,0.55);}
 .tab-strip::-webkit-scrollbar{height:6px;}
 .tab-strip .tab{flex:0 0 auto;background:transparent;border:none;border-bottom:3px solid transparent;color:var(--text-muted);padding:12px 14px;cursor:pointer;font-size:.88rem;font-weight:600;white-space:nowrap;transition:color .15s,border-color .15s;font-family:inherit;user-select:none;}
-.tab-strip .tab:hover{color:var(--text);}
 .tab-strip .tab.active{color:var(--primary);border-bottom-color:var(--primary);}
 .tab-strip .tab.hidden{display:none;}
+.tab-strip .tab .tab-preview-tag{display:inline-block;margin-left:4px;padding:1px 5px;font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--brand-primary);background:var(--brand-tint);border:1px solid var(--brand-tint-strong);border-radius:4px;vertical-align:1px;}
 .empty-data-pane{padding:32px 16px;}
 .empty-data-pane.active{display:block;}
 .empty-data-card{max-width:520px;margin:60px auto;padding:40px 32px;background:linear-gradient(180deg,#f0f7ff 0%,#fafcff 100%);border:2px dashed #a0c4e8;border-radius:var(--radius-lg);text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -212,7 +252,6 @@ body.dark .empty-data-card,[data-theme="dark"] .empty-data-card{background:linea
 .tab-pane .section-body{max-height:none!important;overflow:visible!important;background:var(--bg-layer1);border:1px solid var(--border-default);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:18px!important;}
 .tab-pane .section-header{cursor:default;}
 .tab-pane .section-toggle{display:none;}
-/* Stage 9.5 mockup parity: SKU Recommender presents each sub-section as its
    own top-level card (per spec), instead of wrapping everything in one big
    pane card. Lift the outer card chrome and let the inner .skur-section
    cards stand on their own. */
@@ -804,6 +843,21 @@ body.dark .skur-combo-close:hover,[data-theme="dark"] .skur-combo-close:hover{ba
 .skur-groups-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
 .skur-groups-head h4{margin:0;font-size:14px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:10px;}
 .skur-groups-head h4 .skur-count-pill{display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:var(--bg-layer2);color:var(--text-secondary);font-size:11px;font-weight:600;}
+.skur-export-control{margin-left:auto;position:relative;display:inline-flex;align-items:center;min-width:232px;}
+.skur-export-control .skur-export-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:.92;}
+.skur-export-control::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-tertiary);pointer-events:none;}
+#skurXlsxSel.skur-export-select{-webkit-appearance:none;appearance:none;width:100%;height:34px;padding:0 34px 0 36px;border:1px solid var(--border-default);border-radius:8px;background:var(--bg-layer1);color:var(--text-primary);font:inherit;font-size:13px;font-weight:600;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.04);cursor:pointer;transition:border-color .15s,box-shadow .15s,background .15s;}
+#skurXlsxSel.skur-export-select:hover{border-color:var(--brand-primary);background:var(--bg-layer2);}
+#skurXlsxSel.skur-export-select:focus-visible{outline:none;border-color:var(--brand-primary);box-shadow:0 0 0 3px rgba(15,108,189,.14);}
+#skurXlsxSel.skur-export-select option{font-weight:500;}
+.skur-export-control #skurXlsxSel.skur-export-select:disabled,
+.skur-export-control #skurXlsxSel.skur-export-select[disabled]{background:var(--bg-layer2);color:var(--text-tertiary);border-color:var(--border-default);box-shadow:none;cursor:not-allowed;opacity:1;}
+.skur-export-control #skurXlsxSel.skur-export-select:disabled:hover,
+.skur-export-control #skurXlsxSel.skur-export-select[disabled]:hover{background:var(--bg-layer2);border-color:var(--border-default);}
+.skur-export-control:has(#skurXlsxSel.skur-export-select:disabled) .skur-export-icon,
+.skur-export-control:has(#skurXlsxSel.skur-export-select[disabled]) .skur-export-icon,
+.skur-export-control:has(#skurXlsxSel.skur-export-select:disabled)::after,
+.skur-export-control:has(#skurXlsxSel.skur-export-select[disabled])::after{opacity:.45;}
 .skur-overflow{display:none;}
 /* Rail search + filters + sort (Stage 9) */
 .skur-rail-toolbar{display:flex;flex-direction:column;gap:6px;padding:6px 6px 4px;border-bottom:1px solid var(--border-subtle);margin:-8px -8px 6px;background:var(--bg-layer1);border-top-left-radius:var(--radius-md);border-top-right-radius:var(--radius-md);}
@@ -909,15 +963,12 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .gp-toolbar .gp-toggle .gp-tg-slider::before{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
 .skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider{background:var(--status-success);}
 .skur-group-panel .gp-toolbar .gp-toggle input:checked + .gp-tg-slider::before{transform:translateX(14px);}
-.skur-group-panel .gp-toolbar .gp-tb-excel{font:inherit;font-size:11px;height:30px;padding:0 12px;border:1px solid var(--border-default);border-radius:6px;background:var(--bg-layer1);color:var(--text-primary);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;line-height:1;transition:background .15s,border-color .15s,color .15s;}
-.skur-group-panel .gp-toolbar .gp-tb-excel:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-group-panel .gp-toolbar .gp-tb-rename{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
 .skur-group-panel .gp-toolbar .gp-tb-rename:hover{background:var(--bg-layer2);border-color:var(--brand-primary);color:var(--brand-primary);}
 .skur-group-panel .gp-toolbar .gp-tb-rename svg{display:block;}
 .skur-group-panel .gp-toolbar .gp-tb-delete{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-secondary);width:30px;height:30px;border-radius:6px;cursor:pointer;font-family:inherit;margin:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;padding:0;transition:background .15s,border-color .15s,color .15s;}
 .skur-group-panel .gp-toolbar .gp-tb-delete:hover{background:var(--bg-layer2);border-color:var(--status-danger);color:var(--status-danger);}
 .skur-group-panel .gp-toolbar .gp-tb-delete svg{display:block;}
-.skur-group-panel .gp-toolbar .gp-tb-excel + .gp-tb-rename,
 .skur-group-panel .gp-toolbar .gp-tb-rename + .gp-tb-delete{margin-left:-4px;}
 .skur-group-panel .gp-cband{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;margin:6px 0 4px;background:var(--bg-layer2);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);font-size:11px;}
 .skur-group-panel .gp-cband-label{font-weight:700;}
@@ -933,6 +984,11 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .gp-ret-nudge a{color:var(--brand-primary);text-decoration:none;font-weight:600;}
 .skur-group-panel .gp-ret-nudge a:hover{text-decoration:underline;}
 .skur-group-panel .gp-ret-nudge em{font-style:normal;font-family:var(--font-mono,'Consolas',monospace);}
+.skur-group-panel .gp-workload-strip{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;padding:7px 10px;margin:6px 0 4px;background:var(--status-danger-bg);border:1px solid var(--status-danger-border);border-radius:var(--radius-sm);font-size:11px;color:var(--text-primary);}
+.skur-group-panel .gp-workload-strip .gp-workload-label{font-weight:700;color:var(--status-danger);}
+.skur-group-panel .gp-workload-strip .gp-workload-copy{flex:1 1 320px;line-height:1.45;}
+.skur-group-panel .gp-workload-strip .gp-workload-chips{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.skur-group-panel .gp-workload-strip .gp-workload-more{color:var(--text-secondary);font-style:italic;}
 .skur-group-panel .gp-cband-elig{margin-left:auto;display:inline-flex;align-items:center;gap:8px;color:var(--text-tertiary);font-size:11px;}
 .skur-group-panel .gp-cband-elig strong{color:var(--text-primary);}
 .skur-group-panel .gp-cband-help{font-size:10px;font-style:italic;color:var(--text-tertiary);}
@@ -966,6 +1022,10 @@ body.dark .skur-group-panel .gp-mode-help-pop,[data-theme="dark"] .skur-group-pa
 .skur-group-panel .alt-badge:hover{background:rgba(15,108,189,.18);border-color:var(--brand-primary);}
 .skur-group-panel .override-badge{display:inline-flex;align-items:center;gap:2px;background:var(--status-warn-bg);border:1px solid var(--status-warn-border);color:var(--status-warn);font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;margin-left:4px;letter-spacing:.02em;vertical-align:1px;}
 .skur-group-panel .override-badge:hover{background:rgba(196,127,0,.20);}
+.workload-badge{display:inline-flex;align-items:center;gap:2px;background:var(--status-danger-bg);border:1px solid var(--status-danger-border);color:var(--status-danger);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;margin-left:4px;letter-spacing:.02em;vertical-align:1px;}
+.workload-badge:hover{background:rgba(220,38,38,.18);}
+body.dark .workload-badge,[data-theme="dark"] .workload-badge{background:rgba(248,113,113,.16);color:#fca5a5;border-color:rgba(248,113,113,.45);}
+body.dark .workload-badge:hover,[data-theme="dark"] .workload-badge:hover{background:rgba(248,113,113,.26);}
 .skur-group-panel .retire-tag{display:inline-block;color:var(--status-warn,#a35a00);font-size:10px;font-weight:600;letter-spacing:.02em;margin-left:4px;}
 .skur-group-panel .why-hint{color:var(--text-tertiary);font-style:italic;font-size:11px;}
 .skur-group-panel .sku-name{font-family:var(--font-mono,'Consolas',monospace);color:var(--brand-primary);font-weight:600;}
@@ -1123,7 +1183,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <button class="tab"        role="tab" data-tab="infra"      onclick="activateTab('infra')">🏗️ Environment</button>
   <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Health</button>
-  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🎯 Risks</button>
+  <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🚨 Risks</button>
   <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">☁️ Azure VMs &amp; Pricing</button>
 </nav>
 
@@ -1207,6 +1267,33 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
       <div id="resetBtnWrap" style="display:none;">
         <button id="resetBtn" class="btn btn-danger" onclick="confirmClearLoadedData()">✖ Clear &amp; reset</button>
+      </div>
+    </div>
+
+    <!-- Polished "loaded" state — shown when #dropZone.has-data is set. -->
+    <div id="loadedView" role="region" aria-label="Loaded dataset">
+      <div class="loaded-card">
+        <div class="loaded-icon" aria-hidden="true">✅</div>
+        <div class="loaded-body">
+          <p class="loaded-title">Loaded: <span class="loaded-filename" id="loadedFilename"></span></p>
+          <p class="loaded-meta" id="loadedMeta"></p>
+          <p class="loaded-tabs" id="loadedTabs" style="display:none;"></p>
+        </div>
+        <button class="btn btn-danger" onclick="confirmClearLoadedData()">✖ Clear &amp; reset</button>
+      </div>
+      <div class="loaded-quicknav">
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('overview')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('overview');}"><div class="qn-icon">📊</div><p class="qn-title">Overview</p><p class="qn-desc">Top-line health, OS mix, power state.</p></a>
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('inventory')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('inventory');}"><div class="qn-icon">🖥️</div><p class="qn-title">Inventory</p><p class="qn-desc">Full VM list with filters and search.</p></a>
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('migration')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('migration');}"><div class="qn-icon">🚨</div><p class="qn-title">Risks</p><p class="qn-desc">EOL OS, snapshots, unused capacity.</p></a>
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('sku-recommender')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('sku-recommender');}"><div class="qn-icon">☁️</div><p class="qn-title">Azure VMs &amp; Pricing</p><p class="qn-desc">Recommend SKUs, group into waves, price.</p></a>
+      </div>
+      <div class="loaded-another">
+        <span class="loaded-another-label">Load a different dataset:</span>
+        <div class="loaded-another-actions">
+          <button type="button" class="btn-ghost" onclick="document.getElementById('fileInputXlsx').click()">📥 Load RVTools .xlsx</button>
+          <button type="button" class="btn-ghost" onclick="document.getElementById('fileInputRvz').click()">📂 Open .rvz workspace</button>
+          <button type="button" class="btn-ghost" onclick="loadSampleData('full')">🎯 Try demo data</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1427,7 +1514,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 
 <!-- RISK QUADRANT -->
 <div class="section tab-pane" id="risk" data-tab="migration">
-  <div class="section-header"><h3>🎯 Risk Quadrant</h3></div>
+  <div class="section-header"><h3>🚨 Risk Quadrant</h3></div>
   <div class="section-body open" id="riskBody">
   <div style="background:rgba(255,140,0,.08);border:1px solid rgba(255,140,0,.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:.85rem;color:var(--text);">
     <strong>⚠️ Disclaimer:</strong> This visualisation provides a high-level indication only and is not intended to be a thorough migration planning tool. For in-depth discovery and assessment, you should strongly consider using <a href="https://learn.microsoft.com/en-us/azure/migrate/migrate-services-overview" target="_blank" style="font-weight:600;">Azure Migrate</a>.
@@ -1578,11 +1665,23 @@ body.dark .skur-group-chip{color:#b794f4;}
         <select id="skurPlanRegion" class="pb-select" onchange="skurOnPlanChange('region',this.value)"></select>
         <label class="pb-flabel" for="skurPlanCurrency">💱 Currency:</label>
         <select id="skurPlanCurrency" class="pb-select" onchange="skurOnPlanChange('currency',this.value)">
-          <option value="USD">USD $</option>
-          <option value="AUD">AUD $</option>
-          <option value="NZD">NZD $</option>
-          <option value="EUR">EUR €</option>
-          <option value="GBP">GBP £</option>
+          <option value="USD">USD $ — US Dollar</option>
+          <option value="AUD">AUD $ — Australian Dollar</option>
+          <option value="BRL">BRL R$ — Brazilian Real</option>
+          <option value="CAD">CAD $ — Canadian Dollar</option>
+          <option value="CHF">CHF Fr — Swiss Franc</option>
+          <option value="CNY">CNY ¥ — Chinese Yuan</option>
+          <option value="DKK">DKK kr — Danish Krone</option>
+          <option value="EUR">EUR € — Euro</option>
+          <option value="GBP">GBP £ — Pound Sterling</option>
+          <option value="INR">INR ₹ — Indian Rupee</option>
+          <option value="JPY">JPY ¥ — Japanese Yen</option>
+          <option value="KRW">KRW ₩ — South Korean Won</option>
+          <option value="NOK">NOK kr — Norwegian Krone</option>
+          <option value="NZD">NZD $ — New Zealand Dollar</option>
+          <option value="RUB">RUB ₽ — Russian Ruble</option>
+          <option value="SEK">SEK kr — Swedish Krona</option>
+          <option value="TWD">TWD NT$ — Taiwan Dollar</option>
         </select>
         <span class="skur-freshness-pill" id="skurFreshnessPill" style="margin-left:auto;" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
       </div>
@@ -1596,7 +1695,7 @@ body.dark .skur-group-chip{color:#b794f4;}
             <span class="skur-tagrules-pill" id="skurTagRulesPill">0</span>
             <button class="btn btn-danger skur-tagrules-bulk-del" id="skurRulesBulkDelBtn" style="margin-left:auto;" onclick="skurDeleteSelectedRules()" type="button" disabled>Delete selected (<span id="skurRulesBulkCount">0</span>)</button>
             <button class="btn skur-tagrules-add" id="skurRulesAddBtn" onclick="openSkurRuleModal()" type="button">➕ Add rule</button>
-            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" onclick="openSkurWorkloadRuleModal()" type="button">🔧 Add workload rule</button>
+            <button class="btn skur-tagrules-add" id="skurWorkloadRulesAddBtn" onclick="openSkurWorkloadRuleModal()" type="button">🎯 Add workload rule</button>
           </div>
           <div class="skur-tagrules-detail" id="skurTagRulesDetail">
             <p class="skur-tagrules-empty" id="skurRulesEmpty">No tag rules yet. Tag rules auto-apply key:value tags to VMs based on field patterns — handy for grouping and (later) sizing decisions.</p>
@@ -1653,12 +1752,15 @@ body.dark .skur-group-chip{color:#b794f4;}
         <div class="skur-groups-card">
           <div class="skur-groups-head">
             <h4>📂 Sizing and pricing groups <span class="skur-count-pill" id="skurGroupCountPill">0</span></h4>
-            <select id="skurXlsxSel" title="Download a multi-sheet Excel report of the recommendations" style="margin-left:auto;font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--border-default);border-radius:var(--radius-sm);background:var(--bg-layer1);color:var(--text-primary);" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
-              <option value="" disabled selected hidden>📊 Excel ▾</option>
-              <option value="all">All groups</option>
-              <option value="pinned">Pinned groups only</option>
-              <option value="active">Active group only</option>
-            </select>
+            <div class="skur-export-control" title="Download a multi-sheet Excel report of the recommendations">
+              <span class="skur-export-icon" aria-hidden="true">📊</span>
+              <select id="skurXlsxSel" class="skur-export-select" title="Download a multi-sheet Excel report of the recommendations" onchange="if(this.value){skurExportExcel(this.value);this.value='';}">
+                <option value="" disabled selected hidden>Export to Excel</option>
+                <option value="all">All groups</option>
+                <option value="pinned">Pinned groups only</option>
+                <option value="active">Active group only</option>
+              </select>
+            </div>
             <button class="btn skur-tagrules-add" onclick="newSkurGroup()">➕ New Manual Group</button>
           </div>
           <p class="skur-groups-empty" id="skurGroupsEmpty">No sizing groups yet. Tick VMs in the grid above and use the bulk bar to add them to a group, or click <strong>New Manual Group</strong> to create an empty one.</p>
@@ -1740,7 +1842,7 @@ body.dark .skur-group-chip{color:#b794f4;}
 <!-- SKU Recommender: Workload rule add/edit modal (advanced — duplicated for iteration) -->
 <div class="modal-overlay" id="skurWorkloadRuleModal" onclick="if(event.target===this)closeSkurWorkloadRuleModal()">
   <div class="modal-card is-md" role="dialog" aria-modal="true" aria-labelledby="skurWorkloadRuleModalTitle">
-    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🔧 Add workload rule</h2></div>
+    <div class="modal-banner"><h2 id="skurWorkloadRuleModalTitle">🎯 Add workload rule</h2></div>
     <div class="modal-body">
     <div class="skur-modal-row">
       <label>If</label>
@@ -1857,6 +1959,8 @@ body.dark .skur-group-chip{color:#b794f4;}
         <label><input type="checkbox" value="D" onchange="updateSkurConstraintsPreview()"><span class="fam-key">D</span><span class="fam-sub">general</span></label>
         <label><input type="checkbox" value="E" onchange="updateSkurConstraintsPreview()"><span class="fam-key">E</span><span class="fam-sub">memory</span></label>
         <label><input type="checkbox" value="F" onchange="updateSkurConstraintsPreview()"><span class="fam-key">F</span><span class="fam-sub">compute</span></label>
+        <label><input type="checkbox" value="L" onchange="updateSkurConstraintsPreview()"><span class="fam-key">L</span><span class="fam-sub">storage</span></label>
+        <label><input type="checkbox" value="M" onchange="updateSkurConstraintsPreview()"><span class="fam-key">M</span><span class="fam-sub">memory-opt</span></label>
       </div>
     </div>
     <div class="skur-modal-row">
@@ -1983,7 +2087,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
-  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.3.0-beta</div>
+  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.0</div>
 </footer>
 
 <script>
@@ -2452,6 +2556,7 @@ function clearLoadedData() {
   document.getElementById('resetBtnWrap').style.display = 'none';
   const fileInput = document.getElementById('fileInput');
   if (fileInput) fileInput.value = '';
+  try { clearLoadedView(); } catch(_) {}
   try { hideSampleIndicators(); } catch(_) {}
   try { _skurStartFreshFromPrompt(); } catch(_) {
     // Fallback if the helper isn't loaded yet — still surface welcome.
@@ -2475,6 +2580,53 @@ async function confirmClearLoadedData() {
     }
   } catch(_) { ok = false; }
   if (ok) clearLoadedData();
+}
+
+// Render the polished "loaded" view shown inside #dropZone after a successful
+// import (real RVTools .xlsx, .rvz scenario, or demo data). Toggles the
+// .has-data class on #dropZone which hides the welcome banner + tiles and
+// reveals #loadedView. Caller supplies a summary object so the same UI shape
+// is used regardless of source.
+function renderLoadedView({ filename, vmCount, detectedTabs, dupCount, isDemo }) {
+  try {
+    const dz = document.getElementById('dropZone');
+    if (dz) dz.classList.add('has-data');
+    const fn = document.getElementById('loadedFilename');
+    if (fn) fn.textContent = filename || 'Unknown file';
+    const meta = document.getElementById('loadedMeta');
+    const tabs = Array.isArray(detectedTabs) ? detectedTabs : [];
+    const isFull = tabs.length > 1;
+    if (meta) {
+      const parts = [];
+      parts.push(`<span>🖥️ <strong>${Number(vmCount||0).toLocaleString()}</strong> VMs</span>`);
+      if (isFull) parts.push(`<span class="loaded-chip-full">📊 Full export · ${tabs.length} tabs</span>`);
+      else parts.push(`<span class="loaded-chip-vinfo">ℹ️ vInfo only</span>`);
+      if (isDemo) parts.push(`<span class="loaded-chip-vinfo">🎯 Demo data</span>`);
+      if (dupCount && dupCount > 0) parts.push(`<span class="loaded-chip-warn">⚠ ${dupCount} duplicate row${dupCount===1?'':'s'} collapsed</span>`);
+      meta.innerHTML = parts.join('');
+    }
+    const tabsEl = document.getElementById('loadedTabs');
+    if (tabsEl) {
+      if (tabs.length > 0) {
+        tabsEl.style.display = '';
+        const labelWord = isFull ? 'Tabs imported' : 'Tab imported';
+        tabsEl.innerHTML = `<strong>${labelWord}:</strong> ${tabs.map(t => `<code>${esc(t)}</code>`).join(', ')}`;
+      } else {
+        tabsEl.style.display = 'none';
+        tabsEl.innerHTML = '';
+      }
+    }
+  } catch (e) { console.warn('[loadedView] render failed:', e && e.message || e); }
+}
+
+function clearLoadedView() {
+  try {
+    const dz = document.getElementById('dropZone');
+    if (dz) dz.classList.remove('has-data');
+    const fn = document.getElementById('loadedFilename'); if (fn) fn.textContent = '';
+    const meta = document.getElementById('loadedMeta'); if (meta) meta.innerHTML = '';
+    const tabsEl = document.getElementById('loadedTabs'); if (tabsEl) { tabsEl.innerHTML = ''; tabsEl.style.display = 'none'; }
+  } catch(_) {}
 }
 
 function handleFile(file) {
@@ -2508,7 +2660,7 @@ function handleFile(file) {
 // The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
 // at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
 // .rvz scenarios or workspace.json files.
-const APP_VERSION = '1.3.0-beta';
+const APP_VERSION = '1.1.0';
 // Keep footer label in sync with APP_VERSION on load.
 document.addEventListener('DOMContentLoaded', () => {
   const f = document.getElementById('appVersionFooter');
@@ -3459,6 +3611,12 @@ function _applyParsedSheets(parsed, file) {
         showFileError('The vInfo sheet is empty.', 'Confirm the export wasn\'t empty — connect RVTools to a vCenter or host with VMs and re-export.');
         return;
       }
+      // Reset workspace state before swapping in the new dataset so stale groups/
+      // OOS/rules/tags from the previous dataset don't leak across. For .rvz the
+      // caller (_loadScenario) applies the embedded workspace snapshot right after
+      // this returns, which re-populates from the bundle. For autosave-resume the
+      // restore banner / auto-resume flow re-applies after this too.
+      _skurResetWorkspaceState();
       allVMs = parseRVToolsData(data);
       if (!allVMs.length) {
         showFileError('No VMs found after parsing.', 'The vInfo sheet may not contain RVTools-format data, or every row was filtered as a template. Try re-exporting from RVTools.');
@@ -3495,6 +3653,15 @@ function _applyParsedSheets(parsed, file) {
         (isFullExport ? `<br/><span style="color:var(--success);font-weight:600;">📊 Full export detected — ${detectedTabs.length} tabs: ${detectedTabs.join(', ')}</span>` :
         `<br/><span style="color:var(--text-muted);">ℹ️ vInfo only — upload a full RVTools export for enhanced analysis</span>`) + dupNote;
       document.getElementById('resetBtnWrap').style.display = 'block';
+      // Polished loaded view (Option A) — fileInfo above remains populated for
+      // a11y / aria-live, but is hidden by CSS once .has-data is set.
+      renderLoadedView({
+        filename: file.name,
+        vmCount: allVMs.length,
+        detectedTabs,
+        dupCount: (dupInfo && dupInfo.droppedCount) || 0,
+        isDemo: false,
+      });
       updateTabBadges();
       hideSampleIndicators();
       populateFilters();
@@ -4237,6 +4404,18 @@ const SKUR_OOS_REASONS = {
 // Shape: { vmKey: [{ key, value }] }. Persisted in workspace snapshot.
 const skurManualTags = Object.create(null);
 let _skurSuppressTagConflictPrompt = false; // session-only "don't ask again"
+// Wipe in-memory workspace collections so a fresh dataset doesn't inherit stale
+// groups/OOS/rules/tags from the previous one. skurPlan (region/currency/term/
+// headroom) is intentionally preserved — it's a user preference, not dataset state.
+// Called from _applyParsedSheets and loadSampleData; .rvz / workspace.json /
+// autosave-resume already clear+repopulate via _applyWorkspaceSnapshot.
+function _skurResetWorkspaceState() {
+  if (Array.isArray(skurGroups)) skurGroups.length = 0;
+  if (Array.isArray(skurTagRules)) skurTagRules.length = 0;
+  if (skurOutOfScope) { for (const k of Object.keys(skurOutOfScope)) delete skurOutOfScope[k]; }
+  if (skurManualTags) { for (const k of Object.keys(skurManualTags)) delete skurManualTags[k]; }
+  if (skurSelectedKeys && typeof skurSelectedKeys.clear === 'function') skurSelectedKeys.clear();
+}
 function skurIsOOS(vm) { return !!skurOutOfScope[skurVmKey(vm)]; }
 function skurOOSEntry(vm) { return skurOutOfScope[skurVmKey(vm)] || null; }
 function skurOOSCount() { return Object.keys(skurOutOfScope).length; }
@@ -4436,10 +4615,10 @@ function skurRemoveMemberFromGroup(groupId, vmKey) {
   }
 }
 function _skurGroupPlan(g) {
-  // Stage 9: per-group term + AHUB overlay over the global skurPlan. AHUB has no
-  // pricing impact yet (catalog only carries Linux pricing) but the field is
-  // tracked so the UI can surface the "AHUB applied" state and so workspace.json
-  // round-trips it.
+  // Per-group term + AHUB overlay over the global skurPlan. AHUB now drives a
+  // real pricing effect: when true, Windows VMs price at the Linux rate (waives
+  // the Windows licence surcharge). When false, Windows VMs use the Windows
+  // rate. Linux/Other VMs are unaffected.
   return Object.assign({}, skurPlan, {
     term: (g && g.term) || skurPlan.term || 'payg',
     ahub: !!(g && g.ahub),
@@ -4455,7 +4634,8 @@ function _skurGroupTotalMonthlyCost(g) {
     if (skurOOSEntry(v)) continue;
     const rec = skurRecommendForVm(v);
     if (!rec || rec.state !== 'ok' || !rec.sku) continue;
-    const m = skurMonthlyCost(rec.sku, plan);
+    // rec.plan carries per-group term + AHUB + per-VM OS for correct Linux/Windows pricing.
+    const m = skurMonthlyCost(rec.sku, rec.plan || plan);
     if (typeof m === 'number' && isFinite(m)) { sum += m; any = true; }
   }
   return any ? sum : null;
@@ -4521,7 +4701,7 @@ function _skurFmtConstraintSummary(c) {
 function _skurEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function _skurFmtPct(n){ return `${Math.round(n*100)}%`; }
 function _skurHeadroomCls(h){ return h >= 0.20 ? 'good' : (h >= 0.10 ? 'warn' : 'bad'); }
-function _skurModeEmoji(m){ return m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖'); }
+function _skurModeEmoji(m){ return m === 'cost' ? '💰' : (m === 'rightsized' ? '📏' : '⚖'); }
 function skurRenderRecCell(rec){
   const esc = _skurEsc;
   const conf = skurConfidenceFor(rec);
@@ -4531,15 +4711,26 @@ function skurRenderRecCell(rec){
   if (!rec) return `${confDot}<span class="skur-rec-none">—</span>`;
   if (rec.state === 'oos') return `<span class="skur-rec-none" title="VM marked out of scope">— OOS —</span>`;
   if (rec.state === 'no-input') return `${confDot}<span class="skur-rec-none" title="Missing vCPU or RAM on this VM">no input</span>`;
-  if (rec.state === 'no-eligible') return `${confDot}<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints leave 0 eligible SKUs">no eligible SKU</span>`;
+  if (rec.state === 'no-eligible') {
+    const CATALOG_FAMS = ['B','D','E','F','L','M'];
+    const wlFams = (rec.workloadConstrained && Array.isArray(rec.workloadFamilies)) ? rec.workloadFamilies : null;
+    const outOfScope = wlFams && wlFams.length && !wlFams.some(f => CATALOG_FAMS.includes(f));
+    const wlNote = wlFams
+      ? ` (workload tag restricts to: ${esc(wlFams.join(', '))})`
+      : '';
+    const scopeHint = outOfScope
+      ? `\nFamily ${wlFams.join('/')} is not in the current catalog scope (${CATALOG_FAMS.join(',')}).`
+      : '';
+    const visible = outOfScope ? `no ${wlFams.join('/')}-family SKU in catalog` : 'no eligible SKU';
+    return `${confDot}<span class="skur-rec-none" title="Group '${esc(rec.groupName||'')}' constraints${wlNote} leave 0 eligible SKUs${scopeHint}">${esc(visible)}</span>`;
+  }
   if (rec.state === 'no-match') return `${confDot}<span class="skur-rec-none" title="VM exceeds every eligible SKU's vCPU/RAM in group '${esc(rec.groupName||'')}'">VM too large</span>`;
   const sku = rec.sku;
-  const fam = (sku.family||'X').toUpperCase();
   const altsTip = rec.alts && rec.alts.length ? `\nAlts: ${rec.alts.map(s=>s.name).join(', ')}` : '';
   const ctx = rec.groupName ? `Group "${rec.groupName}" · ${rec.mode}` : `ungrouped · ${rec.mode}`;
   const tip = `${sku.name} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${sku.processor||'any'}${sku.burstable?' · burstable':''}\n${ctx}${altsTip}`;
   return `<span class="skur-rec-cell" title="${esc(tip)}">
-    ${confDot}<span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="rc-name">${esc(sku.name)}</span>
+    ${confDot}<span class="rc-name">${esc(sku.name)}</span>
     <span class="rc-spec">${sku.vcpu} vCPU · ${sku.ramGb} GB${sku.burstable?' · burst':''}</span>
   </span>`;
 }
@@ -4566,9 +4757,21 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
   const removeBtn = `<button class="gp-row-remove" title="Remove from group" onclick="skurRemoveMemberFromGroup('${esc(g.id)}','${escK}')">✕</button>`;
   const vmCell = `<span class="gp-recs-vm" title="${esc(v.name||'')} — ${v.cpus??'?'} vCPU / ${v.ram??'?'} GB"><strong>${esc(v.name||'(unknown)')}</strong><span class="gp-recs-vmspec">${v.cpus??'?'} / ${v.ram??'?'}</span></span>`;
   if (!rec || rec.state !== 'ok' || !rec.sku) {
+    // Even with no eligible SKU, show the workload badge so users can see why.
+    let wlBadge = '';
+    if (rec && rec.workloadConstrained) {
+      const wlTag = rec.workloadTag || 'workload';
+      const famList = (rec.workloadFamilies || []).join(', ');
+      const { label } = skurFormatWorkloadBadgeLabel({ name: rec.workloadName, tag: wlTag, canonical: wlTag, desc: rec.workloadDesc });
+      let fullTip = `Workload (advanced rule) · ${wlTag}`;
+      if (rec.workloadName) fullTip += `\n${rec.workloadName}`;
+      if (rec.workloadDesc) fullTip += `\n${rec.workloadDesc}`;
+      fullTip += `\nConstraint pool for this VM: ${famList || 'none'}`;
+      wlBadge = `<span class="workload-badge" title="${esc(fullTip)}">🎯 ${esc(label)}</span>`;
+    }
     return `<div class="gp-recs-row">
       ${vmCell}
-      <span class="gp-recs-sku">${skurRenderRecCell(rec)}</span>
+      <span class="gp-recs-sku">${skurRenderRecCell(rec)}${wlBadge}</span>
       <span class="gp-recs-hr">${skurRenderHeadroomCell(rec)}</span>
       <span class="gp-recs-cost">${skurRenderCostCell(rec)}</span>
       <span class="gp-recs-actions">${removeBtn}</span>
@@ -4576,23 +4779,46 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
   }
   // SKU cell with badges + why + retirement
   const altCount = Math.max(0, ((rec.ranked && rec.ranked.length) || 1) - 1);
-  const altBadge = altCount > 0
-    ? `<button class="alt-badge" title="${altCount} alternative SKU${altCount>1?'s':''} match — click to choose" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">+${altCount} alt ▾</button>`
-    : '';
-  const overrideBadge = rec.overridden
-    ? `<span class="override-badge" title="Manually overridden — click to reset to recommended" onclick="skurResetOverride('${esc(g.id)}','${escK}')">override ↺</span>`
-    : '';
+  // Badge rail: workload constraint, then alternatives, then override (if present).
+  let workloadBadge = '';
+  let altBadge = '';
+  let overrideBadge = '';
+    if (rec.workloadConstrained) {
+      const famList = (rec.workloadFamilies || []).join(', ');
+      const wlTag = rec.workloadTag || 'workload';
+      const canonical = wlTag;
+      const name = rec.workloadName;
+      const desc = rec.workloadDesc;
+      const { label, tip } = skurFormatWorkloadBadgeLabel({ name, tag: wlTag, canonical, desc });
+      let fullTip = `Workload (advanced rule) · ${wlTag}`;
+      if (name) fullTip += `\n${name}`;
+      if (desc) fullTip += `\n${desc}`;
+      fullTip += `\nConstraint pool for this VM: ${famList || 'none'}`;
+      fullTip += `\nRanking mode: ${rec.mode || 'balanced'}`;
+      workloadBadge = `<span class="workload-badge" title="${esc(fullTip)}">🎯 ${esc(label)}</span>`;
+    }
+  if (altCount > 0) {
+    const altTitle = rec.workloadConstrained
+      ? `Alternatives in constrained pool · ${altCount} SKU${altCount>1?'s':''}\nFamilies: ${esc((rec.workloadFamilies||[]).join(', ') || 'none')}\nMode: ${esc(rec.mode||'balanced')}\nClick to choose a different SKU.`
+      : `${altCount} alternative SKU${altCount>1?'s':''} match\nMode: ${esc(rec.mode||'balanced')}\nClick to choose.`;
+    altBadge = `<button class="alt-badge" title="${altTitle}" onclick="skurOpenAltPicker('${esc(g.id)}','${escK}')">+${altCount} alt ▾</button>`;
+  }
+  if (rec.overridden) {
+    const ovTitle = rec.workloadConstrained
+      ? `Manual override is active.\nWorkload constraint still applies (${esc((rec.workloadFamilies||[]).join(', ') || 'none')}).\nClick to reset to workload-recommended SKU.`
+      : `Manual override is active.\nClick to reset to recommended SKU.`;
+    overrideBadge = `<span class="override-badge" title="${ovTitle}" onclick="skurResetOverride('${esc(g.id)}','${escK}')">override ↺</span>`;
+  }
   const ret = rec.retirement;
   const retInfo = ret ? (typeof _skurRetirementInfoFor === 'function' ? _skurRetirementInfoFor(rec.sku && rec.sku.name) : null) : null;
   const retTitle = ret ? `This SKU's family${retInfo && retInfo.name ? ` (${retInfo.name})` : ''} is scheduled to retire on ${String(ret).slice(0,7)}.\n\nTo steer the recommender away from retiring families, tighten the "Retire <" chip in this group's Constraints strip.` : '';
   const retTag = ret ? `<span class="retire-tag" title="${esc(retTitle)}">· retiring ${esc(String(ret).slice(0,7))}</span>` : '';
   const whyTxt = rec.why ? `<span class="why-hint"> · ${esc(rec.why)}</span>` : '';
   const sku = rec.sku;
-  const fam = (sku.family||'X').toUpperCase();
   const conf = skurConfidenceFor(rec);
   const confDot = `<span class="skur-conf-dot lvl-${conf.level}" title="Confidence: ${esc(conf.label)}\n${conf.reasons.map(r=>'• '+r).join('\n')}"></span>`;
   const skuCell = `<span class="gp-recs-sku" title="${esc(sku.name)} — ${sku.vcpu} vCPU / ${sku.ramGb} GB · ${esc(sku.processor||'any')}${sku.burstable?' · burstable':''}">
-    <span class="skur-rec-fam fam-${esc(fam)}" title="Family ${esc(fam)}">${esc(fam)}</span><span class="sku-name">${esc(sku.name)}</span>${altBadge}${overrideBadge}${whyTxt}${retTag}
+    <span class="sku-name">${esc(sku.name)}</span>${workloadBadge}${altBadge}${overrideBadge}${whyTxt}${retTag}
   </span>`;
   // Inline +HR% · Conf
   const f = rec.fit; const minH = (f ? Math.min(f.cpuHeadroom, f.ramHeadroom) : 0);
@@ -4607,6 +4833,15 @@ function _skurRenderActiveGroupRow(g, v, k, rec){
     ${costCell}
     <span class="gp-recs-actions">${removeBtn}</span>
   </div>`;
+}
+
+// Standardized workload badge label helper: truncates to 24 chars, shows canonical in tooltip
+function skurFormatWorkloadBadgeLabel({ name, tag, canonical, desc }) {
+  const base = name || tag || canonical || '';
+  const label = base.length > 24 ? base.slice(0, 21) + '…' : base;
+  let tip = canonical || base;
+  if (desc) tip += '\n' + desc;
+  return { label, tip };
 }
 
 function renderSkurGroups() {
@@ -4660,7 +4895,7 @@ function renderSkurGroups() {
   // === Render rail ===
   const dups = skurDupVmKeys();
   const totalCat = skurCatalogForRegion(skurPlan.region).length;
-  const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '🎯' : '⚖');
+  const modeEmoji = (m) => m === 'cost' ? '💰' : (m === 'rightsized' ? '📏' : '⚖');
   // Pinned groups float to top, preserving original creation order within each bucket.
   const orderedGroupsBase = skurGroups.map((g, i) => ({ g, i }))
     .sort((a, b) => ((b.g.pinned?1:0) - (a.g.pinned?1:0)) || (a.i - b.i))
@@ -4821,6 +5056,7 @@ function renderSkurGroups() {
         ? `<span class="gp-cost-label">Est. monthly</span> <span style="color:var(--text-tertiary);">—</span>`
         : `<span class="gp-cost-label">Est. monthly</span> <span class="gp-cost">${escG(skurFormatMoney(totalCost, skurPlan.currency))}</span>`;
       const byKey = new Map((allVMs || []).map(v => [skurVmKey(v), v]));
+      const workloadSummary = _skurGroupWorkloadSummary(g, byKey);
       const recRows = g.members.map(k => {
         const v = byKey.get(k); if (!v) return null;
         let rec = null; try { rec = skurRecommendForVm(v); } catch (_) {}
@@ -4876,8 +5112,8 @@ function renderSkurGroups() {
           </div>`
         : `<div class="gp-recs-empty"><em>No members yet — tick VMs in the inventory below and use ➕ Add to group.</em></div>`;
       const mode = skurNormaliseMode(g.mode);
-      const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'🎯 Right-sized',tip:'Tightest fit; minimises waste'} };
-      const modeHelp = `<button type="button" class="gp-mode-help" tabindex="0" aria-label="What do these modes mean?">?</button><div class="gp-mode-help-pop" role="tooltip"><strong>Sizing modes</strong> control how the recommender ranks eligible SKUs for every VM in this group.<ul><li><strong>⚖ Balanced</strong> — closest fit while keeping ~30% headroom on CPU and RAM. Good default for production workloads with some growth.</li><li><strong>💰 Cost</strong> — cheapest SKU that still meets the VM's requirements (after the headroom floor). Picks smaller/older families when they fit.</li><li><strong>🎯 Right-sized</strong> — tightest fit; minimises wasted vCPU and RAM. Best for steady-state dev/test or workloads you've already profiled.</li></ul><em>All modes obey this group's Constraints (Premium IO, processor, burstable, retirement) and the active region's eligible SKU pool.</em></div>`;
+      const modeMeta = { balanced:{lbl:'⚖ Balanced',tip:'Closest match with ~30% headroom'}, cost:{lbl:'💰 Cost',tip:'Cheapest SKU that meets requirements'}, rightsized:{lbl:'📏 Right-sized',tip:'Tightest fit; minimises waste'} };
+      const modeHelp = `<button type="button" class="gp-mode-help" tabindex="0" aria-label="What do these modes mean?">?</button><div class="gp-mode-help-pop" role="tooltip"><strong>Sizing modes</strong> control how the recommender ranks eligible SKUs for every VM in this group.<ul><li><strong>⚖ Balanced</strong> — closest fit while keeping ~30% headroom on CPU and RAM. Good default for production workloads with some growth.</li><li><strong>💰 Cost</strong> — cheapest SKU that still meets the VM's requirements (after the headroom floor). Picks smaller/older families when they fit.</li><li><strong>📏 Right-sized</strong> — tightest fit; minimises wasted vCPU and RAM. Best for steady-state dev/test or workloads you've already profiled.</li></ul><em>All modes obey this group's Constraints (Premium IO, processor, burstable, retirement) and the active region's eligible SKU pool. If a VM carries a workload tag, that tagged VM is narrowed again to the workload-specific families before the mode ranks candidates.</em></div>`;
       const modeSeg = `<span class="gp-mode-wrap"><div class="gp-mode-seg" role="group" aria-label="Sizing mode">${['balanced','cost','rightsized'].map(m => `<button class="gp-mode-btn${m===mode?' is-active':''}" title="${modeMeta[m].tip}" onclick="skurSetGroupMode('${escG(g.id)}','${m}')">${modeMeta[m].lbl}</button>`).join('')}</div>${modeHelp}</span>`;
       // Stage 9: rebuilt header + toolbar + constraints chips + exceptions strip
       const totalVcpu = g.members.reduce((s,k) => { const v = byKey.get(k); return s + (v && Number(v.cpus) || 0); }, 0);
@@ -4916,6 +5152,25 @@ function renderSkurGroups() {
         <span class="gp-cband-elig"><strong>${eligibleCount}</strong> of ${totalCat} SKUs eligible</span>
         <span class="gp-cband-help">Click chips to toggle</span>
       </div>${retSuggest ? `<div class="gp-ret-nudge" role="status">⏳ <strong>${retiringAny}</strong> VM${retiringAny===1?'':'s'} recommended a retiring SKU family. <a href="#" onclick="skurCycleRetire('${escG(g.id)}');return false;">Tighten the <em>Retire &lt;</em> constraint</a> to steer the recommender to a longer-lived family.</div>` : ''}`;
+      const workloadChips = workloadSummary
+        ? workloadSummary.workloads.slice(0, 3).map(item => {
+            const families = item.families && item.families.length ? ` · families ${item.families.join(', ')}` : '';
+            return `<span class="workload-badge" title="${escG(item.count)} VM${item.count===1?'':'s'} tagged as ${escG(item.name)}${escG(families)}">🏷️ ${escG(item.name)}${item.count > 1 ? ` · ${item.count}` : ''}</span>`;
+          }).join('')
+        : '';
+      const workloadMore = workloadSummary && workloadSummary.workloads.length > 3
+        ? `<span class="gp-workload-more">+${workloadSummary.workloads.length - 3} more</span>`
+        : '';
+      const workloadCopy = workloadSummary
+        ? (workloadSummary.mixed
+            ? `Mixed workload tags in this group. Tagged VMs keep the current <strong>${escG(modeMeta[mode].lbl)}</strong> mode, but each tagged VM is constrained to its own workload-specific families before ranking. Untagged VMs still use the normal group pool.`
+            : `This group has <strong>${workloadSummary.taggedVmCount}</strong> workload-tagged VM${workloadSummary.taggedVmCount===1?'':'s'}. ${workloadSummary.workloads[0] ? `<strong>${escG(workloadSummary.workloads[0].name)}</strong> narrows only those tagged VMs to ${escG((workloadSummary.workloads[0].families || []).join(', ') || 'workload-specific families')}.` : 'The workload tag narrows only those tagged VMs.'} Balanced, Cost, and Right-sized still rank inside that narrowed pool.`)
+        : '';
+      const workloadStrip = workloadSummary ? `<div class="gp-workload-strip" role="status">
+        <span class="gp-workload-label">🏷️ Workload rules</span>
+        <span class="gp-workload-copy">${workloadCopy}</span>
+        <span class="gp-workload-chips">${workloadChips}${workloadMore}</span>
+      </div>` : '';
       const excHasAny = (exc.noMatch + exc.noEligible + exc.retiring) > 0;
       const excStrip = excHasAny ? `<div class="gp-exc-strip">
         <span class="gp-exc-label">⚠ Sizing exceptions:</span>
@@ -4940,7 +5195,7 @@ function renderSkurGroups() {
           <button class="gp-corner-pin${g.pinned?' is-pinned':''}" title="${g.pinned?'Pinned — click to unpin':'Pin group to top of rail'}" onclick="skurTogglePin('${escG(g.id)}')">📌</button>
         </div>
         <div class="gp-toolbar">
-          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);">📅 <select class="gp-term" title="Pricing term" onchange="skurSetGroupTerm('${escG(g.id)}', this.value)">${termOpts}</select></span>
+          <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--text-secondary);"><select class="gp-term" title="Pricing term" onchange="skurSetGroupTerm('${escG(g.id)}', this.value)">${termOpts}</select></span>
           <label class="gp-toggle" title="Azure Hybrid Use Benefit (waives Windows licensing surcharge for eligible Windows VMs)">
             <span>AHUB</span>
             <input type="checkbox" ${ahubOn?'checked':''} onchange="skurSetGroupAhub('${escG(g.id)}', this.checked)">
@@ -4948,11 +5203,11 @@ function renderSkurGroups() {
           </label>
           ${modeSeg}
           <span class="gp-tb-spacer"></span>
-          <button class="gp-tb-excel" title="Export this group to Excel" onclick="skurExportExcel('active')">📊 Excel</button>
           <button class="gp-tb-rename" title="Rename group" aria-label="Rename group" onclick="renameSkurGroup('${escG(g.id)}')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
           <button class="gp-tb-delete" title="Delete group" aria-label="Delete group" onclick="deleteSkurGroup('${escG(g.id)}')"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
         </div>
         ${cband}
+        ${workloadStrip}
         ${excStrip}
         ${recsTable}`;
       // Stage 9.5: wire active-group pagination buttons (uses shared renderPagination helper)
@@ -5761,7 +6016,14 @@ function renderSkurTagRules() {
     const rowCls = [isChk ? 'checked' : '', r.kind === 'workload' ? 'is-workload' : ''].filter(Boolean).join(' ');
     return `<tr data-rid="${esc(r.id)}"${rowCls ? ` class="${rowCls}"` : ''}>
       <td class="tr-check"><input type="checkbox" class="skur-rule-check" data-rid="${esc(r.id)}" onclick="skurOnRuleCheck(this)"${isChk ? ' checked' : ''}></td>
-      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em>${r.kind === 'workload' ? `<span class="skur-rule-kind-badge" title="Advanced workload rule — emits the workload tag shown">🎯 workload${r.tagValue ? ' → ' + esc(r.tagValue) : ''}</span>` : ''}</td>
+      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em>${r.kind === 'workload' ? (() => {
+        const wlIt = (typeof _skurResolveWorkloadId === 'function') ? _skurResolveWorkloadId(r.tagValue) : null;
+        const canonical = r.tagValue || 'workload';
+        const name = r.workloadName || (wlIt && wlIt.name) || '';
+        const desc = r.workloadDesc || (wlIt && wlIt.desc) || '';
+        const { label, tip } = skurFormatWorkloadBadgeLabel({ name, tag: r.tagValue, canonical, desc });
+        return `<span class="workload-badge" title="Advanced workload rule — emits the workload tag shown\n${esc(tip)}">🎯 ${esc(label)}</span>`;
+      })() : ''}</td>
       <td class="tr-key">${esc(r.tagKey)}</td>
       <td class="tr-val">${esc(r.tagValue)}</td>
       <td class="tr-matches${cnt===0?' is-zero':''}"${cnt===0?' title="This rule isn\'t applied to any VMs — auto-group won\'t list it. Edit the condition to fix."':''}><strong>${cnt}</strong> VM${cnt===1?'':'s'}${cnt===0?' ⚠':''}</td>
@@ -6127,6 +6389,75 @@ function _skurResolveWorkloadId(id) {
 function _skurNormaliseWorkloadTagValue(v) {
   const it = _skurResolveWorkloadId(v);
   return it ? it.canonId : (v || '');
+}
+// Returns an array of Azure family letters (e.g. ['E','FX']) that correspond to
+// the VM's workload tag, or null if the VM has no workload tag. All families
+// listed for the workload in AZURE_VM_TYPES are included — replace semantics.
+function _skurWorkloadFamiliesForVm(vm) {
+  if (!vm) return null;
+  const tags = (typeof skurTagsForVm === 'function') ? skurTagsForVm(vm) : [];
+  const wlTag = tags.find(t => t.key === 'workload');
+  if (!wlTag) return null;
+  const item = _skurResolveWorkloadId(wlTag.value);
+  if (!item) return null;
+  // item.value is "family:slug" — extract the slug and match all families with it
+  const colonIdx = (item.value || '').indexOf(':');
+  if (colonIdx === -1) return null;
+  const slug = item.value.slice(colonIdx + 1);
+  const families = [];
+  for (const t of AZURE_VM_TYPES) {
+    for (const f of t.families) {
+      if (f.workloads.some(w => _skurWorkloadSlug(w) === slug)) families.push(f.family);
+    }
+  }
+  return families.length ? families : null;
+}
+function _skurWorkloadInfoForVm(vm) {
+  if (!vm) return null;
+  const tags = (typeof skurTagsForVm === 'function') ? skurTagsForVm(vm) : [];
+  const wlTag = tags.find(t => t.key === 'workload');
+  if (!wlTag) return null;
+  const item = _skurResolveWorkloadId(wlTag.value);
+  if (!item) return null;
+  return {
+    canonId: item.canonId || wlTag.value,
+    tagValue: `${wlTag.key}:${item.canonId || wlTag.value}`,
+    name: item.name || item.value || wlTag.value,
+    family: item.family || '',
+    series: item.series || '',
+    desc: item.desc || '',
+    families: _skurWorkloadFamiliesForVm(vm) || [],
+  };
+}
+function _skurGroupWorkloadSummary(g, byKey) {
+  if (!g || !Array.isArray(g.members) || !g.members.length) return null;
+  const items = new Map();
+  let taggedVmCount = 0;
+  for (const vmKey of g.members) {
+    const vm = byKey ? byKey.get(vmKey) : null;
+    const info = _skurWorkloadInfoForVm(vm);
+    if (!info) continue;
+    taggedVmCount++;
+    const row = items.get(info.canonId) || {
+      canonId: info.canonId,
+      name: info.name,
+      families: info.families.slice(),
+      count: 0,
+    };
+    row.count++;
+    items.set(info.canonId, row);
+  }
+  if (!taggedVmCount) return null;
+  const workloads = [...items.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+  });
+  return {
+    taggedVmCount,
+    totalVmCount: g.members.length,
+    workloads,
+    mixed: workloads.length > 1,
+  };
 }
 // Type prefix for the canonical workload id (e.g. 'workload-gen-01'). Stable —
 // adding a new type would need its own prefix here.
@@ -6527,7 +6858,7 @@ let _skurEditingWorkloadRuleId = null;
 function openSkurWorkloadRuleModal(ruleId) {
   _skurEditingWorkloadRuleId = ruleId || null;
   const r = ruleId ? skurTagRules.find(x => x.id === ruleId) : null;
-  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🔧 Add workload rule';
+  document.getElementById('skurWorkloadRuleModalTitle').textContent = r ? '✏ Edit workload rule' : '🎯 Add workload rule';
   _skurPopulateWorkloadFieldSelect(r ? r.field : 'name');
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
@@ -6831,13 +7162,12 @@ function renderSkurVmGrid() {
         }
         if (t.key === 'workload') {
           const wlIt = (typeof _skurResolveWorkloadId === 'function') ? _skurResolveWorkloadId(t.value) : null;
-          const wlTipParts = [`Workload (advanced rule) · ${t.key}:${t.value}`];
-          if (wlIt) {
-            wlTipParts.push(`${wlIt.name}${wlIt.family ? ` (Family ${wlIt.family}${wlIt.series ? ' · ' + wlIt.series : ''})` : ''}`);
-            if (wlIt.desc) wlTipParts.push(wlIt.desc);
-          }
-          const wlTip = wlTipParts.join('\n');
-          return `<span class="skur-tag-chip workload" title="${esc(wlTip)}">🎯 ${esc(t.key)}:${esc(t.value)}</span>`;
+          const canonical = t.value;
+          const name = wlIt && wlIt.name;
+          const desc = wlIt && wlIt.desc;
+          const { label, tip } = skurFormatWorkloadBadgeLabel({ name, tag: t.value, canonical, desc });
+          const wlTip = `Workload (advanced rule) · ${t.key}:${t.value}` + (tip ? `\n${tip}` : '');
+          return `<span class="skur-tag-chip workload" title="${esc(wlTip)}">🎯 ${esc(label)}</span>`;
         }
         return `<span class="skur-tag-chip" title="${esc(t.key)}:${esc(t.value)} (from rule)">${esc(t.key)}:${esc(t.value)}</span>`;
       }).join('');
@@ -7058,8 +7388,10 @@ const SKUR_CATALOG_META = Object.freeze({
   baseCurrency: 'USD',
   basis: 'Linux PAYG list price · approximate · public published rates',
 });
-// FX rates relative to USD (illustrative; real rates come from a future FX feed).
-const SKUR_FX_RATES_USD = Object.freeze({ USD:1.00, AUD:1.50, NZD:1.66, EUR:0.92, GBP:0.78 });
+// Currency: when live data is loaded the price table is already in the
+// selected currency (Azure Retail Prices API supports 17 currencies natively).
+// The seed catalog is USD only; non-USD selection on seed data shows USD
+// numbers in the selected currency's locale formatting until live data loads.
 // Term price multipliers vs PAYG (rough industry averages; real values come from Azure pricing API).
 const SKUR_TERM_DISCOUNTS = Object.freeze({ payg:1.00, ri1:0.62, ri3:0.42, sp1:0.78, sp3:0.58 });
 const SKUR_TERM_LABELS = Object.freeze({ payg:'PAYG', ri1:'1y RI', ri3:'3y RI', sp1:'1y SP', sp3:'3y SP' });
@@ -7151,10 +7483,20 @@ function _skurNormaliseLiveSkus(skus, prices) {
   for (const s of skus) {
     if (!s || !s.name) continue;
     const fam = _skurDeriveFamily(s.name);
-    if (!['B','D','E','F'].includes(fam)) continue; // limit to GP/burst/memory/compute (matches seed scope)
+    // Catalog scope: B/D/E/F/L/M. DC/EC (confidential compute) collapse to D/E
+    // via the single-letter derivation; FX (compute) collapses to F. GPU (N*),
+    // HPC (H*) and legacy A/G are deliberately excluded — they need family-aware
+    // scoring (GPU count, RDMA, etc.) that the current ranker doesn't model.
+    if (!['B','D','E','F','L','M'].includes(fam)) continue;
     const sizeKey = String(s.name).replace(/^Standard_/, '');
     const p = prices[sizeKey];
-    if (!p || typeof p.linux !== 'number' || !isFinite(p.linux) || p.linux <= 0) continue;
+    if (!p) continue;
+    // OS-aware pricing: keep both Linux and Windows hourly USD on the catalog
+    // entry. Either may be null if that OS variant isn't published for this SKU
+    // in this region. Skip only if BOTH are missing.
+    const linux   = (typeof p.linux   === 'number' && isFinite(p.linux)   && p.linux   > 0) ? p.linux   : null;
+    const windows = (typeof p.windows === 'number' && isFinite(p.windows) && p.windows > 0) ? p.windows : null;
+    if (linux == null && windows == null) continue;
     if (Array.isArray(s.restrictions) && s.restrictions.length) continue; // skip region/zone-restricted
     out.push({
       name: s.name,
@@ -7164,45 +7506,73 @@ function _skurNormaliseLiveSkus(skus, prices) {
       processor: _skurDeriveProcessor(s.name),
       premiumIo: !!s.premiumIO,
       burstable: fam === 'B',
-      hourlyUsd: p.linux,
+      // Back-compat: hourlyUsd is the Linux price (falls back to Windows when Linux is unknown).
+      // New per-OS fields drive OS-aware pricing via _skurBaseHourlyUsd().
+      hourlyUsd: linux != null ? linux : windows,
+      linuxUsd: linux,
+      windowsUsd: windows,
     });
   }
   return out;
 }
-async function _skurLoadRegionData(regionName) {
+async function _skurLoadRegionData(regionName, currency) {
   if (!skurLiveData || !regionName) return null;
-  const cached = skurLiveData.byRegion[regionName];
-  if (cached) return cached;
-  const [vmJson, pricingJson] = await Promise.all([
-    _skurFetchJson(`data/${regionName}.json`),
-    _skurFetchJson(`data/${regionName}-pricing.json`),
-  ]);
-  if (!vmJson || !pricingJson) {
-    skurLiveData.byRegion[regionName] = { available: false };
-    return skurLiveData.byRegion[regionName];
-  }
-  const normalized = _skurNormaliseLiveSkus(vmJson.skus, pricingJson.prices);
-  // Build the family-prefix set from the *raw* sku list so the workload picker
-  // can grey out workloads whose family has no SKUs in this region, even for
-  // families that the normalised catalog filters out (GPU, HPC, ...).
-  const familySet = new Set();
-  if (Array.isArray(vmJson.skus)) {
-    for (const s of vmJson.skus) {
-      if (!s || !s.name) continue;
-      if (Array.isArray(s.restrictions) && s.restrictions.length) continue;
-      const fam = _skurFamilyPrefixFromSkuName(s.name);
-      if (fam) familySet.add(fam);
+  currency = (currency || (skurPlan && skurPlan.currency) || 'USD').toUpperCase();
+  let entry = skurLiveData.byRegion[regionName];
+
+  // Fetch the raw VM SKU list once per region (it's currency-agnostic).
+  if (!entry || !entry.vmJson) {
+    const vmJson = await _skurFetchJson(`data/${regionName}.json`);
+    if (!vmJson) {
+      entry = { available: false };
+      skurLiveData.byRegion[regionName] = entry;
+      return entry;
     }
+    // Build the family-prefix set from the raw sku list so the workload picker
+    // can grey out workloads whose family has no SKUs in this region.
+    const familySet = new Set();
+    if (Array.isArray(vmJson.skus)) {
+      for (const s of vmJson.skus) {
+        if (!s || !s.name) continue;
+        if (Array.isArray(s.restrictions) && s.restrictions.length) continue;
+        const fam = _skurFamilyPrefixFromSkuName(s.name);
+        if (fam) familySet.add(fam);
+      }
+    }
+    entry = {
+      available: false,
+      vmJson,
+      familySet,
+      displayName: vmJson.regionDisplayName,
+      lastUpdated: vmJson.lastUpdated,
+      rawCount: Array.isArray(vmJson.skus) ? vmJson.skus.length : 0,
+      pricingByCurrency: Object.create(null),
+      normalized: [],
+      currentCurrency: null,
+    };
+    skurLiveData.byRegion[regionName] = entry;
   }
-  const entry = {
-    available: normalized.length > 0,
-    normalized,
-    familySet,
-    lastUpdated: vmJson.lastUpdated,
-    displayName: vmJson.regionDisplayName,
-    rawCount: Array.isArray(vmJson.skus) ? vmJson.skus.length : 0,
-  };
-  skurLiveData.byRegion[regionName] = entry;
+
+  // Fetch pricing for this currency on demand (cached per region).
+  if (!(currency in entry.pricingByCurrency)) {
+    const suffix = currency === 'USD' ? '' : `-${currency.toLowerCase()}`;
+    let pricingJson = await _skurFetchJson(`data/${regionName}-pricing${suffix}.json`);
+    // Fall back to USD if a specific currency file is missing (e.g. pipeline
+    // hasn't republished yet after the multi-currency rollout).
+    if (!pricingJson && currency !== 'USD') {
+      pricingJson = await _skurFetchJson(`data/${regionName}-pricing.json`);
+    }
+    entry.pricingByCurrency[currency] = pricingJson || null;
+  }
+  const pricing = entry.pricingByCurrency[currency];
+
+  // Re-normalise SKUs against the active currency's price table.
+  if (entry.currentCurrency !== currency) {
+    entry.normalized = pricing ? _skurNormaliseLiveSkus(entry.vmJson.skus, pricing.prices) : [];
+    entry.currentCurrency = currency;
+    entry.lastUpdated = (pricing && pricing.lastUpdated) || entry.vmJson.lastUpdated;
+  }
+  entry.available = entry.normalized.length > 0;
   return entry;
 }
 async function skurInitLiveData() {
@@ -7215,7 +7585,7 @@ async function skurInitLiveData() {
   ]);
   if (!metadata) return; // pipeline hasn't published yet — stay on seed
   skurLiveData = { metadata, regions: Array.isArray(regions) ? regions : [], byRegion: {} };
-  await _skurLoadRegionData(skurPlan.region);
+  await _skurLoadRegionData(skurPlan.region, skurPlan.currency);
   // Re-render UI now that live catalog might be richer
   try { updateSkurDataPill(); } catch (_) {}
   try { renderSkurGroups(); } catch (_) {}
@@ -7238,16 +7608,33 @@ function skurCatalogForRegion(region) {
   if (region === 'australiaeast') return SKUR_SKU_CATALOG_AUE;
   return [];
 }
+// Resolve the right base USD hourly for a SKU given an OS + AHUB context.
+// Reads plan.os ('Windows' | 'Linux' | 'Other') and plan.ahub (boolean).
+// Windows VMs without AHUB use the Windows price (includes the OS licence
+// surcharge); Windows VMs with AHUB and all non-Windows VMs use the Linux price.
+// Falls back gracefully when one of the per-OS prices is unknown (e.g. seed
+// catalog only has Linux, or a SKU only publishes a Windows price).
+function _skurBaseHourlyUsd(sku, plan) {
+  if (!sku) return null;
+  const os    = plan && plan.os;
+  const ahub  = !!(plan && plan.ahub);
+  const linux   = (sku.linuxUsd   != null) ? sku.linuxUsd   : sku.hourlyUsd;
+  const windows = (sku.windowsUsd != null) ? sku.windowsUsd : null;
+  if (os === 'Windows' && !ahub && windows != null) return windows;
+  if (linux != null) return linux;
+  return windows; // last-resort fallback
+}
 function skurEffectiveHourlyUsd(sku, plan) {
-  if (!sku || sku.hourlyUsd == null) return null;
+  const base = _skurBaseHourlyUsd(sku, plan);
+  if (base == null) return null;
   const term = SKUR_TERM_DISCOUNTS[(plan && plan.term) || 'payg'] || 1;
-  return sku.hourlyUsd * term;
+  return base * term;
 }
 function skurEffectiveHourly(sku, plan) {
-  const usd = skurEffectiveHourlyUsd(sku, plan);
-  if (usd == null) return null;
-  const fx = SKUR_FX_RATES_USD[(plan && plan.currency) || 'USD'] || 1;
-  return usd * fx;
+  // Live data is fetched in the selected currency, so no FX conversion is
+  // needed. The legacy *Usd helper name is retained for back-compat; the
+  // returned number is in whatever currency the price table was loaded with.
+  return skurEffectiveHourlyUsd(sku, plan);
 }
 function skurMonthlyCost(sku, plan) {
   const h = skurEffectiveHourly(sku, plan);
@@ -7276,7 +7663,7 @@ function updateSkurDataPill() {
     if (status === 'live') {
       const m = skurLiveData && skurLiveData.metadata;
       const asOf = (m && m.lastUpdated && skurFormatRefreshDate(m.lastUpdated)) || (m && m.lastUpdatedDisplay) || (m && m.lastUpdated) || 'recently';
-      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nLast refreshed: ${asOf}\nBasis: Linux PAYG list price (live USD)\n\nClick for details.`;
+      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nLast refreshed: ${asOf}\nBasis: PAYG list price (live, ${skurPlan.currency})\n\nClick for details.`;
     } else {
       pill.title = `${cat.length} VM SKUs available for ${regionLabel}.\n\nSource: ${SKUR_CATALOG_META.source} · as of ${SKUR_CATALOG_META.asOfDate}\nBasis: ${SKUR_CATALOG_META.basis}\n\nClick for details.`;
     }
@@ -7310,10 +7697,10 @@ function skurShowDataPillInfo() {
       `Regions with data: ${m && m.regionsWithData ? m.regionsWithData : '?'} of ${m && m.physicalRegionCount ? m.physicalRegionCount : '?'} physical`,
       ``,
       `Selected region: ${regionLabel} → ${cat.length} of ${entry ? entry.rawCount : '?'} raw SKUs after eligibility filter`,
-      `Filter: B-series (burstable), Dxx (general), Exx (memory), Fxx (compute) · region-restricted SKUs excluded`,
+      `Filter: B (burstable), D (general), E (memory), F (compute), L (storage), M (memory-optimised) · region-restricted SKUs excluded`,
       ``,
-      `⚠ Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
-      `AHUB pricing is decorative until Windows pricing flows through the pipeline.`,
+      `⚠ Prices are sourced directly from the Azure Retail Prices API in the selected currency. Term discounts (RI / SP) are rough industry averages.`,
+      `Windows VMs use the published Windows hourly rate; toggle AHUB on a group to price them at the Linux rate (BYO licence).`,
     ];
     alert(lines.join('\n'));
     return;
@@ -7332,8 +7719,8 @@ function skurShowDataPillInfo() {
     `Coverage: ${cat.length ? 'B-series (burstable), Dsv5/Dasv5 (general), Esv5 (memory), Fsv2 (compute)' : '— none —'}`,
     ``,
     `⚠ All prices are approximate public-list values for illustration only.`,
-    `Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
-    `AHUB pricing is decorative until Windows pricing lands with the Phase 1 data pipeline.`,
+    `Live data uses Azure Retail Prices API in the selected currency. Term discounts (RI / SP) are rough industry averages.`,
+    `Seed catalog ships USD Linux pricing only — Windows VMs and non-USD currencies display USD numbers until live data loads.`,
   ];
   alert(lines.join('\n'));
 }
@@ -7343,11 +7730,14 @@ document.addEventListener('skurPlanChanged', updateSkurDataPill);
 document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
 document.addEventListener('skurPlanChanged', () => { try { renderSkurVmGrid(); } catch (_) {} });
 document.addEventListener('skurPlanChanged', () => { try { renderSkuRecStatCards(); } catch (_) {} });
-// On region change, lazily load that region's live data if available, then re-render.
+// On region OR currency change, lazily load that region's pricing for the
+// active currency, then re-render. Pricing is fetched per currency on demand
+// and cached on the region entry.
 document.addEventListener('skurPlanChanged', (ev) => {
   if (!skurLiveData) return;
-  if (ev && ev.detail && ev.detail.field !== 'region' && ev.detail.field !== '*') return;
-  _skurLoadRegionData(skurPlan.region).then(() => {
+  const field = ev && ev.detail && ev.detail.field;
+  if (field !== 'region' && field !== 'currency' && field !== '*') return;
+  _skurLoadRegionData(skurPlan.region, skurPlan.currency).then(() => {
     try { updateSkurDataPill(); } catch (_) {}
     try { renderSkurGroups(); } catch (_) {}
     try { renderSkurVmGrid(); } catch (_) {}
@@ -7528,7 +7918,7 @@ function bumpImportTiles(){
 const SKUR_SIZING_MODES = Object.freeze({
   balanced:   { id:'balanced',   label:'Balanced',    icon:'⚖', desc:'~30% headroom on vCPU and RAM' },
   cost:       { id:'cost',       label:'Cost',        icon:'💰', desc:'cheapest with ≥10% headroom' },
-  rightsized: { id:'rightsized', label:'Right-sized', icon:'🎯', desc:'tightest fit; minimises waste' },
+  rightsized: { id:'rightsized', label:'Right-sized', icon:'📏', desc:'tightest fit; minimises waste' },
 });
 function skurNormaliseMode(mode) { return SKUR_SIZING_MODES[mode] ? mode : 'balanced'; }
 // Headroom thresholds (configurable later via plan settings).
@@ -7572,11 +7962,14 @@ function skurScoreRightsized(fit, sku, plan) {
 }
 function skurScoreSku(mode, vm, sku, plan) {
   const fit = skurFitFor(vm, sku); if (!fit) return Infinity;
+  // Enrich plan with this VM's OS family so the cost helpers pick the correct
+  // Linux/Windows base price (AHUB on the plan still waives the Windows surcharge).
+  const planForVm = Object.assign({}, plan || {}, { os: getOSFamily(vm && vm.os) });
   switch (skurNormaliseMode(mode)) {
-    case 'cost':       return skurScoreCost(fit, sku, plan);
-    case 'rightsized': return skurScoreRightsized(fit, sku, plan);
+    case 'cost':       return skurScoreCost(fit, sku, planForVm);
+    case 'rightsized': return skurScoreRightsized(fit, sku, planForVm);
     case 'balanced':
-    default:           return skurScoreBalanced(fit, sku, plan);
+    default:           return skurScoreBalanced(fit, sku, planForVm);
   }
 }
 function skurRankCandidates(vm, eligible, mode, plan) {
@@ -7596,7 +7989,7 @@ try { window.skurDebugScore = function(vmName, mode) {
   if (!vm) return { error: `VM not found: ${vmName}` };
   const eligible = skurCatalogForRegion(skurPlan.region);
   const ranked = skurRankCandidates(vm, eligible, mode || 'balanced', skurPlan);
-  return ranked.slice(0, 5).map(r => ({ sku: r.sku.name, vcpu: r.sku.vcpu, ramGb: r.sku.ramGb, hourlyUsd: r.sku.hourlyUsd, score: r.score.toFixed(4) }));
+  return ranked.slice(0, 5).map(r => ({ sku: r.sku.name, vcpu: r.sku.vcpu, ramGb: r.sku.ramGb, linuxUsd: r.sku.linuxUsd, windowsUsd: r.sku.windowsUsd, score: r.score.toFixed(4) }));
 }; } catch (_) {}
 
 // === Phase 5 slice 4: per-VM recommendation resolver ===
@@ -7796,9 +8189,17 @@ function skurRenderApList(){
   if (!g || !vm) { list.innerHTML = '<div class="skur-ap-empty">Group or VM no longer available.</div>'; return; }
   const rec = skurRecommendForVm(vm);
   const ranked = (rec && Array.isArray(rec.ranked)) ? rec.ranked : [];
+  // Per-VM pricing context (term + AHUB + OS) for alt-list cost rendering.
+  const vmPlan = (rec && rec.plan) ? rec.plan : Object.assign({}, _skurGroupPlan(g), { os: getOSFamily(vm.os) });
   // Recommended = mode-default first ranked SKU (ignoring override).
-  const eligible = skurEligibleSkusForGroup(g, skurPlan.region);
-  const recRanked = (eligible && eligible.length) ? skurRankCandidates(vm, eligible, skurNormaliseMode(g.mode), skurPlan) : [];
+  // Apply workload family filter to match skurRecommendForVm's eligible pool.
+  let eligible = skurEligibleSkusForGroup(g, skurPlan.region);
+  const wlFamilies = _skurWorkloadFamiliesForVm(vm);
+  if (wlFamilies) {
+    const famSet = new Set(wlFamilies);
+    eligible = eligible.filter(s => famSet.has(s.family));
+  }
+  const recRanked = (eligible && eligible.length) ? skurRankCandidates(vm, eligible, skurNormaliseMode(g.mode), vmPlan) : [];
   const recName = (recRanked[0] && recRanked[0].sku && recRanked[0].sku.name) || (ranked[0] && ranked[0].name) || null;
   const currName = (rec && rec.sku && rec.sku.name) || null;
   let recs = ranked.map((sku, i) => {
@@ -7807,7 +8208,7 @@ function skurRenderApList(){
     const ramH = (sku.ramGb - ram) / sku.ramGb;
     const headroom = Math.round(Math.min(cpuH, ramH) * 100);
     let cost = null;
-    try { cost = skurMonthlyCost(sku, skurPlan); } catch (_) { cost = null; }
+    try { cost = skurMonthlyCost(sku, vmPlan); } catch (_) { cost = null; }
     return { sku, rank: i, headroom, cost: (cost == null || !isFinite(cost)) ? null : cost };
   });
   const f = _skurApFilters; const nq = f.name.toLowerCase();
@@ -7833,10 +8234,13 @@ function skurRenderApList(){
   // Sub-line
   const subEl = document.getElementById('skurApSub');
   if (subEl) {
+    const wlNote = (rec && rec.workloadConstrained && Array.isArray(rec.workloadFamilies) && rec.workloadFamilies.length)
+      ? ` · workload pool <strong>${_skurEsc(rec.workloadFamilies.join(', '))}</strong>`
+      : '';
     const totalLabel = (filtered.length === ranked.length)
       ? `${ranked.length} eligible SKU${ranked.length===1?'':'s'}`
       : `${filtered.length} of ${ranked.length} SKUs match`;
-    subEl.innerHTML = `${vm.cpus||'?'} vCPU · ${vm.ram||'?'} GB · ${_skurEsc(vm.os||vm.guestOS||'unknown OS')} — group <strong>${_skurEsc(g.name)}</strong> (${_skurEsc(skurNormaliseMode(g.mode))}) · ${_skurEsc(totalLabel)}`;
+    subEl.innerHTML = `${vm.cpus||'?'} vCPU · ${vm.ram||'?'} GB · ${_skurEsc(vm.os||vm.guestOS||'unknown OS')} — group <strong>${_skurEsc(g.name)}</strong> (${_skurEsc(skurNormaliseMode(g.mode))})${wlNote} · ${_skurEsc(totalLabel)}`;
   }
   const arrow = k => (_skurApSort.key === k) ? (_skurApSort.dir === 1 ? '↑' : '↓') : '↕';
   const head = `<div class="skur-ap-row head">
@@ -7908,10 +8312,45 @@ function skurRecommendForVm(vm) {
     // Ungrouped or multi-group: balanced + full catalog (no group constraints applied).
     eligible = skurCatalogForRegion(skurPlan.region);
   }
-  if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName };
-  const ranked = skurRankCandidates(vm, eligible, mode, skurPlan);
-  if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length };
-  // Stage 9.5 M4: apply manual SKU override if set on the (single) group.
+  // Workload tag override: replace eligible pool with workload-family SKUs (replace semantics).
+  // Other constraints (premiumIO, processor, retire) are already baked into eligible; we just narrow families.
+  let workloadConstrained = false;
+  let workloadFamilies = null;
+  let workloadName = null;
+  let workloadTag = null;
+  let workloadFamily = null;
+  let workloadSeries = null;
+  let workloadDesc = null;
+  if (group) {
+    const wlInfo = _skurWorkloadInfoForVm(vm);
+    const wlFamilies = wlInfo && Array.isArray(wlInfo.families) ? wlInfo.families : null;
+    if (wlFamilies && wlFamilies.length) {
+      const famSet = new Set(wlFamilies);
+      // Replace semantics: workload tag overrides the group's families constraint.
+      // Rebuild the pool from the catalog with all group constraints EXCEPT families,
+      // then narrow to the workload's families. Otherwise a group locked to e.g.
+      // ['B','D','E','F'] would zero out any L-tagged VM before we ever look at L.
+      const gc = skurGroupConstraints(group) || {};
+      const gcNoFam = { ...gc, families: [] };
+      eligible = skurEligibleSkus(gcNoFam, skurPlan.region).filter(s => famSet.has(s.family));
+      workloadConstrained = true;
+      workloadFamilies = wlFamilies;
+      workloadName = wlInfo && wlInfo.name ? wlInfo.name : null;
+      workloadTag = wlInfo && wlInfo.tagValue ? wlInfo.tagValue : null;
+      workloadFamily = wlInfo && wlInfo.family ? wlInfo.family : null;
+      workloadSeries = wlInfo && wlInfo.series ? wlInfo.series : null;
+      workloadDesc = wlInfo && wlInfo.desc ? wlInfo.desc : null;
+    }
+  }
+  if (!eligible || !eligible.length) return { state: 'no-eligible', mode, groupName, workloadConstrained, workloadFamilies, workloadName, workloadTag, workloadFamily, workloadSeries, workloadDesc };
+  // OS-aware pricing context: per-group plan carries term + AHUB; per-VM enrichment
+  // adds the OS family so cost helpers pick the right Linux/Windows base price.
+  const groupPlan = group ? _skurGroupPlan(group) : Object.assign({}, skurPlan);
+  const vmPlan = Object.assign({}, groupPlan, { os: getOSFamily(vm.os) });
+  const ranked = skurRankCandidates(vm, eligible, mode, vmPlan);
+  if (!ranked.length) return { state: 'no-match', mode, groupName, eligibleCount: eligible.length, workloadConstrained, workloadFamilies, workloadName, workloadTag, workloadFamily, workloadSeries, workloadDesc };
+  // Apply manual SKU override if set on the group.
+  // If the stored override is outside the workload-constrained pool, idx === -1 and we silently ignore it.
   let chosenIdx = 0;
   let overridden = false;
   if (group && group.skuOverrides) {
@@ -7930,6 +8369,14 @@ function skurRecommendForVm(vm) {
     ranked: ranked.map(r => r.sku).slice(0, 60),
     eligibleCount: eligible.length,
     overridden,
+    workloadConstrained,
+    workloadFamilies,
+    workloadName,
+    workloadTag,
+    workloadFamily,
+    workloadSeries,
+    workloadDesc,
+    plan: vmPlan, // carries term + ahub + os so downstream cost helpers stay correct
     why: _skurWhyForRec(mode, chosen, ranked, chosenIdx, overridden),
     retirement: _skurRetirementFor(chosen.sku && chosen.sku.name) || null,
   };
@@ -7937,7 +8384,9 @@ function skurRecommendForVm(vm) {
 }
 function skurRecCostMonthly(rec) {
   if (!rec || rec.state !== 'ok' || !rec.sku) return null;
-  return skurMonthlyCost(rec.sku, skurPlan);
+  // Prefer the plan attached when the rec was produced (carries per-group term +
+  // AHUB + per-VM OS). Fall back to the global plan for older callers.
+  return skurMonthlyCost(rec.sku, rec.plan || skurPlan);
 }
 
 // CSV export — per-group / all / OOS / everything
@@ -8086,6 +8535,54 @@ function skurExportExcel(scope) {
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows.map(_safeRow)), 'Summary');
 
+  // Sheet: Notifications (captures group-level nudge/summary insights shown in UI)
+  const notifRows = [['Type','Group','Severity','Count','Details','Suggested_Action']];
+  groups.forEach(g => {
+    const exc = skurExceptionCountsForGroup(g);
+    const c = skurGroupConstraints(g);
+    const retVal = (c.retireMonths == null || c.retireMonths === 'any') ? 'any' : c.retireMonths;
+    const retOn = retVal !== 'any';
+    const blocked = Number(exc && exc.noEligible || 0);
+    const retiringAny = Number(exc && exc.retiringAny || 0);
+    if (retiringAny > 0 && !retOn) {
+      notifRows.push([
+        'retiring-family-nudge',
+        g.name,
+        'warning',
+        retiringAny,
+        `${retiringAny} VM${retiringAny===1?'':'s'} recommended a retiring SKU family.`,
+        'Set Retire < constraint (for example 12 months) to steer to longer-lived families.',
+      ]);
+    }
+    if (blocked > 0) {
+      notifRows.push([
+        'constraints-blocked',
+        g.name,
+        'warning',
+        blocked,
+        `${blocked} VM${blocked===1?'':'s'} have no eligible SKU under the current group constraints.`,
+        'Loosen one or more constraints (family, processor, Premium IO, burstable exclusion, or Retire <) and re-check recommendations.',
+      ]);
+    }
+    const ws = _skurGroupWorkloadSummary(g, byKey);
+    if (ws && ws.taggedVmCount > 0) {
+      const topTags = (ws.workloads || []).slice(0, 5).map(w => `${w.name} (${w.count})`).join('; ');
+      notifRows.push([
+        'workload-summary',
+        g.name,
+        ws.mixed ? 'warning' : 'info',
+        ws.taggedVmCount,
+        `${ws.taggedVmCount} of ${ws.totalVmCount} VMs are workload-tagged. Top tags: ${topTags || 'n/a'}`,
+        ws.mixed
+          ? 'Consider splitting mixed workload groups for cleaner constraint behavior and reporting.'
+          : 'Workload-tagged VMs are constrained individually; sizing mode still applies inside that pool.',
+      ]);
+    }
+  });
+  if (notifRows.length > 1) {
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(notifRows.map(_safeRow)), 'Notifications');
+  }
+
   // Sheet: All recommendations (combined)
   const allRows = [['Group','Mode', ...vmRowHeaders]];
   groups.forEach(g => g.members.forEach(k => {
@@ -8094,7 +8591,7 @@ function skurExportExcel(scope) {
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(allRows.map(_safeRow)), 'All recommendations');
 
   // Per-group sheets (Excel sheet name max 31 chars; must avoid : \ / ? * [ ])
-  const usedNames = new Set(['Summary','All recommendations']);
+  const usedNames = new Set(['Summary','All recommendations', ...(notifRows.length > 1 ? ['Notifications'] : [])]);
   const sanitiseSheetName = (raw, idx) => {
     let n = String(raw || ('Group '+(idx+1))).replace(/[:\\\/\?\*\[\]]/g, '_').trim();
     if (n.length > 28) n = n.slice(0, 28);
@@ -8161,7 +8658,7 @@ function skurConfidenceFor(rec) {
 
 // === Phase 5 slice 2 (resumed): per-group eligibility filter ===
 const SKUR_GROUP_CONSTRAINT_DEFAULTS = Object.freeze({
-  families: ['B','D','E','F'],
+  families: ['B','D','E','F','L','M'],
   excludeBurstable: false,
   requirePremiumIo: false,
   processor: 'any',
@@ -8399,9 +8896,9 @@ function renderSkuRecStatCards() {
   const eligibleHelp = [
     "<strong>Eligible SKUs</strong> are the VM sizes the recommender can pick from in this region.",
     "",
-    "Today that's the latest-gen B / D / E / F families with Linux pay-as-you-go pricing &mdash; the safe defaults that fit most general-purpose VMware workloads.",
+    "Today that covers the burstable, general-purpose, memory-optimised, compute-optimised, storage-optimised and large-memory families (B / D / E / F / L / M, including DC / EC confidential-compute and FX variants) with Linux pay-as-you-go pricing &mdash; the families that fit the vast majority of VMware workloads.",
     "",
-    "Azure offers ~1,200+ SKUs per region in total (GPU, HPC, memory-optimised M-series, confidential compute, older generations). Those are excluded for now because they need specialised scoring and pricing before they'd produce sensible recommendations.",
+    "Azure offers ~1,200+ SKUs per region in total. GPU (N-series), HPC (H-series) and legacy A / G families are excluded for now because they need specialised scoring (GPU count, RDMA fabric, etc.) before they'd produce sensible recommendations.",
   ].join('<br>');
   host.innerHTML = [
     card('🖥️', vms.length.toLocaleString(), 'VMs', `${groupedSet.size} grouped · ${ungrouped} ungrouped`),
@@ -8504,7 +9001,10 @@ function hideSampleIndicators() {
   const dtb = document.getElementById('demoTabBanner');
   if (banner) banner.style.display = 'none';
   if (bar) bar.style.display = 'none';
-  if (dropZone) { dropZone.classList.remove('demo-active'); dropZone.style.display = 'none'; }
+  // Keep dropZone visible so re-visiting Start here after a load shows the
+  // file-status bar (filename + Clear & reset) and the tiles for loading
+  // another file. Only the 'demo-active' visual is dropped.
+  if (dropZone) { dropZone.classList.remove('demo-active'); }
   if (howTo) howTo.style.display = 'none';
   if (resetBtn) resetBtn.textContent = '✖ Clear & reset';
   if (dtb) dtb.style.display = 'none';
@@ -8567,6 +9067,9 @@ function loadSampleData(mode) {
   const isResume = !!window._skurAutoResumeNext;
   if (!isResume) showDemoSplash(mode);
   window._isDemoMode = true;
+  // Reset workspace state when switching to demo so stale groups/OOS/rules/tags
+  // from a previously-loaded real dataset don't leak across.
+  _skurResetWorkspaceState();
   allVMs = [...SAMPLE_VMS];
   if (mode === 'full') {
     allData = { vInfo: allVMs, ...SAMPLE_TABS };
@@ -8587,6 +9090,16 @@ function loadSampleData(mode) {
     }
     const wrap = document.getElementById('resetBtnWrap');
     if (wrap) wrap.style.display = 'block';
+    // Polished loaded view (Option A) — surfaces a richer summary for the demo too.
+    const demoTabs = Object.keys(allData || { vInfo: true });
+    const demoLabel = mode === 'full' ? 'Demo dataset (full)' : 'Demo dataset (vInfo only)';
+    renderLoadedView({
+      filename: demoLabel,
+      vmCount: allVMs.length,
+      detectedTabs: demoTabs,
+      dupCount: 0,
+      isDemo: true,
+    });
   } catch(_) {}
   // Update toggle button styles
   const btnV = document.getElementById('sampleBtnVinfo');
@@ -8879,12 +9392,17 @@ function renderTopology() {
   const clusterCount = Object.values(dcMap).reduce((s, c) => s + Object.keys(c).length, 0);
   const hostCount = hasHostData ? hosts.length : '—';
   const vmsPerHost = hasHostData && hosts.length ? (vms.length / hosts.length).toFixed(1) : '—';
-  // Azure family mapping
-  const families = { 'B-series': 0, 'D-series': 0, 'E-series': 0, 'F-series': 0 };
+  // Azure family mapping (Indicative Azure Family Fit chart on the Topology page).
+  // Heuristic bucketing using RVTools cpu/ram/disk — not the SKU recommender.
+  // Order matters: check M (memory monsters) and L (storage-heavy) first so they
+  // don't get swallowed by the high-ratio E bucket or the general-purpose D bucket.
+  const families = { 'B-series': 0, 'D-series': 0, 'E-series': 0, 'F-series': 0, 'L-series': 0, 'M-series': 0 };
   vms.forEach(v => {
-    const cpu = v.cpus || 1; const ram = v.ram || 1;
+    const cpu = v.cpus || 1; const ram = v.ram || 1; const disk = v.disk || 0;
     const ratio = ram / cpu;
-    if (cpu <= 2 && ram <= 8) families['B-series']++;
+    if (ram >= 192) families['M-series']++;            // very high RAM — SAP/HANA-class
+    else if (disk >= 1000) families['L-series']++;     // storage-heavy (NVMe/Lsv profile)
+    else if (cpu <= 2 && ram <= 8) families['B-series']++;
     else if (ratio >= 8) families['E-series']++;
     else if (ratio <= 2) families['F-series']++;
     else families['D-series']++;
@@ -8919,10 +9437,10 @@ function renderTopology() {
       },
       scales:{x:{grid:{color:gridColor}, ticks:{color:textColor}, beginAtZero:true, title:{display:true,text:'VM count'}}, y:{grid:{color:gridColor}, ticks:{font:{size:11},color:textColor}}}}
   });
-  // Azure SKU chart
+  // Azure SKU chart (B, D, E, F, L, M)
   const skuLabels = Object.keys(families);
   const skuData = Object.values(families);
-  const skuColors = ['#50E6FF','#0078D4','#8661C5','#107C10'];
+  const skuColors = ['#50E6FF','#0078D4','#8661C5','#107C10','#FFB900','#D83B01'];
   if (charts['azureSKU']) charts['azureSKU'].destroy();
   charts['azureSKU'] = new Chart(document.getElementById('chartAzureSKU'), {
     type:'doughnut', data:{ labels:skuLabels, datasets:[{data:skuData, backgroundColor:skuColors}] },

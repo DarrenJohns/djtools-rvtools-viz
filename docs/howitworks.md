@@ -238,7 +238,7 @@ function applyFilters() {
 
 ---
 
-## 💾 Save / Resume / Share Pipeline *(v1.2.0-beta)*
+## 💾 Save / Resume / Share Pipeline *(v1.1.0)*
 
 Phase 8 added persistence and round-trip without giving up the single-file privacy-first model. There's no server, no upload — everything lives in the browser's own storage layers.
 

@@ -178,6 +178,46 @@ body.dark .drop-zone:hover,[data-theme="dark"] .drop-zone:hover{background:linea
 .file-info.error .help-line{display:block;margin-top:6px;font-weight:500;color:var(--text);opacity:.85;font-size:.82rem;}
 #resetBtn:hover{background:var(--card-bg);color:var(--text);border-color:var(--text-muted);}
 
+/* LOADED STATE — polished card + quicknav + compact re-import row.
+   When #dropZone has class .has-data the welcome banner, big tiles, privacy
+   line and old file-status-bar are hidden, and #loadedView is shown. */
+#dropZone.has-data .ic-welcome,
+#dropZone.has-data .ic-tiles,
+#dropZone.has-data .ic-privacy,
+#dropZone.has-data .file-status-bar{display:none!important;}
+#loadedView{display:none;}
+#dropZone.has-data #loadedView{display:block;}
+.loaded-card{background:linear-gradient(135deg,rgba(16,124,16,.10),rgba(0,120,212,.06));border:1px solid rgba(16,124,16,.30);border-radius:var(--radius-lg);padding:20px 22px;display:flex;align-items:center;gap:18px;box-shadow:var(--shadow-sm);}
+.loaded-icon{font-size:32px;line-height:1;flex-shrink:0;}
+.loaded-body{flex:1;min-width:0;}
+.loaded-title{font-size:1rem;font-weight:700;color:var(--text);margin:0 0 4px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;}
+.loaded-filename{color:var(--brand-primary);word-break:break-all;}
+.loaded-meta{font-size:.82rem;color:var(--text-muted);margin:0;display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+.loaded-meta span{display:inline-flex;align-items:center;gap:5px;}
+.loaded-chip-full{background:rgba(16,124,16,.15);color:#0a5d0a;border-radius:12px;padding:2px 9px;font-size:.74rem;font-weight:600;}
+.loaded-chip-vinfo{background:rgba(0,120,212,.10);color:#0078d4;border-radius:12px;padding:2px 9px;font-size:.74rem;font-weight:600;}
+.loaded-chip-warn{background:rgba(201,119,0,.15);color:#8a5a00;border-radius:12px;padding:2px 9px;font-size:.74rem;font-weight:600;}
+.loaded-tabs{font-size:.78rem;color:var(--text-muted);margin:6px 0 0;line-height:1.45;}
+.loaded-tabs strong{color:var(--text);font-weight:600;}
+body.dark .loaded-card,[data-theme="dark"] .loaded-card{background:linear-gradient(135deg,rgba(16,124,16,.18),rgba(0,120,212,.10));border-color:rgba(16,124,16,.45);}
+body.dark .loaded-chip-full,[data-theme="dark"] .loaded-chip-full{background:rgba(16,124,16,.25);color:#7fd47f;}
+body.dark .loaded-chip-vinfo,[data-theme="dark"] .loaded-chip-vinfo{background:rgba(0,120,212,.20);color:#79bdf5;}
+body.dark .loaded-chip-warn,[data-theme="dark"] .loaded-chip-warn{background:rgba(201,119,0,.25);color:#f2c068;}
+@media (max-width:600px){.loaded-card{flex-direction:column;align-items:stretch;text-align:left;}.loaded-card .btn-danger{align-self:flex-start;}}
+.loaded-quicknav{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+.qn-card{background:var(--card-bg,#fff);border:1px solid var(--border-default,#e2e8f0);border-radius:var(--radius-md);padding:16px 18px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:4px;transition:border-color .15s,box-shadow .15s,transform .15s;cursor:pointer;}
+.qn-card:hover,.qn-card:focus-visible{border-color:var(--brand-primary);box-shadow:0 4px 16px var(--brand-tint);transform:translateY(-2px);outline:none;}
+.qn-icon{font-size:22px;line-height:1;}
+.qn-title{font-size:.95rem;font-weight:700;color:var(--text);margin:0;}
+.qn-desc{font-size:.78rem;color:var(--text-muted);margin:0;line-height:1.4;}
+body.dark .qn-card,[data-theme="dark"] .qn-card{background:rgba(30,33,40,.6);}
+.loaded-another{margin-top:18px;background:var(--card-bg,#fff);border:1px solid var(--border-default,#e2e8f0);border-radius:var(--radius-md);padding:14px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.loaded-another-label{font-size:.85rem;color:var(--text-muted);font-weight:500;margin-right:auto;}
+.loaded-another-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.loaded-another .btn-ghost{font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:7px;background:transparent;color:var(--brand-primary);border:1px solid var(--brand-tint-strong,rgba(15,108,189,.25));cursor:pointer;transition:background .15s;}
+.loaded-another .btn-ghost:hover{background:var(--brand-tint);}
+body.dark .loaded-another,[data-theme="dark"] .loaded-another{background:rgba(30,33,40,.6);}
+
 /* SECTION */
 .section{padding:20px 24px;max-width:1400px;margin:0 auto;}
 .section-title{font-size:1.35rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px;color:var(--text);user-select:none;}
@@ -1144,7 +1184,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <button class="tab"        role="tab" data-tab="resources"  onclick="activateTab('resources')">💾 Resources</button>
   <button class="tab"        role="tab" data-tab="ops"        onclick="activateTab('ops')">🩺 Health</button>
   <button class="tab"        role="tab" data-tab="migration"  onclick="activateTab('migration')">🚨 Risks</button>
-  <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">☁️ Azure VMs &amp; Pricing <span class="tab-preview-tag">PREVIEW</span></button>
+  <button class="tab"        role="tab" data-tab="sku-recommender" onclick="activateTab('sku-recommender')">☁️ Azure VMs &amp; Pricing</button>
 </nav>
 
 <!-- Demo-mode reminder shown on non-Import tabs while sample data is loaded -->
@@ -1227,6 +1267,33 @@ body.dark .skur-group-chip{color:#b794f4;}
       <div class="file-info" id="fileInfo" role="status" aria-live="polite"></div>
       <div id="resetBtnWrap" style="display:none;">
         <button id="resetBtn" class="btn btn-danger" onclick="confirmClearLoadedData()">✖ Clear &amp; reset</button>
+      </div>
+    </div>
+
+    <!-- Polished "loaded" state — shown when #dropZone.has-data is set. -->
+    <div id="loadedView" role="region" aria-label="Loaded dataset">
+      <div class="loaded-card">
+        <div class="loaded-icon" aria-hidden="true">✅</div>
+        <div class="loaded-body">
+          <p class="loaded-title">Loaded: <span class="loaded-filename" id="loadedFilename"></span></p>
+          <p class="loaded-meta" id="loadedMeta"></p>
+          <p class="loaded-tabs" id="loadedTabs" style="display:none;"></p>
+        </div>
+        <button class="btn btn-danger" onclick="confirmClearLoadedData()">✖ Clear &amp; reset</button>
+      </div>
+      <div class="loaded-quicknav">
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('overview')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('overview');}"><div class="qn-icon">📊</div><p class="qn-title">Overview</p><p class="qn-desc">Top-line health, OS mix, power state.</p></a>
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('inventory')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('inventory');}"><div class="qn-icon">🖥️</div><p class="qn-title">Inventory</p><p class="qn-desc">Full VM list with filters and search.</p></a>
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('migration')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('migration');}"><div class="qn-icon">🚨</div><p class="qn-title">Risks</p><p class="qn-desc">EOL OS, snapshots, unused capacity.</p></a>
+        <a class="qn-card" role="button" tabindex="0" onclick="activateTab('sku-recommender')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTab('sku-recommender');}"><div class="qn-icon">☁️</div><p class="qn-title">Azure VMs &amp; Pricing</p><p class="qn-desc">Recommend SKUs, group into waves, price.</p></a>
+      </div>
+      <div class="loaded-another">
+        <span class="loaded-another-label">Load a different dataset:</span>
+        <div class="loaded-another-actions">
+          <button type="button" class="btn-ghost" onclick="document.getElementById('fileInputXlsx').click()">📥 Load RVTools .xlsx</button>
+          <button type="button" class="btn-ghost" onclick="document.getElementById('fileInputRvz').click()">📂 Open .rvz workspace</button>
+          <button type="button" class="btn-ghost" onclick="loadSampleData('full')">🎯 Try demo data</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1598,11 +1665,23 @@ body.dark .skur-group-chip{color:#b794f4;}
         <select id="skurPlanRegion" class="pb-select" onchange="skurOnPlanChange('region',this.value)"></select>
         <label class="pb-flabel" for="skurPlanCurrency">💱 Currency:</label>
         <select id="skurPlanCurrency" class="pb-select" onchange="skurOnPlanChange('currency',this.value)">
-          <option value="USD">USD $</option>
-          <option value="AUD">AUD $</option>
-          <option value="NZD">NZD $</option>
-          <option value="EUR">EUR €</option>
-          <option value="GBP">GBP £</option>
+          <option value="USD">USD $ — US Dollar</option>
+          <option value="AUD">AUD $ — Australian Dollar</option>
+          <option value="BRL">BRL R$ — Brazilian Real</option>
+          <option value="CAD">CAD $ — Canadian Dollar</option>
+          <option value="CHF">CHF Fr — Swiss Franc</option>
+          <option value="CNY">CNY ¥ — Chinese Yuan</option>
+          <option value="DKK">DKK kr — Danish Krone</option>
+          <option value="EUR">EUR € — Euro</option>
+          <option value="GBP">GBP £ — Pound Sterling</option>
+          <option value="INR">INR ₹ — Indian Rupee</option>
+          <option value="JPY">JPY ¥ — Japanese Yen</option>
+          <option value="KRW">KRW ₩ — South Korean Won</option>
+          <option value="NOK">NOK kr — Norwegian Krone</option>
+          <option value="NZD">NZD $ — New Zealand Dollar</option>
+          <option value="RUB">RUB ₽ — Russian Ruble</option>
+          <option value="SEK">SEK kr — Swedish Krona</option>
+          <option value="TWD">TWD NT$ — Taiwan Dollar</option>
         </select>
         <span class="skur-freshness-pill" id="skurFreshnessPill" style="margin-left:auto;" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
       </div>
@@ -2008,7 +2087,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
-  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.3.1-beta</div>
+  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.0</div>
 </footer>
 
 <script>
@@ -2477,6 +2556,7 @@ function clearLoadedData() {
   document.getElementById('resetBtnWrap').style.display = 'none';
   const fileInput = document.getElementById('fileInput');
   if (fileInput) fileInput.value = '';
+  try { clearLoadedView(); } catch(_) {}
   try { hideSampleIndicators(); } catch(_) {}
   try { _skurStartFreshFromPrompt(); } catch(_) {
     // Fallback if the helper isn't loaded yet — still surface welcome.
@@ -2500,6 +2580,53 @@ async function confirmClearLoadedData() {
     }
   } catch(_) { ok = false; }
   if (ok) clearLoadedData();
+}
+
+// Render the polished "loaded" view shown inside #dropZone after a successful
+// import (real RVTools .xlsx, .rvz scenario, or demo data). Toggles the
+// .has-data class on #dropZone which hides the welcome banner + tiles and
+// reveals #loadedView. Caller supplies a summary object so the same UI shape
+// is used regardless of source.
+function renderLoadedView({ filename, vmCount, detectedTabs, dupCount, isDemo }) {
+  try {
+    const dz = document.getElementById('dropZone');
+    if (dz) dz.classList.add('has-data');
+    const fn = document.getElementById('loadedFilename');
+    if (fn) fn.textContent = filename || 'Unknown file';
+    const meta = document.getElementById('loadedMeta');
+    const tabs = Array.isArray(detectedTabs) ? detectedTabs : [];
+    const isFull = tabs.length > 1;
+    if (meta) {
+      const parts = [];
+      parts.push(`<span>🖥️ <strong>${Number(vmCount||0).toLocaleString()}</strong> VMs</span>`);
+      if (isFull) parts.push(`<span class="loaded-chip-full">📊 Full export · ${tabs.length} tabs</span>`);
+      else parts.push(`<span class="loaded-chip-vinfo">ℹ️ vInfo only</span>`);
+      if (isDemo) parts.push(`<span class="loaded-chip-vinfo">🎯 Demo data</span>`);
+      if (dupCount && dupCount > 0) parts.push(`<span class="loaded-chip-warn">⚠ ${dupCount} duplicate row${dupCount===1?'':'s'} collapsed</span>`);
+      meta.innerHTML = parts.join('');
+    }
+    const tabsEl = document.getElementById('loadedTabs');
+    if (tabsEl) {
+      if (tabs.length > 0) {
+        tabsEl.style.display = '';
+        const labelWord = isFull ? 'Tabs imported' : 'Tab imported';
+        tabsEl.innerHTML = `<strong>${labelWord}:</strong> ${tabs.map(t => `<code>${esc(t)}</code>`).join(', ')}`;
+      } else {
+        tabsEl.style.display = 'none';
+        tabsEl.innerHTML = '';
+      }
+    }
+  } catch (e) { console.warn('[loadedView] render failed:', e && e.message || e); }
+}
+
+function clearLoadedView() {
+  try {
+    const dz = document.getElementById('dropZone');
+    if (dz) dz.classList.remove('has-data');
+    const fn = document.getElementById('loadedFilename'); if (fn) fn.textContent = '';
+    const meta = document.getElementById('loadedMeta'); if (meta) meta.innerHTML = '';
+    const tabsEl = document.getElementById('loadedTabs'); if (tabsEl) { tabsEl.innerHTML = ''; tabsEl.style.display = 'none'; }
+  } catch(_) {}
 }
 
 function handleFile(file) {
@@ -2533,7 +2660,7 @@ function handleFile(file) {
 // The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
 // at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
 // .rvz scenarios or workspace.json files.
-const APP_VERSION = '1.3.1-beta';
+const APP_VERSION = '1.1.0';
 // Keep footer label in sync with APP_VERSION on load.
 document.addEventListener('DOMContentLoaded', () => {
   const f = document.getElementById('appVersionFooter');
@@ -3484,6 +3611,12 @@ function _applyParsedSheets(parsed, file) {
         showFileError('The vInfo sheet is empty.', 'Confirm the export wasn\'t empty — connect RVTools to a vCenter or host with VMs and re-export.');
         return;
       }
+      // Reset workspace state before swapping in the new dataset so stale groups/
+      // OOS/rules/tags from the previous dataset don't leak across. For .rvz the
+      // caller (_loadScenario) applies the embedded workspace snapshot right after
+      // this returns, which re-populates from the bundle. For autosave-resume the
+      // restore banner / auto-resume flow re-applies after this too.
+      _skurResetWorkspaceState();
       allVMs = parseRVToolsData(data);
       if (!allVMs.length) {
         showFileError('No VMs found after parsing.', 'The vInfo sheet may not contain RVTools-format data, or every row was filtered as a template. Try re-exporting from RVTools.');
@@ -3520,6 +3653,15 @@ function _applyParsedSheets(parsed, file) {
         (isFullExport ? `<br/><span style="color:var(--success);font-weight:600;">📊 Full export detected — ${detectedTabs.length} tabs: ${detectedTabs.join(', ')}</span>` :
         `<br/><span style="color:var(--text-muted);">ℹ️ vInfo only — upload a full RVTools export for enhanced analysis</span>`) + dupNote;
       document.getElementById('resetBtnWrap').style.display = 'block';
+      // Polished loaded view (Option A) — fileInfo above remains populated for
+      // a11y / aria-live, but is hidden by CSS once .has-data is set.
+      renderLoadedView({
+        filename: file.name,
+        vmCount: allVMs.length,
+        detectedTabs,
+        dupCount: (dupInfo && dupInfo.droppedCount) || 0,
+        isDemo: false,
+      });
       updateTabBadges();
       hideSampleIndicators();
       populateFilters();
@@ -4262,6 +4404,18 @@ const SKUR_OOS_REASONS = {
 // Shape: { vmKey: [{ key, value }] }. Persisted in workspace snapshot.
 const skurManualTags = Object.create(null);
 let _skurSuppressTagConflictPrompt = false; // session-only "don't ask again"
+// Wipe in-memory workspace collections so a fresh dataset doesn't inherit stale
+// groups/OOS/rules/tags from the previous one. skurPlan (region/currency/term/
+// headroom) is intentionally preserved — it's a user preference, not dataset state.
+// Called from _applyParsedSheets and loadSampleData; .rvz / workspace.json /
+// autosave-resume already clear+repopulate via _applyWorkspaceSnapshot.
+function _skurResetWorkspaceState() {
+  if (Array.isArray(skurGroups)) skurGroups.length = 0;
+  if (Array.isArray(skurTagRules)) skurTagRules.length = 0;
+  if (skurOutOfScope) { for (const k of Object.keys(skurOutOfScope)) delete skurOutOfScope[k]; }
+  if (skurManualTags) { for (const k of Object.keys(skurManualTags)) delete skurManualTags[k]; }
+  if (skurSelectedKeys && typeof skurSelectedKeys.clear === 'function') skurSelectedKeys.clear();
+}
 function skurIsOOS(vm) { return !!skurOutOfScope[skurVmKey(vm)]; }
 function skurOOSEntry(vm) { return skurOutOfScope[skurVmKey(vm)] || null; }
 function skurOOSCount() { return Object.keys(skurOutOfScope).length; }
@@ -7234,8 +7388,10 @@ const SKUR_CATALOG_META = Object.freeze({
   baseCurrency: 'USD',
   basis: 'Linux PAYG list price · approximate · public published rates',
 });
-// FX rates relative to USD (illustrative; real rates come from a future FX feed).
-const SKUR_FX_RATES_USD = Object.freeze({ USD:1.00, AUD:1.50, NZD:1.66, EUR:0.92, GBP:0.78 });
+// Currency: when live data is loaded the price table is already in the
+// selected currency (Azure Retail Prices API supports 17 currencies natively).
+// The seed catalog is USD only; non-USD selection on seed data shows USD
+// numbers in the selected currency's locale formatting until live data loads.
 // Term price multipliers vs PAYG (rough industry averages; real values come from Azure pricing API).
 const SKUR_TERM_DISCOUNTS = Object.freeze({ payg:1.00, ri1:0.62, ri3:0.42, sp1:0.78, sp3:0.58 });
 const SKUR_TERM_LABELS = Object.freeze({ payg:'PAYG', ri1:'1y RI', ri3:'3y RI', sp1:'1y SP', sp3:'3y SP' });
@@ -7359,40 +7515,64 @@ function _skurNormaliseLiveSkus(skus, prices) {
   }
   return out;
 }
-async function _skurLoadRegionData(regionName) {
+async function _skurLoadRegionData(regionName, currency) {
   if (!skurLiveData || !regionName) return null;
-  const cached = skurLiveData.byRegion[regionName];
-  if (cached) return cached;
-  const [vmJson, pricingJson] = await Promise.all([
-    _skurFetchJson(`data/${regionName}.json`),
-    _skurFetchJson(`data/${regionName}-pricing.json`),
-  ]);
-  if (!vmJson || !pricingJson) {
-    skurLiveData.byRegion[regionName] = { available: false };
-    return skurLiveData.byRegion[regionName];
-  }
-  const normalized = _skurNormaliseLiveSkus(vmJson.skus, pricingJson.prices);
-  // Build the family-prefix set from the *raw* sku list so the workload picker
-  // can grey out workloads whose family has no SKUs in this region, even for
-  // families that the normalised catalog filters out (GPU, HPC, ...).
-  const familySet = new Set();
-  if (Array.isArray(vmJson.skus)) {
-    for (const s of vmJson.skus) {
-      if (!s || !s.name) continue;
-      if (Array.isArray(s.restrictions) && s.restrictions.length) continue;
-      const fam = _skurFamilyPrefixFromSkuName(s.name);
-      if (fam) familySet.add(fam);
+  currency = (currency || (skurPlan && skurPlan.currency) || 'USD').toUpperCase();
+  let entry = skurLiveData.byRegion[regionName];
+
+  // Fetch the raw VM SKU list once per region (it's currency-agnostic).
+  if (!entry || !entry.vmJson) {
+    const vmJson = await _skurFetchJson(`data/${regionName}.json`);
+    if (!vmJson) {
+      entry = { available: false };
+      skurLiveData.byRegion[regionName] = entry;
+      return entry;
     }
+    // Build the family-prefix set from the raw sku list so the workload picker
+    // can grey out workloads whose family has no SKUs in this region.
+    const familySet = new Set();
+    if (Array.isArray(vmJson.skus)) {
+      for (const s of vmJson.skus) {
+        if (!s || !s.name) continue;
+        if (Array.isArray(s.restrictions) && s.restrictions.length) continue;
+        const fam = _skurFamilyPrefixFromSkuName(s.name);
+        if (fam) familySet.add(fam);
+      }
+    }
+    entry = {
+      available: false,
+      vmJson,
+      familySet,
+      displayName: vmJson.regionDisplayName,
+      lastUpdated: vmJson.lastUpdated,
+      rawCount: Array.isArray(vmJson.skus) ? vmJson.skus.length : 0,
+      pricingByCurrency: Object.create(null),
+      normalized: [],
+      currentCurrency: null,
+    };
+    skurLiveData.byRegion[regionName] = entry;
   }
-  const entry = {
-    available: normalized.length > 0,
-    normalized,
-    familySet,
-    lastUpdated: vmJson.lastUpdated,
-    displayName: vmJson.regionDisplayName,
-    rawCount: Array.isArray(vmJson.skus) ? vmJson.skus.length : 0,
-  };
-  skurLiveData.byRegion[regionName] = entry;
+
+  // Fetch pricing for this currency on demand (cached per region).
+  if (!(currency in entry.pricingByCurrency)) {
+    const suffix = currency === 'USD' ? '' : `-${currency.toLowerCase()}`;
+    let pricingJson = await _skurFetchJson(`data/${regionName}-pricing${suffix}.json`);
+    // Fall back to USD if a specific currency file is missing (e.g. pipeline
+    // hasn't republished yet after the multi-currency rollout).
+    if (!pricingJson && currency !== 'USD') {
+      pricingJson = await _skurFetchJson(`data/${regionName}-pricing.json`);
+    }
+    entry.pricingByCurrency[currency] = pricingJson || null;
+  }
+  const pricing = entry.pricingByCurrency[currency];
+
+  // Re-normalise SKUs against the active currency's price table.
+  if (entry.currentCurrency !== currency) {
+    entry.normalized = pricing ? _skurNormaliseLiveSkus(entry.vmJson.skus, pricing.prices) : [];
+    entry.currentCurrency = currency;
+    entry.lastUpdated = (pricing && pricing.lastUpdated) || entry.vmJson.lastUpdated;
+  }
+  entry.available = entry.normalized.length > 0;
   return entry;
 }
 async function skurInitLiveData() {
@@ -7405,7 +7585,7 @@ async function skurInitLiveData() {
   ]);
   if (!metadata) return; // pipeline hasn't published yet — stay on seed
   skurLiveData = { metadata, regions: Array.isArray(regions) ? regions : [], byRegion: {} };
-  await _skurLoadRegionData(skurPlan.region);
+  await _skurLoadRegionData(skurPlan.region, skurPlan.currency);
   // Re-render UI now that live catalog might be richer
   try { updateSkurDataPill(); } catch (_) {}
   try { renderSkurGroups(); } catch (_) {}
@@ -7451,10 +7631,10 @@ function skurEffectiveHourlyUsd(sku, plan) {
   return base * term;
 }
 function skurEffectiveHourly(sku, plan) {
-  const usd = skurEffectiveHourlyUsd(sku, plan);
-  if (usd == null) return null;
-  const fx = SKUR_FX_RATES_USD[(plan && plan.currency) || 'USD'] || 1;
-  return usd * fx;
+  // Live data is fetched in the selected currency, so no FX conversion is
+  // needed. The legacy *Usd helper name is retained for back-compat; the
+  // returned number is in whatever currency the price table was loaded with.
+  return skurEffectiveHourlyUsd(sku, plan);
 }
 function skurMonthlyCost(sku, plan) {
   const h = skurEffectiveHourly(sku, plan);
@@ -7483,7 +7663,7 @@ function updateSkurDataPill() {
     if (status === 'live') {
       const m = skurLiveData && skurLiveData.metadata;
       const asOf = (m && m.lastUpdated && skurFormatRefreshDate(m.lastUpdated)) || (m && m.lastUpdatedDisplay) || (m && m.lastUpdated) || 'recently';
-      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nLast refreshed: ${asOf}\nBasis: Linux PAYG list price (live USD)\n\nClick for details.`;
+      pill.title = `${cat.length} VM SKUs from live Azure pipeline.\n\nRegion: ${regionLabel}\nLast refreshed: ${asOf}\nBasis: PAYG list price (live, ${skurPlan.currency})\n\nClick for details.`;
     } else {
       pill.title = `${cat.length} VM SKUs available for ${regionLabel}.\n\nSource: ${SKUR_CATALOG_META.source} · as of ${SKUR_CATALOG_META.asOfDate}\nBasis: ${SKUR_CATALOG_META.basis}\n\nClick for details.`;
     }
@@ -7519,7 +7699,7 @@ function skurShowDataPillInfo() {
       `Selected region: ${regionLabel} → ${cat.length} of ${entry ? entry.rawCount : '?'} raw SKUs after eligibility filter`,
       `Filter: B (burstable), D (general), E (memory), F (compute), L (storage), M (memory-optimised) · region-restricted SKUs excluded`,
       ``,
-      `⚠ Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
+      `⚠ Prices are sourced directly from the Azure Retail Prices API in the selected currency. Term discounts (RI / SP) are rough industry averages.`,
       `Windows VMs use the published Windows hourly rate; toggle AHUB on a group to price them at the Linux rate (BYO licence).`,
     ];
     alert(lines.join('\n'));
@@ -7539,8 +7719,8 @@ function skurShowDataPillInfo() {
     `Coverage: ${cat.length ? 'B-series (burstable), Dsv5/Dasv5 (general), Esv5 (memory), Fsv2 (compute)' : '— none —'}`,
     ``,
     `⚠ All prices are approximate public-list values for illustration only.`,
-    `Currency conversion uses fixed FX rates (USD baseline). Term discounts (RI / SP) are rough industry averages.`,
-    `Seed catalog ships Linux pricing only — Windows VMs price at the Linux rate until live data loads.`,
+    `Live data uses Azure Retail Prices API in the selected currency. Term discounts (RI / SP) are rough industry averages.`,
+    `Seed catalog ships USD Linux pricing only — Windows VMs and non-USD currencies display USD numbers until live data loads.`,
   ];
   alert(lines.join('\n'));
 }
@@ -7550,11 +7730,14 @@ document.addEventListener('skurPlanChanged', updateSkurDataPill);
 document.addEventListener('skurPlanChanged', () => { try { renderSkurGroups(); } catch (_) {} });
 document.addEventListener('skurPlanChanged', () => { try { renderSkurVmGrid(); } catch (_) {} });
 document.addEventListener('skurPlanChanged', () => { try { renderSkuRecStatCards(); } catch (_) {} });
-// On region change, lazily load that region's live data if available, then re-render.
+// On region OR currency change, lazily load that region's pricing for the
+// active currency, then re-render. Pricing is fetched per currency on demand
+// and cached on the region entry.
 document.addEventListener('skurPlanChanged', (ev) => {
   if (!skurLiveData) return;
-  if (ev && ev.detail && ev.detail.field !== 'region' && ev.detail.field !== '*') return;
-  _skurLoadRegionData(skurPlan.region).then(() => {
+  const field = ev && ev.detail && ev.detail.field;
+  if (field !== 'region' && field !== 'currency' && field !== '*') return;
+  _skurLoadRegionData(skurPlan.region, skurPlan.currency).then(() => {
     try { updateSkurDataPill(); } catch (_) {}
     try { renderSkurGroups(); } catch (_) {}
     try { renderSkurVmGrid(); } catch (_) {}
@@ -8818,7 +9001,10 @@ function hideSampleIndicators() {
   const dtb = document.getElementById('demoTabBanner');
   if (banner) banner.style.display = 'none';
   if (bar) bar.style.display = 'none';
-  if (dropZone) { dropZone.classList.remove('demo-active'); dropZone.style.display = 'none'; }
+  // Keep dropZone visible so re-visiting Start here after a load shows the
+  // file-status bar (filename + Clear & reset) and the tiles for loading
+  // another file. Only the 'demo-active' visual is dropped.
+  if (dropZone) { dropZone.classList.remove('demo-active'); }
   if (howTo) howTo.style.display = 'none';
   if (resetBtn) resetBtn.textContent = '✖ Clear & reset';
   if (dtb) dtb.style.display = 'none';
@@ -8881,6 +9067,9 @@ function loadSampleData(mode) {
   const isResume = !!window._skurAutoResumeNext;
   if (!isResume) showDemoSplash(mode);
   window._isDemoMode = true;
+  // Reset workspace state when switching to demo so stale groups/OOS/rules/tags
+  // from a previously-loaded real dataset don't leak across.
+  _skurResetWorkspaceState();
   allVMs = [...SAMPLE_VMS];
   if (mode === 'full') {
     allData = { vInfo: allVMs, ...SAMPLE_TABS };
@@ -8901,6 +9090,16 @@ function loadSampleData(mode) {
     }
     const wrap = document.getElementById('resetBtnWrap');
     if (wrap) wrap.style.display = 'block';
+    // Polished loaded view (Option A) — surfaces a richer summary for the demo too.
+    const demoTabs = Object.keys(allData || { vInfo: true });
+    const demoLabel = mode === 'full' ? 'Demo dataset (full)' : 'Demo dataset (vInfo only)';
+    renderLoadedView({
+      filename: demoLabel,
+      vmCount: allVMs.length,
+      detectedTabs: demoTabs,
+      dupCount: 0,
+      isDemo: true,
+    });
   } catch(_) {}
   // Update toggle button styles
   const btnV = document.getElementById('sampleBtnVinfo');

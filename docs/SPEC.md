@@ -1,6 +1,6 @@
 # 📋 RVTools Visualiser — Specification
 
-> **Version:** v1.2.0-beta
+> **Version:** v1.1.0
 > **Format:** Single HTML file with CDN dependencies (Chart.js + SheetJS + JSZip)
 > **Audience:** VMware administrators, migration planners, infrastructure architects
 
@@ -227,7 +227,7 @@ A `scatter` chart with one dataset per readiness group (colour-coded). Hover rev
 
 ---
 
-## 7. Save / Resume / Share *(v1.2.0-beta)*
+## 7. Save / Resume / Share *(v1.1.0)*
 
 ### 7.1 Vocabulary
 
