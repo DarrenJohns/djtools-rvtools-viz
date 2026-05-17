@@ -7,5 +7,7 @@
   "availableRegions": [
     "australiaeast",
     "newzealandnorth"
-  ]
+  ],
+  "totalVmSkus": 1848,
+  "totalDiskSkus": 134
 }
