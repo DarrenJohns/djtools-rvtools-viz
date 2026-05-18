@@ -3,6 +3,12 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.2] — Patch
+
+### Fixed
+
+- **Auto-group by tag modal** now shows the friendly workload name (e.g. `Relational databases`) instead of the canonical id (`memory-01`), matching the workload badge displayed elsewhere. Raw ids stay in `data-val` for matching, are surfaced in the hover tooltip, and the filter input matches either the raw id or the friendly label. Other tag keys are unchanged.
+
 ## [1.1.1] — Patch
 
 ### Fixed

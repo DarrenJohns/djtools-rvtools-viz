@@ -2087,7 +2087,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
-  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.1</div>
+  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.2</div>
 </footer>
 
 <script>
@@ -2660,7 +2660,7 @@ function handleFile(file) {
 // The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
 // at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
 // .rvz scenarios or workspace.json files.
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 // Keep footer label in sync with APP_VERSION on load.
 document.addEventListener('DOMContentLoaded', () => {
   const f = document.getElementById('appVersionFooter');
@@ -5263,6 +5263,17 @@ function renderSkurGroups() {
 }
 // === Stage 9.5: Auto-group by tag — multi-key/multi-value picker (matches mockup) ===
 function _skurAgEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// Map a raw tag value to the friendly display label shown in the modal
+// (and elsewhere). For the 'workload' key we resolve the canonical id
+// (e.g. "memory-01") back to its full workload name (e.g. "Relational
+// databases") via the workload combo metadata. Everything else passes through.
+function _skurAgFriendlyValue(key, val) {
+  if (key === 'workload' && typeof _skurResolveWorkloadId === 'function') {
+    const it = _skurResolveWorkloadId(val);
+    if (it && it.name) return it.name;
+  }
+  return val;
+}
 function _skurAgBuildKeyMap() {
   const km = {}; // { key: { value: count } }
   (allVMs || []).forEach(vm => {
@@ -5316,9 +5327,10 @@ function skurOpenAutoGroupModal() {
   }
   list.innerHTML = keys.map(k => {
     const vals = Object.entries(km[k]).sort((a, b) => a[0].localeCompare(b[0], undefined, { sensitivity: 'base' }));
-    const chips = vals.map(([val, cnt]) =>
-      `<label class="skur-ag-val" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}"><input type="checkbox" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}" onchange="skurOnAgValChange(this)"><span>${_skurAgEsc(val)}</span><span class="skur-ag-count" data-global="${cnt}">${cnt}</span></label>`
-    ).join('');
+    const chips = vals.map(([val, cnt]) => {
+      const friendly = _skurAgFriendlyValue(k, val);
+      return `<label class="skur-ag-val" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}" data-label="${_skurAgEsc(friendly)}" title="${_skurAgEsc(friendly === val ? val : friendly + ' (' + val + ')')}"><input type="checkbox" data-key="${_skurAgEsc(k)}" data-val="${_skurAgEsc(val)}" onchange="skurOnAgValChange(this)"><span>${_skurAgEsc(friendly)}</span><span class="skur-ag-count" data-global="${cnt}">${cnt}</span></label>`;
+    }).join('');
     return `<div class="skur-ag-group"><div class="skur-ag-group-head"><span>${_skurAgEsc(k)}</span><span class="skur-ag-key-meta">${vals.length} value${vals.length===1?'':'s'}</span></div><div class="skur-ag-values">${chips}</div></div>`;
   }).join('');
   const flt = document.getElementById('skurAgFilter'); if (flt) flt.value = '';
@@ -5346,7 +5358,8 @@ function skurFilterAgList() {
     let valHits = 0;
     grp.querySelectorAll('.skur-ag-val').forEach(chip => {
       const v = (chip.dataset.val || '').toLowerCase();
-      const show = keyHit || (q && v.includes(q));
+      const lbl = (chip.dataset.label || '').toLowerCase();
+      const show = keyHit || (q && (v.includes(q) || lbl.includes(q)));
       chip.style.display = show ? '' : 'none';
       if (show) valHits++;
     });
@@ -5422,7 +5435,7 @@ function _skurAgUpdatePreview() {
   const mode = _skurAgMode;
   const joiner = (mode === 'OR') ? '  OR  ' : '  AND  ';
   const matched = _skurAgBuildFilteredVms(sel, mode);
-  const summary = keys.map(k => `${k} ∈ {${[...sel[k]].join(', ')}}`).join(joiner);
+  const summary = keys.map(k => `${k} ∈ {${[...sel[k]].map(v => _skurAgFriendlyValue(k, v)).join(', ')}}`).join(joiner);
   if (!matched.length) {
     prev.className = 'skur-ag-preview is-empty';
     prev.innerHTML = `⛔ <strong>No VMs match</strong> — adjust ticks${keys.length>=2 ? ' or switch matching mode' : ''}. <span style="opacity:.85;">${_skurAgEsc(summary)}</span>`;
