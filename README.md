@@ -10,7 +10,7 @@
 
 [![Deploy](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml/badge.svg)](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml)
 ![Azure](https://img.shields.io/badge/Azure-SWA-0078D4)
-![Version](https://img.shields.io/badge/version-1.1.1-blue)
+![Version](https://img.shields.io/badge/version-1.1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Built with](https://img.shields.io/badge/built_with-Copilot_CLI-8957e5)
 ![Hosted on](https://img.shields.io/badge/hosted_on-Azure_SWA-0078D4)
