@@ -1667,21 +1667,7 @@ body.dark .skur-group-chip{color:#b794f4;}
         <select id="skurPlanCurrency" class="pb-select" onchange="skurOnPlanChange('currency',this.value)">
           <option value="USD">USD $ — US Dollar</option>
           <option value="AUD">AUD $ — Australian Dollar</option>
-          <option value="BRL">BRL R$ — Brazilian Real</option>
-          <option value="CAD">CAD $ — Canadian Dollar</option>
-          <option value="CHF">CHF Fr — Swiss Franc</option>
-          <option value="CNY">CNY ¥ — Chinese Yuan</option>
-          <option value="DKK">DKK kr — Danish Krone</option>
-          <option value="EUR">EUR € — Euro</option>
-          <option value="GBP">GBP £ — Pound Sterling</option>
-          <option value="INR">INR ₹ — Indian Rupee</option>
-          <option value="JPY">JPY ¥ — Japanese Yen</option>
-          <option value="KRW">KRW ₩ — South Korean Won</option>
-          <option value="NOK">NOK kr — Norwegian Krone</option>
           <option value="NZD">NZD $ — New Zealand Dollar</option>
-          <option value="RUB">RUB ₽ — Russian Ruble</option>
-          <option value="SEK">SEK kr — Swedish Krona</option>
-          <option value="TWD">TWD NT$ — Taiwan Dollar</option>
         </select>
         <span class="skur-freshness-pill" id="skurFreshnessPill" style="margin-left:auto;" onclick="skurOpenFreshnessModal()" title="Click for data refresh details"><span class="fp-dot">🟢</span><span>Updated <span id="skurFreshnessLabel">—</span></span><span>▾</span></span>
       </div>
@@ -2087,7 +2073,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
-  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.2</div>
+  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.3</div>
 </footer>
 
 <script>
@@ -7402,7 +7388,9 @@ const SKUR_CATALOG_META = Object.freeze({
   basis: 'Linux PAYG list price · approximate · public published rates',
 });
 // Currency: when live data is loaded the price table is already in the
-// selected currency (Azure Retail Prices API supports 17 currencies natively).
+// selected currency. The Azure Retail Prices API supports 17 currencies, but
+// the monthly pipeline only fetches USD, AUD, NZD (see refresh-azure-data.yml)
+// to stay within safe runtime; the dropdown is scoped to those three.
 // The seed catalog is USD only; non-USD selection on seed data shows USD
 // numbers in the selected currency's locale formatting until live data loads.
 // Term price multipliers vs PAYG (rough industry averages; real values come from Azure pricing API).

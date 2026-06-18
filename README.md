@@ -10,7 +10,7 @@
 
 [![Deploy](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml/badge.svg)](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml)
 ![Azure](https://img.shields.io/badge/Azure-SWA-0078D4)
-![Version](https://img.shields.io/badge/version-1.1.2-blue)
+![Version](https://img.shields.io/badge/version-1.1.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Built with](https://img.shields.io/badge/built_with-Copilot_CLI-8957e5)
 ![Hosted on](https://img.shields.io/badge/hosted_on-Azure_SWA-0078D4)
@@ -104,7 +104,7 @@
 
 ### 🎯 Azure SKU Recommender
 
-A second-tier "what would this look like in Azure?" layer. Driven by **live Azure pricing + capability data** for AU East and NZ North out of the box, with a monthly auto-refresh pipeline covering **all 17 currencies** supported by the Azure Retail Prices API (USD default; AUD, BRL, CAD, CHF, CNY, DKK, EUR, GBP, INR, JPY, KRW, NOK, NZD, RUB, SEK, TWD).
+A second-tier "what would this look like in Azure?" layer. Driven by **live Azure pricing + capability data** for AU East and NZ North out of the box, with a monthly auto-refresh pipeline covering **USD, AUD, and NZD** from the Azure Retail Prices API (additional currencies can be enabled by editing the `$currencies` array in `.github/workflows/refresh-azure-data.yml` and the `#skurPlanCurrency` dropdown in `index.html`).
 
 | Feature | What it does |
 |---------|-------------|

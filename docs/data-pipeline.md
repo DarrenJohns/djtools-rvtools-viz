@@ -17,7 +17,7 @@ Same proven pattern as `djtools-azure-vm-sku-locator-PUBLIC` (the VM SKU app), e
 | `retirements.json` | scraped from Azure docs (`scripts/update-retirements.py`) | monthly |
 | `<region>.json` | `az vm list-skus --resource-type virtualMachines --all` → `scripts/normalize-skus.py` | monthly |
 | `<region>-pricing.json` | retail prices API (USD) → `scripts/fetch-pricing.py` | monthly |
-| `<region>-pricing-<cur>.json` | retail prices API in each of 16 non-USD currencies (AUD, BRL, CAD, CHF, CNY, DKK, EUR, GBP, INR, JPY, KRW, NOK, NZD, RUB, SEK, TWD) → `scripts/fetch-pricing.py <region> <out> <CUR>` | monthly |
+| `<region>-pricing-<cur>.json` | retail prices API in each non-USD supported currency (AUD, NZD) → `scripts/fetch-pricing.py <region> <out> <CUR>`. Currency scope is intentionally trimmed for runtime; see `refresh-azure-data.yml` to extend. | monthly |
 | `<region>-disks.json` | `az vm list-skus --resource-type disks --all` → `scripts/normalize-disks.py` | monthly |
 | `history/<region>-YYYY-MM.json` | previous-month archive of `<region>.json` | monthly |
 
@@ -54,7 +54,7 @@ If the VM SKU app ships a normaliser change, port it here; bump the data schema 
 5. (Once on main) Confirm the SWA serves `/data/<region>.json`.
 
 ## Cost note
-This workflow makes ~3 `az vm list-skus` calls per region per month plus one `az account list-locations` and **17 retail-pricing fetches per region** (one per supported currency: USD plus AUD, BRL, CAD, CHF, CNY, DKK, EUR, GBP, INR, JPY, KRW, NOK, NZD, RUB, SEK, TWD). The retail prices API is unauthenticated and free; total wall-clock for 2 dev regions is roughly 20–30 minutes per scheduled run. Azure read fees: zero.
+This workflow makes ~3 `az vm list-skus` calls per region per month plus one `az account list-locations` and **3 retail-pricing fetches per region** (one per supported currency: USD, AUD, NZD). The retail prices API is unauthenticated and free; total wall-clock for 2 dev regions is well under 10 minutes per scheduled run. The currency set was trimmed from 17 to 3 in v1.1.3 to mirror the `djtools-azure-vm-sku-locator` fix and keep the job inside the GitHub Actions runtime budget. Azure read fees: zero.
 
 ## Multi-currency fan-out
-The pipeline writes one pricing JSON per region per currency: USD lands at `<region>-pricing.json` (backward-compatible filename), all other currencies land at `<region>-pricing-<lowercur>.json`. The client lazily fetches the file matching the user's currency selection and caches the result per region per currency. Adding a region to `config.json` automatically picks up all 17 currencies on the next run; the stale-region cleanup step also sweeps any orphaned `<region>-pricing-*.json` files when a region is removed.
+The pipeline writes one pricing JSON per region per currency: USD lands at `<region>-pricing.json` (backward-compatible filename), and the other supported currencies (AUD, NZD) land at `<region>-pricing-<lowercur>.json`. The client lazily fetches the file matching the user's currency selection and caches the result per region per currency. Adding a region to `config.json` automatically picks up all currently-fetched currencies on the next run; the stale-region cleanup step also sweeps any orphaned `<region>-pricing-*.json` files when a region is removed, and the pricing step additionally sweeps orphan currency files (e.g. legacy `*-pricing-brl.json`) so the on-disk set always matches the supported set.

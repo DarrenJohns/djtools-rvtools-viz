@@ -3,6 +3,17 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.3] — Patch
+
+### Changed
+
+- **Pricing pipeline scoped to USD, AUD, NZD.** The monthly `refresh-azure-data.yml` workflow now fetches three currencies instead of seventeen. Mirrors the proven fix in `djtools-azure-vm-sku-locator` and keeps the job comfortably inside the GitHub Actions runtime budget. The workflow also now sweeps orphan `<region>-pricing-<cur>.json` files for currencies no longer in scope, so legacy 17-currency artifacts are cleaned up automatically on the next run.
+- **Currency dropdown trimmed to USD / AUD / NZD** on the Azure VMs & Pricing tab. Previously the selector exposed all 17 API-supported currencies, but only USD, AUD, and NZD pricing files are now produced; the dropdown is aligned to what the pipeline actually publishes so users no longer see USD prices silently rendered under a foreign-currency label. To re-enable a currency, append it to the `$currencies` array in the workflow and add a matching `<option>` in `index.html`.
+
+### Fixed
+
+- **Monthly refresh reliability.** Restored the `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` repository secrets that drive the workflow's OIDC login, so the Azure data refresh runs cleanly each month again.
+
 ## [1.1.2] — Patch
 
 ### Fixed
