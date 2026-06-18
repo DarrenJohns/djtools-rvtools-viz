@@ -14,7 +14,13 @@
 #   data/retirements.json
 #   data/<region>.json            (VM SKUs, normalized)
 #   data/<region>-pricing.json    (PAYG pricing in USD)
-#   data/<region>-pricing-<cur>.json  (PAYG pricing in AUD/BRL/CAD/CHF/CNY/DKK/EUR/GBP/INR/JPY/KRW/NOK/NZD/RUB/SEK/TWD)
+#   data/<region>-pricing-<cur>.json  (PAYG pricing in AUD/NZD)
+#
+# Currency scope: USD, AUD, NZD only. The Azure Retail Prices API supports 17
+# currencies, but fetching all of them on every region pushes the monthly job
+# past safe runtime limits (same fix proven in djtools-azure-vm-sku-locator).
+# To re-add a currency, append it to $currencies below AND add the matching
+# <option> to #skurPlanCurrency in index.html.
 #   data/<region>-disks.json      (Disk SKUs, normalized)
 #   data/history/<region>-YYYY-MM.json  (previous-month archive)
 
@@ -155,12 +161,12 @@ jobs:
           Write-Host "[OK] Retirement data refresh complete"
         shell: pwsh
 
-      - name: Fetch pricing data (all supported currencies)
+      - name: Fetch pricing data (USD, AUD, NZD)
         run: |
           $config = Get-Content "config.json" | ConvertFrom-Json
-          # Azure Retail Prices API supports 17 currencies. USD ships as <region>-pricing.json
-          # (backward compat); others ship as <region>-pricing-<lowerCur>.json.
-          $currencies = @('USD','AUD','BRL','CAD','CHF','CNY','DKK','EUR','GBP','INR','JPY','KRW','NOK','NZD','RUB','SEK','TWD')
+          # Currency scope intentionally limited to keep monthly runtime safe.
+          # See workflow header comment before adding more.
+          $currencies = @('USD','AUD','NZD')
           foreach ($region in $config.targetRegions) {
             $name = $region.name
             $dataFile = "data/$name.json"
@@ -172,7 +178,20 @@ jobs:
               python scripts/fetch-pricing.py $dataFile $pricingFile $cur
             }
           }
-          Write-Host "[OK] Pricing data refresh complete (17 currencies x $($config.targetRegions.Count) regions)"
+          # Sweep orphan pricing files for currencies no longer in scope
+          # (e.g. legacy *-pricing-brl.json from the previous 17-currency runs).
+          $supportedSuffixes = @('') + ($currencies | Where-Object { $_ -ne 'USD' } | ForEach-Object { "-$($_.ToLower())" })
+          foreach ($region in $config.targetRegions) {
+            $name = $region.name
+            Get-ChildItem -Path 'data' -Filter "$name-pricing*.json" -ErrorAction SilentlyContinue | ForEach-Object {
+              $suffix = $_.BaseName -replace "^$name-pricing", ''
+              if ($supportedSuffixes -notcontains $suffix) {
+                Remove-Item $_.FullName
+                Write-Host "  [CLEAN] Removed orphan pricing file $($_.Name)"
+              }
+            }
+          }
+          Write-Host "[OK] Pricing data refresh complete ($($currencies.Count) currencies x $($config.targetRegions.Count) regions)"
         shell: pwsh
 
       - name: Fetch disk SKU data
