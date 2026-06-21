@@ -38,6 +38,13 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    # The SWA_DEPLOYMENT_TOKEN lives in the 'production' GitHub Environment
+    # (branch-restricted to main). Without this declaration, secret expansion
+    # is silently empty and the SWA deploy step fails with
+    # "deployment_token provided was invalid". Mirrors deploy.yml.
+    environment:
+      name: production
+      url: https://rvtoolsviz.djtools.co.nz/
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
