@@ -1,7 +1,7 @@
 {
   "region": "newzealandnorth",
   "regionDisplayName": "New Zealand North",
-  "lastUpdated": "2026-07-01T05:22:00Z",
+  "lastUpdated": "2026-06-22T00:48:49Z",
   "skuCount": 796,
   "skus": [
     {
@@ -1356,8 +1356,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1379,8 +1378,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1402,8 +1400,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1425,8 +1422,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1908,8 +1904,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1931,8 +1926,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1954,8 +1948,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -1977,8 +1970,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2000,8 +1992,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2023,8 +2014,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2046,8 +2036,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2069,8 +2058,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2092,8 +2080,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2115,8 +2102,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2138,8 +2124,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2161,8 +2146,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2184,8 +2168,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2207,8 +2190,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2230,8 +2212,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2253,8 +2234,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2276,8 +2256,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2299,8 +2278,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2322,8 +2300,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2345,8 +2322,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2368,8 +2344,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2391,8 +2366,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2414,8 +2388,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2437,8 +2410,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2460,8 +2432,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2483,8 +2454,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2506,8 +2476,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2529,8 +2498,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2552,8 +2520,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2575,8 +2542,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2598,8 +2564,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2621,8 +2586,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2644,8 +2608,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2667,8 +2630,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2690,8 +2652,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2713,8 +2674,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2736,8 +2696,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2759,8 +2718,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2782,8 +2740,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2805,8 +2762,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2828,8 +2784,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2851,8 +2806,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2874,8 +2828,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2897,8 +2850,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2920,8 +2872,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2943,8 +2894,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2966,8 +2916,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -2989,8 +2938,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3012,8 +2960,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3035,8 +2982,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3058,8 +3004,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3081,8 +3026,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3104,8 +3048,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3127,8 +3070,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3150,8 +3092,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -3173,8 +3114,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -16932,8 +16872,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -16955,8 +16894,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -16978,8 +16916,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -17001,8 +16938,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -17024,8 +16960,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -17047,8 +16982,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -17070,8 +17004,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -17093,8 +17026,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },
@@ -17116,8 +17048,7 @@
       "spotEligible": true,
       "zones": [
         "1",
-        "2",
-        "3"
+        "2"
       ],
       "restrictions": []
     },

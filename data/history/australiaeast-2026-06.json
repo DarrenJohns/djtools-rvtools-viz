@@ -1,8 +1,8 @@
 {
   "region": "australiaeast",
   "regionDisplayName": "Australia East",
-  "lastUpdated": "2026-07-01T05:20:53Z",
-  "skuCount": 1181,
+  "lastUpdated": "2026-06-22T00:47:45Z",
+  "skuCount": 1185,
   "skus": [
     {
       "name": "Standard_NC4as_T4_v3",
@@ -26670,6 +26670,102 @@
         "3"
       ],
       "restrictions": [
+        "NotAvailableForSubscription"
+      ]
+    },
+    {
+      "name": "Standard_NC6s_v3",
+      "family": "standardNCSv3Family",
+      "tier": "Standard",
+      "size": "NC6s_v3",
+      "vCPUs": 6,
+      "memoryGB": 112.0,
+      "maxDataDisks": 12,
+      "maxNICs": 4,
+      "cpuArchitecture": "x64",
+      "hyperVGenerations": "V1,V2",
+      "acceleratedNetworking": true,
+      "premiumIO": true,
+      "ephemeralOSDisk": true,
+      "encryptionAtHost": true,
+      "spotEligible": true,
+      "zones": [
+        "1"
+      ],
+      "restrictions": [
+        "NotAvailableForSubscription",
+        "NotAvailableForSubscription"
+      ]
+    },
+    {
+      "name": "Standard_NC12s_v3",
+      "family": "standardNCSv3Family",
+      "tier": "Standard",
+      "size": "NC12s_v3",
+      "vCPUs": 12,
+      "memoryGB": 224.0,
+      "maxDataDisks": 24,
+      "maxNICs": 8,
+      "cpuArchitecture": "x64",
+      "hyperVGenerations": "V1,V2",
+      "acceleratedNetworking": true,
+      "premiumIO": true,
+      "ephemeralOSDisk": true,
+      "encryptionAtHost": true,
+      "spotEligible": true,
+      "zones": [
+        "1"
+      ],
+      "restrictions": [
+        "NotAvailableForSubscription",
+        "NotAvailableForSubscription"
+      ]
+    },
+    {
+      "name": "Standard_NC24rs_v3",
+      "family": "standardNCSv3Family",
+      "tier": "Standard",
+      "size": "NC24rs_v3",
+      "vCPUs": 24,
+      "memoryGB": 448.0,
+      "maxDataDisks": 32,
+      "maxNICs": 8,
+      "cpuArchitecture": "x64",
+      "hyperVGenerations": "V1,V2",
+      "acceleratedNetworking": false,
+      "premiumIO": true,
+      "ephemeralOSDisk": true,
+      "encryptionAtHost": true,
+      "spotEligible": true,
+      "zones": [
+        "1"
+      ],
+      "restrictions": [
+        "NotAvailableForSubscription",
+        "NotAvailableForSubscription"
+      ]
+    },
+    {
+      "name": "Standard_NC24s_v3",
+      "family": "standardNCSv3Family",
+      "tier": "Standard",
+      "size": "NC24s_v3",
+      "vCPUs": 24,
+      "memoryGB": 448.0,
+      "maxDataDisks": 32,
+      "maxNICs": 8,
+      "cpuArchitecture": "x64",
+      "hyperVGenerations": "V1,V2",
+      "acceleratedNetworking": true,
+      "premiumIO": true,
+      "ephemeralOSDisk": true,
+      "encryptionAtHost": true,
+      "spotEligible": true,
+      "zones": [
+        "1"
+      ],
+      "restrictions": [
+        "NotAvailableForSubscription",
         "NotAvailableForSubscription"
       ]
     },

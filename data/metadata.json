@@ -1,13 +1,13 @@
 {
   "failedRegions": [],
+  "lastUpdated": "2026-07-01T05:22:00Z",
+  "physicalRegionCount": 62,
+  "lastUpdatedDisplay": "July 2026",
+  "regionsWithData": 2,
   "availableRegions": [
     "australiaeast",
     "newzealandnorth"
   ],
-  "lastUpdatedDisplay": "June 2026",
-  "regionsWithData": 2,
-  "lastUpdated": "2026-06-22T00:48:49Z",
-  "physicalRegionCount": 62,
-  "totalVmSkus": 1981,
+  "totalVmSkus": 1977,
   "totalDiskSkus": 134
 }
