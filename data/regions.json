@@ -84,6 +84,13 @@
     "name": "eastasia"
   },
   {
+    "displayName": "India South Central",
+    "geographyGroup": "Asia Pacific",
+    "latitude": "17.36599922",
+    "longitude": "78.47599792",
+    "name": "indiasouthcentral"
+  },
+  {
     "displayName": "Indonesia Central",
     "geographyGroup": "Asia Pacific",
     "latitude": "-6.2",
