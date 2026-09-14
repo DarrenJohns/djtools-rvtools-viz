@@ -3,6 +3,19 @@
 All notable changes to RVTools Visualiser are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.4] — 2026-09-14
+
+### Added
+
+- **Pricing inventory power filter.** Joined All / Powered on / Powered off pill with icons, a filled active segment, and a stable count badge. Defaults to Powered on; Clear filters selects All. Filters the inventory view without changing existing groups, pricing totals, or export scopes.
+- **Power-scoped tag and workload rules.** Both rule dialogs support an additional AND power-state condition, initially copied from the inventory filter. Previews, editing, duplication, autosave, workspace/templates, and scenario files retain the rule's own condition. Legacy rules remain All via workspace schema 1-to-2 migration; older apps reject new schema-2 workspaces rather than ignore the condition.
+
+### Fixed
+
+- **Selection safety.** Changing the power filter deselects VMs hidden by the resulting filters, preserves matching selections across pages, and refreshes the page-scoped select-all state.
+- **Restored rule summaries.** Workspace and scenario imports and autosave resume now refresh the correct tag-rule renderer; autosave compatibility failures are shown to the user.
+- **HTML validation false positives.** Parser-based tag balancing replaces regex counts that incorrectly included JavaScript template markup and self-closing SVG tags.
+
 ## [1.1.3] — Patch
 
 ### Changed

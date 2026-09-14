@@ -181,6 +181,12 @@ The SKU recommender is a self-contained module sitting alongside the readiness l
 
 **State.** Three top-level pieces — `skurPlan` (region/currency/term/headroom), `skurGroups` (sizing groups with mode + members + pinned flag), and `skurOutOfScope` (key → reason+note map). Tag rules and selection sit in their own collections. Every meaningful state change dispatches a `skurPlanChanged` event with `{detail:{field}}` — the data pill, group rail, recommendation grid, and live-data lazy-loader all subscribe and re-render.
 
+**Inventory power view (v1.1.4).** `skurFilters.powerState` is transient view state: `""` (All), `poweredOn`, or `poweredOff`. A compact native-radio control in the inventory header calls `skurSetPowerFilter()`. It intersects the power condition with existing filters in `skurFilteredVms()`, prunes selection to the complete filtered set, resets the shift-selection anchor and pagination, then renders counts, rows, and the bulk bar. Select-all remains page-scoped. `_skurResetWorkspaceState()` restores Powered on for new datasets; `skurClearFilters()` selects All. Neither tab changes nor ordinary re-renders reset power, and `_collectWorkspaceSnapshot()` deliberately omits inventory filters. No inventory filter enters group cost calculations or export scoping.
+
+**Power-scoped rules.** Both modal draft readers store a separate `powerState` property. New dialogs copy the inventory power value once; edits and duplicates use the saved rule value. `skurRuleMatchesVm()` applies this additional AND gate before ordinary-field or workload-tag matching. The shared `skurMatchesPowerState()` compares trimmed, case-insensitive exact RVTools states, handling demo `poweredOn` and parsed `poweredon` identically. Blank, suspended, and unknown states match All only. `skurCountMatches()` still reads the entire dataset, so preview counts and rule evaluation do not follow subsequent inventory filtering. Rule summaries show the scope; tag-based auto-grouping remains a separate, full-dataset action.
+
+**Stable header layout.** The native radio inputs share a joined pill styled by `.skur-power-segments`; decorative inline SVG icons add no dependencies. All segment labels keep the same font weight in every state. `renderSkurVmGrid()` sets `--skur-count-ch` from the total VM count's digit length, reserving enough badge width for the largest `filtered / total` string. Tabular numerals, the grouped inventory title, and a fixed gap keep the power control stationary as filters change. The header wraps and reduces spacing on narrow screens.
+
 **Live data loader.** `skurInitLiveData()` runs on `DOMContentLoaded` (and lazily on region change). It fetches `data/metadata.json` to discover available regions, then `data/<region>.json` (capability) + `data/<region>-pricing.json` (retail prices, keyed by *size* — `A1_v2`, not `Standard_A1_v2`). `_skurNormaliseLiveSkus()` filters to B/D/E/F/L/M families (DC/EC confidential-compute collapse to D/E, FX collapses to F; GPU/HPC excluded), drops region-restricted SKUs, infers processor family from the name suffix (`a` → AMD, `p` → ARM, else Intel), and joins capability + per-OS price into the `{name, family, vcpu, ramGb, hourlyUsd, linuxUsd, windowsUsd, …}` shape the ranker expects. Per-VM OS (parsed from RVTools) drives which base rate is used; a group's AHUB toggle waives the Windows surcharge for Windows VMs in that group. On `file://` the loader silently no-ops (browsers block `fetch()` from local files); the recommender falls back to the seed catalog (Linux pricing only).
 
 **Ranking.** `skurRankCandidates(vm, eligible, mode, plan)` maps every eligible SKU through `skurFitFor(vm, sku)` (returns `null` if the SKU can't fit the VM) and `skurScore<Mode>(fit, sku, plan)`:
@@ -297,6 +303,8 @@ rvtools.xlsx      verbatim source bytes (NEVER reserialised)
 ### Schema migration
 
 `WORKSPACE_SCHEMA_VERSION` + `WORKSPACE_MIGRATIONS = {1:..., 2:...}` form a chain walker. Anything older walks forward; anything newer than the current app version is rejected with a clear "created by a newer app version" message.
+
+The current workspace schema is **2**. Migration `1 -> 2` adds `powerState: ""` to legacy rules lacking a power condition. Supported values are `""`, `"poweredOn"`, and `"poweredOff"`; `migrateWorkspace()` rejects explicitly invalid values before applying any workspace state. Snapshot copying preserves the property through autosave, JSON/templates, reconciliation, and `.rvz`; duplication copies it as well. Missing conditions still mean All. The schema bump prevents older apps from silently ignoring the new condition and over-tagging VMs. The outer RVZ schema remains 1 and the autosave storage key stays `rvtools.autosave.v1` so existing saves remain discoverable.
 
 ### Autosave + cross-tab
 
@@ -419,7 +427,7 @@ The deploy workflow:
 
 A separate `validate.yml` runs on PRs:
 - DOCTYPE presence + essential HTML tags
-- Tag balance (with a threshold for JS template strings inside the HTML-export builder)
+- Tag balance by element name using Python's HTML parser (ignores JavaScript template strings, void elements, and self-closing SVG tags)
 - Common smells (TODO comments, `console.log`)
 
 `PYTHONUTF8: 1` is set for cross-platform runner compatibility.

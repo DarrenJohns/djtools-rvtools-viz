@@ -134,9 +134,21 @@ Plus a series of UX and data-pipeline hardening fixes (workspace state resets cl
 
 ---
 
-## What's New in v1.2.0-beta
+## What's New in v1.1.4
 
-The latest release lands a full **save / resume / share** layer on top of the existing dashboard, without giving up the privacy-first model. Talk-track demo flow:
+### Power-aware pricing preparation
+
+The pricing VM Inventory now has a joined **All / Powered on / Powered off** pill in its header, with small icons and a filled active choice, and no additional column. The count badge reserves space so the control stays still when counts change. It defaults to Powered on on a fresh page or dataset. Clear filters shows All, and switching tabs preserves the current view.
+
+Demo the workflow: choose **Powered on**, open **Add rule** (or **Add workload rule**), and point out that **And power state** inherits that choice. Combine it with a VM-name, OS, cluster, datacenter, or supported workload-tag condition. Review the combined match count, save, then use **Auto-group by tag** to create a pricing group.
+
+**Talking point:** *"This is a preparation filter, not a pricing switch. Existing groups and totals stay unchanged while I explore the inventory. Rules keep their own power condition, so changing the view later doesn't change what they match."*
+
+Changing the power filter deselects VMs hidden by the resulting filters to keep bulk actions safe. Unknown or suspended VMs remain available under All. Existing rules retain All unless edited; new power-scoped rules round-trip through save/resume/share using workspace schema 2. Recipients need the updated app to open new saves.
+
+### Existing save / resume / share workflow
+
+The existing **save / resume / share** layer preserves the privacy-first model. Power-scoped rules are included in the same workflow:
 
 1. **Drop in a real RVTools file** → web-worker parsing keeps the UI snappy on large estates; magic-byte detection catches mislabelled files politely.
 2. **Build a workspace** — make a couple of sizing groups, mark some VMs out-of-scope, add a tag rule.

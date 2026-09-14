@@ -1,6 +1,6 @@
 # 📋 RVTools Visualiser — Specification
 
-> **Version:** v1.1.0
+> **Version:** v1.1.4
 > **Format:** Single HTML file with CDN dependencies (Chart.js + SheetJS + JSZip)
 > **Audience:** VMware administrators, migration planners, infrastructure architects
 
@@ -150,10 +150,20 @@ A second-tier "what would this look like in Azure?" view, layered on top of the 
 | Section | Description |
 |---------|-------------|
 | **Plan settings bar** | Region, currency, term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model, headroom targets. Changes fan out to every group + VM via a `skurPlanChanged` event. |
-| **Tag rules** | JSON-serialisable rules over annotations / folders / clusters. Auto-cluster VMs by any tag value into sizing groups. |
+| **Tag and workload rules** | Existing field/operator/value condition **AND power state** (All / Powered on / Powered off). Match counts and tags evaluate the complete dataset, independent of the inventory view. Use Auto-group by tag separately to create groups. |
 | **Sizing groups** | Each group has a name, optimisation mode (Balanced / Cost / Rightsized), members (VM keys), and an optional pin flag. Two view modes (rail+panel and 4-column board) persisted in `localStorage['skur.groupsView']`. |
 | **Inventory grid + bulk bar** | Multi-select VMs to add to group, create new group, remove from all groups, or mark out-of-scope. Bulk bar shows breakdown (grouped / ungrouped / OOS). >5-VM OOS prompts confirmation. |
 | **CSV / Excel exports** | CSV: 5 scopes (Active / Pinned / All / OOS / Everything), 21-column schema. Excel: multi-sheet workbook (Summary / All recommendations / per-group / OOS / Plan), 3 scopes (All / Pinned / Active), Excel-safe sheet-name sanitisation. |
+
+**Inventory power control.** A keyboard-accessible, three-way **All / Powered on / Powered off** control sits in the VM Inventory header, with no added column. It starts on Powered on for a fresh page or new dataset (including demo). Tab switches preserve the current selection; it is not persisted in autosave or workspace files. Clear filters clears column filters and selects All.
+
+The control is a joined pill with decorative icons, a filled active segment, and visible keyboard focus. A reserved-width count badge (sized for the dataset's largest filtered/total count) and fixed-weight segment labels prevent horizontal movement when switching states. Extra spacing separates it from the inventory title on larger screens; the header wraps on narrow screens.
+
+Power filtering intersects with name, size, OS, datacenter, cluster, tags, group, and exception filters. Counts show filtered/total VMs; changing power resets pagination to page 1, deselects VMs outside the resulting filtered set (across all pages), and resets the shift-selection anchor. Select-all operates on the rendered page. Empty results retain the existing no-matches message. Unknown, blank, and suspended states appear in All only; on/off comparisons are case-insensitive exact state matches.
+
+**Scope boundary.** The inventory control does not alter tags, existing group membership, recommendation/pricing calculations, totals, or CSV/Excel export scopes. Auto-group by tag continues to match tags across the full dataset rather than the current inventory view.
+
+**Rule power condition.** Both Add/Edit tag rule and Add/Edit workload rule include an additional power selector; it does not replace the existing If field. New rules copy the inventory power selection when opened, but no other inventory filters. Editing restores the rule's saved condition, and duplication preserves it. Older rules without a condition mean All. Previews and rule-table summaries display the power scope; matching applies it before both ordinary fields and workload `tag:<key>` conditions. Existing operator, zero-match save prevention, manual-tag precedence, and workload recursion rules remain unchanged.
 
 **SKU catalog source.** Live JSON loader (`skurInitLiveData` / `_skurLoadRegionData`) consumes `data/<region>.json`, `<region>-pricing.json`, `<region>-disks.json`, plus shared `regions.json` + `metadata.json`. The normaliser scopes to families B/D/E/F/L/M (DC/EC confidential-compute collapse to D/E, FX collapses to F; GPU/HPC excluded) and stores both Linux and Windows hourly rates so the recommender can price per-VM by OS. Falls back to an inline seed catalog (Linux pricing only) when offline / on `file://`. Catalog refresh is automated via the `refresh-azure-data.yml` workflow (monthly cron) — see [`docs/data-pipeline.md`](data-pipeline.md).
 
@@ -263,6 +273,8 @@ Two flavours, both written via the same `_collectWorkspaceSnapshot()`:
 |---------|----------|----------|
 | **Full workspace** | groups + outOfScope + tagRules + planSettings | Restore the same dataset; share with others who have the same RVTools file |
 | **Rules template** | tagRules + planSettings only | Share standard-issue tagging conventions or plan defaults across customers — contains zero VM-derived data |
+
+**Workspace schema 2.** Rule objects carry `powerState: "" | "poweredOn" | "poweredOff"` (`""` means All). Schema-1 workspaces migrate forward with missing rule conditions set to All, preserving previous matches. Missing conditions also mean All when reading schema 2; explicitly invalid values are rejected. Both rule types retain their condition through autosave, duplication, workspace/template JSON, scenario import, and reconciliation. The RVZ container schema remains 1 and the autosave key remains `rvtools.autosave.v1`. Older apps reject schema-2 workspaces rather than silently broadening rule matches; a current app is required to open new saves.
 
 ### 7.4 Reconciliation
 
