@@ -548,6 +548,22 @@ footer strong{opacity:1;}
 /* Stage 9: section header with inline actions area (mockup parity) */
 .skur-section-h{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--text-primary);padding:10px 14px;background:var(--bg-layer1);border:1px solid var(--border-default);border-bottom:none;border-radius:var(--radius-md) var(--radius-md) 0 0;}
 .skur-section-h .skur-section-actions{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:400;color:var(--text-secondary);}
+.skur-inventory-header{flex-wrap:wrap;}
+.skur-inventory-title{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;}
+#skurVmCountPill{min-width:calc(var(--skur-count-ch,7)*1ch + 18px);justify-content:center;font-variant-numeric:tabular-nums;}
+.skur-inventory-header .skur-section-actions{flex-wrap:wrap;}
+.skur-power-filter{display:inline-flex;align-items:center;gap:8px;margin-left:12px;font-size:12px;font-weight:600;}
+.skur-power-filter > span{color:var(--text-secondary);}
+.skur-power-segments{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--border-default);border-radius:999px;background:var(--bg-layer2);}
+.skur-power-filter label{position:relative;cursor:pointer;}
+.skur-power-filter input{position:absolute;width:1px;height:1px;opacity:0;}
+.skur-power-filter label > span{display:flex;align-items:center;gap:5px;white-space:nowrap;padding:5px 9px;border-radius:999px;color:var(--text-secondary);transition:background var(--transition),color var(--transition),box-shadow var(--transition);}
+.skur-power-filter svg{width:13px;height:13px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.skur-power-filter label:hover > span{background:var(--bg-hover);color:var(--text-primary);}
+.skur-power-filter input:checked + span{color:var(--text-on-brand);background:var(--brand-primary);box-shadow:var(--shadow-sm);}
+body.dark .skur-power-filter input:checked + span,[data-theme="dark"] .skur-power-filter input:checked + span{color:var(--bg-base);}
+.skur-power-filter input:focus-visible + span{outline:2px solid var(--brand-primary);outline-offset:2px;}
+@media(max-width:600px){.skur-power-filter{margin-left:0;gap:6px;}.skur-power-filter label > span{padding:5px 4px;gap:4px;}}
 .skur-section-h .skur-section-actions .bb-count{color:var(--brand-primary);font-weight:700;}
 .skur-section-h .skur-section-actions .bb-clear{background:var(--bg-layer1);border:1px solid var(--border-default);color:var(--text-primary);cursor:pointer;font:inherit;font-size:13px;padding:6px 14px;border-radius:var(--radius-sm);line-height:1.4;}
 .skur-section-h .skur-section-actions .bb-clear:hover{background:var(--bg-layer2);}
@@ -1691,8 +1707,16 @@ body.dark .skur-group-chip{color:#b794f4;}
       </div>
 
       <div class="skur-section">
-        <div class="skur-section-h">
-          🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span>
+        <div class="skur-section-h skur-inventory-header">
+          <span class="skur-inventory-title">🖥️ VM Inventory <span class="skur-pill" id="skurVmCountPill">0</span></span>
+          <div class="skur-power-filter" role="group" aria-label="Inventory power state" title="Filters this inventory only; existing groups and pricing totals are unchanged.">
+            <span>Power</span>
+            <div class="skur-power-segments">
+              <label><input type="radio" name="skurInventoryPower" value="" onchange="skurSetPowerFilter(this.value)"><span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 3h6v6H3z M15 3h6v6h-6z M3 15h6v6H3z M15 15h6v6h-6z"></path></svg>All</span></label>
+              <label><input type="radio" name="skurInventoryPower" value="poweredOn" onchange="skurSetPowerFilter(this.value)" checked><span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v9 M6.3 5.7a9 9 0 1 0 11.4 0"></path></svg>Powered on</span></label>
+              <label><input type="radio" name="skurInventoryPower" value="poweredOff" onchange="skurSetPowerFilter(this.value)"><span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path></svg>Powered off</span></label>
+            </div>
+          </div>
           <div class="skur-section-actions" id="skurBulkBar">
             <button class="bb-clear" onclick="skurClearSelection()">Clear selection (<span id="skurBulkCount">0</span>)</button>
             <select id="skurBulkAddTo" onchange="skurBulkAddToGroup(this.value);this.value='';">
@@ -1809,6 +1833,14 @@ body.dark .skur-group-chip{color:#b794f4;}
       <input type="text" id="skurRuleValue" placeholder="e.g. prod, web, sql" maxlength="200">
     </div>
     <div class="skur-modal-row">
+      <label for="skurRulePowerState">And power state</label>
+      <select id="skurRulePowerState">
+        <option value="">All</option>
+        <option value="poweredOn">Powered on</option>
+        <option value="poweredOff">Powered off</option>
+      </select>
+    </div>
+    <div class="skur-modal-row">
       <label>Then tag</label>
       <input type="text" id="skurRuleTagKey" placeholder="key e.g. env" maxlength="40">
     </div>
@@ -1852,6 +1884,14 @@ body.dark .skur-group-chip{color:#b794f4;}
       <label>Value</label>
       <input type="text" id="skurWorkloadRuleValue" placeholder="e.g. sql, web, app" maxlength="200">
       <select id="skurWorkloadRuleValueSelect" style="display:none"></select>
+    </div>
+    <div class="skur-modal-row">
+      <label for="skurWorkloadRulePowerState">And power state</label>
+      <select id="skurWorkloadRulePowerState">
+        <option value="">All</option>
+        <option value="poweredOn">Powered on</option>
+        <option value="poweredOff">Powered off</option>
+      </select>
     </div>
     <div class="skur-modal-row">
       <label>Workload type</label>
@@ -2073,7 +2113,7 @@ body.dark .skur-group-chip{color:#b794f4;}
   <a href="https://github.com/features/copilot/cli/" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">Learn more ↗</a>
   &nbsp;·&nbsp;
   <a href="https://github.com/DarrenJohns/djtools-rvtools-viz" target="_blank" rel="noopener noreferrer" style="color:var(--brand-primary);text-decoration:none;font-weight:600;">GitHub ↗</a>
-  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.3</div>
+  <div id="appVersionFooter" style="margin-top:8px;font-size:11px;color:var(--text-tertiary);opacity:0.7;">v1.1.4</div>
 </footer>
 
 <script>
@@ -2643,19 +2683,20 @@ function handleFile(file) {
 // change to the workspace snapshot shape (groups, manualTags, planSettings, OOS, tagRules,
 // recommenderSettings, etc.). Add a numeric migration entry from <oldVersion> to <oldVersion+1>.
 //
-// The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION. Establishing this
-// at v1 (with no migrations yet) sets the discipline so future schema bumps don't break older
-// .rvz scenarios or workspace.json files.
-const APP_VERSION = '1.1.3';
+// The chain runs left-to-right: v1 -> v2 -> ... -> WORKSPACE_SCHEMA_VERSION,
+// preserving older .rvz scenarios and workspace.json files.
+const APP_VERSION = '1.1.4';
 // Keep footer label in sync with APP_VERSION on load.
 document.addEventListener('DOMContentLoaded', () => {
   const f = document.getElementById('appVersionFooter');
   if (f) f.textContent = `v${APP_VERSION}`;
 });
-const WORKSPACE_SCHEMA_VERSION = 1;
+const WORKSPACE_SCHEMA_VERSION = 2;
 const WORKSPACE_MIGRATIONS = {
-  // Example for when v2 lands:
-  // 1: (s) => ({ ...s, schema: 2, newField: defaultValue }),
+  1: (s) => ({
+    ...s, schema: 2,
+    tagRules: (s.tagRules || []).map(r => ({ ...r, powerState: r.powerState === undefined ? '' : r.powerState })),
+  }),
 };
 
 // Walk a snapshot through the migration chain to the current schema.
@@ -2675,6 +2716,12 @@ function migrateWorkspace(snapshot) {
     throw new Error('Workspace was created by a newer version of this app (schema v' + v + '; this build supports up to v' + WORKSPACE_SCHEMA_VERSION + '). Update the app to open it.');
   }
   let s = snapshot;
+  if (s.tagRules != null && (!Array.isArray(s.tagRules) || s.tagRules.some(r =>
+    !r || typeof r !== 'object' || Array.isArray(r) ||
+    (r.powerState !== undefined && !skurIsPowerState(r.powerState))
+  ))) {
+    throw new Error('Invalid workspace: tag rules must have a power state of All, Powered on, or Powered off.');
+  }
   while (v < WORKSPACE_SCHEMA_VERSION) {
     const step = WORKSPACE_MIGRATIONS[v];
     if (typeof step !== 'function') {
@@ -3067,7 +3114,7 @@ async function importWorkspaceJson(buffer, file) {
   _applyWorkspaceSnapshot(snap);
   if (typeof renderSkurGroups === 'function') renderSkurGroups();
   if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
-  if (typeof renderTagRules === 'function') renderTagRules();
+  if (typeof renderSkurTagRules === 'function') renderSkurTagRules();
   showToast(`📋 Applied ${file.name} — ${summary.matchedVmIds.length} matched, ${summary.unmatchedVmIds.length} unmatched`);
 }
 
@@ -3287,9 +3334,12 @@ function skurResumeAutosave() {
     _applyWorkspaceSnapshot(snap);
     if (typeof renderSkurGroups === 'function') renderSkurGroups();
     if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
-    if (typeof renderTagRules === 'function') renderTagRules();
+    if (typeof renderSkurTagRules === 'function') renderSkurTagRules();
     if (typeof showToast === 'function') showToast(`↩ Resumed autosaved workspace from ${new Date(saved.savedAt).toLocaleString()}`);
-  } catch (e) { console.warn('[autosave] resume failed:', e && e.message); }
+  } catch (e) {
+    console.warn('[autosave] resume failed:', e && e.message);
+    showToast('Could not restore workspace: ' + e.message, true);
+  }
 }
 
 async function skurDismissAutosave() {
@@ -3345,7 +3395,7 @@ async function _skurMaybeResumeAutosave() {
           _applyWorkspaceSnapshot(snap);
           if (typeof renderSkurGroups === 'function') renderSkurGroups();
           if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
-          if (typeof renderTagRules === 'function') renderTagRules();
+          if (typeof renderSkurTagRules === 'function') renderSkurTagRules();
           // Release the toast suppression and emit the single summary toast.
           window._skurSuppressToasts = false;
           const _vmN = (typeof allVMs !== 'undefined' && Array.isArray(allVMs)) ? allVMs.length : (saved.dataset.vmCount || '?');
@@ -3355,6 +3405,7 @@ async function _skurMaybeResumeAutosave() {
         } catch (e) {
           window._skurSuppressToasts = false;
           console.warn('[autosave] auto-resume failed:', e && e.message);
+          showToast('Could not restore workspace: ' + e.message, true);
         }
         return;
       }
@@ -3571,7 +3622,7 @@ async function _loadScenario(buffer, file) {
     _applyWorkspaceSnapshot(workspace);
     if (typeof renderSkurGroups === 'function') renderSkurGroups();
     if (typeof renderSkurVmGrid === 'function') renderSkurVmGrid();
-    if (typeof renderTagRules === 'function') renderTagRules();
+    if (typeof renderSkurTagRules === 'function') renderSkurTagRules();
   } catch (e) {
     console.warn('[scenario] applyWorkspaceSnapshot failed:', e && e.message || e);
     showToast('⚠ Scenario opened, but workspace customisations could not be applied.', true);
@@ -4401,6 +4452,9 @@ function _skurResetWorkspaceState() {
   if (skurOutOfScope) { for (const k of Object.keys(skurOutOfScope)) delete skurOutOfScope[k]; }
   if (skurManualTags) { for (const k of Object.keys(skurManualTags)) delete skurManualTags[k]; }
   if (skurSelectedKeys && typeof skurSelectedKeys.clear === 'function') skurSelectedKeys.clear();
+  skurFilters.powerState = 'poweredOn';
+  _skurInvPage = 1;
+  _skurLastCheckIdx = -1;
 }
 function skurIsOOS(vm) { return !!skurOutOfScope[skurVmKey(vm)]; }
 function skurOOSEntry(vm) { return skurOutOfScope[skurVmKey(vm)] || null; }
@@ -5569,6 +5623,14 @@ function skurUpdateBulkBar() {
   // Stage 9: bulk bar lives inline in the section header and is always visible.
   // No more hidden class — selection count just shows "0 selected" when empty.
   const n = skurSelectedKeys.size;
+  const pageChecks = Array.from(document.querySelectorAll('#skurRows .skur-vm-check'));
+  const pageSelected = pageChecks.filter(cb => cb.checked).length;
+  const selectAll = document.getElementById('skurSelAll');
+  if (selectAll) {
+    selectAll.checked = pageChecks.length > 0 && pageSelected === pageChecks.length;
+    selectAll.indeterminate = pageSelected > 0 && pageSelected < pageChecks.length;
+    selectAll.disabled = pageChecks.length === 0;
+  }
   // Breakdown: grouped / ungrouped / oos
   let grouped = 0, oos = 0;
   if (n) {
@@ -5861,8 +5923,20 @@ function _skurResolveTagConflict(choice) {
 }
 
 // === SKU Recommender Tag rules MVP (Phase 4 slice 1) ===
-// In-memory only; persistence comes in Phase 8 autosave. JSON-serializable shape.
-const skurTagRules = []; // { id, field, op, value, flags, tagKey, tagValue }
+// Persisted in workspace snapshots and autosave.
+const skurTagRules = []; // { id, field, op, value, flags, powerState, tagKey, tagValue }
+function skurIsPowerState(state) {
+  return state === '' || state === 'poweredOn' || state === 'poweredOff';
+}
+function skurMatchesPowerState(vm, state) {
+  if (state === '') return true;
+  return skurIsPowerState(state) && String(vm.power ?? '').trim().toLowerCase() === state.toLowerCase();
+}
+function skurPowerStateLabel(state) {
+  if (state === 'poweredOn') return 'Powered on';
+  if (state === 'poweredOff') return 'Powered off';
+  return 'All power states';
+}
 const SKUR_FIELD_DEFS = {
   name:    { label: 'VM name',    get: v => v.name },
   os:      { label: 'OS',         get: v => v.os },
@@ -5874,6 +5948,7 @@ function skurNewRuleId() {
   return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
 }
 function skurRuleMatchesVm(rule, vm, ctxTags) {
+  if (!skurMatchesPowerState(vm, rule.powerState === undefined ? '' : rule.powerState)) return false;
   try {
     const needle = String(rule.value ?? '').trim();
     if (!needle) return false;
@@ -5995,7 +6070,7 @@ function renderSkurTagRules() {
   const sk = skurRulesSortState.key, sd = skurRulesSortState.dir;
   const sortVal = (r, k) => {
     if (k === 'condition') {
-      return (fldLabel(r.field) + ' ' + r.op + ' ' + r.value).toLowerCase();
+      return (fldLabel(r.field) + ' ' + r.op + ' ' + r.value + ' ' + skurPowerStateLabel(r.powerState)).toLowerCase();
     }
     if (k === 'tagKey')   return String(r.tagKey || '').toLowerCase();
     if (k === 'tagValue') return String(r.tagValue || '').toLowerCase();
@@ -6015,7 +6090,7 @@ function renderSkurTagRules() {
     const rowCls = [isChk ? 'checked' : '', r.kind === 'workload' ? 'is-workload' : ''].filter(Boolean).join(' ');
     return `<tr data-rid="${esc(r.id)}"${rowCls ? ` class="${rowCls}"` : ''}>
       <td class="tr-check"><input type="checkbox" class="skur-rule-check" data-rid="${esc(r.id)}" onclick="skurOnRuleCheck(this)"${isChk ? ' checked' : ''}></td>
-      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em>${r.kind === 'workload' ? (() => {
+      <td class="tr-cond"><strong>${esc(fld)}</strong> ${esc(opLabel[r.op]||r.op)} <em>"${esc(r.value)}"</em> · ${r.powerState ? 'AND ' : ''}${esc(skurPowerStateLabel(r.powerState))}${r.kind === 'workload' ? (() => {
         const wlIt = (typeof _skurResolveWorkloadId === 'function') ? _skurResolveWorkloadId(r.tagValue) : null;
         const canonical = r.tagValue || 'workload';
         const name = r.workloadName || (wlIt && wlIt.name) || '';
@@ -6110,10 +6185,11 @@ function openSkurRuleModal(ruleId) {
   document.getElementById('skurRuleField').value = r ? r.field : 'name';
   document.getElementById('skurRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurRuleValue').value = r ? r.value : '';
+  document.getElementById('skurRulePowerState').value = r ? (r.powerState || '') : skurFilters.powerState;
   document.getElementById('skurRuleTagKey').value = r ? r.tagKey : '';
   document.getElementById('skurRuleTagValue').value = r ? r.tagValue : '';
   document.getElementById('skurRuleModal').classList.add('show');
-  ['skurRuleField','skurRuleOp','skurRuleValue','skurRuleTagKey','skurRuleTagValue'].forEach(id => {
+  ['skurRuleField','skurRuleOp','skurRuleValue','skurRulePowerState','skurRuleTagKey','skurRuleTagValue'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el._skurBound) { el._skurBound = true; el.addEventListener('input', updateSkurRuleModalPreview); el.addEventListener('change', updateSkurRuleModalPreview); }
   });
@@ -6129,6 +6205,7 @@ function _skurReadModalDraft() {
     field:    document.getElementById('skurRuleField').value,
     op:       document.getElementById('skurRuleOp').value,
     value:    document.getElementById('skurRuleValue').value,
+    powerState: document.getElementById('skurRulePowerState').value,
     flags:    '',
     tagKey:   document.getElementById('skurRuleTagKey').value.trim(),
     tagValue: document.getElementById('skurRuleTagValue').value.trim(),
@@ -6157,7 +6234,7 @@ function updateSkurRuleModalPreview() {
     saveBtn.title = 'Refine the condition — currently matches 0 VMs';
     return;
   }
-  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → will tag as ${d.tagKey}:${d.tagValue}`;
+  prev.textContent = `Matches ${n} VM${n===1?'':'s'} (${skurPowerStateLabel(d.powerState)}) → will tag as ${d.tagKey}:${d.tagValue}`;
   saveBtn.disabled = false;
   saveBtn.title = '';
 }
@@ -6861,6 +6938,7 @@ function openSkurWorkloadRuleModal(ruleId) {
   _skurPopulateWorkloadFieldSelect(r ? r.field : 'name');
   document.getElementById('skurWorkloadRuleOp').value = r ? r.op : 'contains';
   document.getElementById('skurWorkloadRuleValue').value = r ? r.value : '';
+  document.getElementById('skurWorkloadRulePowerState').value = r ? (r.powerState || '') : skurFilters.powerState;
   _skurSyncWorkloadValueControl(r ? r.value : null);
   // Tag value for a workload rule is the canonical id ("workload-<type>-NN").
   // Older saved rules may carry "family:slug"; accept either via the populator.
@@ -6869,7 +6947,7 @@ function openSkurWorkloadRuleModal(ruleId) {
   _skurUpdateWorkloadTagOut();
   _skurUpdateWorkloadHint();
   document.getElementById('skurWorkloadRuleModal').classList.add('show');
-  ['skurWorkloadRuleOp','skurWorkloadRuleValue'].forEach(id => {
+  ['skurWorkloadRuleOp','skurWorkloadRuleValue','skurWorkloadRulePowerState'].forEach(id => {
     const el = document.getElementById(id);
     if (el && !el._skurBound) { el._skurBound = true; el.addEventListener('input', updateSkurWorkloadRuleModalPreview); el.addEventListener('change', updateSkurWorkloadRuleModalPreview); }
   });
@@ -6900,6 +6978,7 @@ function _skurReadWorkloadModalDraft() {
     field:    document.getElementById('skurWorkloadRuleField').value,
     op:       document.getElementById('skurWorkloadRuleOp').value,
     value:    document.getElementById('skurWorkloadRuleValue').value,
+    powerState: document.getElementById('skurWorkloadRulePowerState').value,
     flags:    '',
     tagKey:   'workload',
     tagValue: pick,
@@ -6933,7 +7012,7 @@ function updateSkurWorkloadRuleModalPreview() {
   }
   const wlIt = _skurResolveWorkloadId(d.tagValue);
   const wlLabel = wlIt ? wlIt.name : d.tagValue;
-  prev.textContent = `Matches ${n} VM${n===1?'':'s'} → workload: ${d.tagValue}  (${wlLabel})`;
+  prev.textContent = `Matches ${n} VM${n===1?'':'s'} (${skurPowerStateLabel(d.powerState)}) → workload: ${d.tagValue}  (${wlLabel})`;
   saveBtn.disabled = false;
   saveBtn.title = '';
 }
@@ -6966,7 +7045,7 @@ function saveSkurWorkloadRule() {
 }
 
 // === SKU Recommender VM grid (Phase 2) ===
-const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'', group:'', tags:'' };
+const skurFilters = { name:'', size:'', os:'', dc:'', cluster:'', group:'', tags:'', powerState:'poweredOn' };
 const skurSortState = { key:'name', dir:1 };
 // Stage 9.5 M5: paginate inventory grid (25/page, parity with Inventory tab + active-group panel).
 const SKUR_INV_PAGE_SIZE = 25;
@@ -7036,6 +7115,7 @@ function skurFilteredVms() {
   const exc = skurExceptionFilter;
   const excGroupKeys = exc && exc.groupId ? _skurMemberKeysOf(exc.groupId) : null;
   return vms.filter(v => {
+    if (!skurMatchesPowerState(v, f.powerState)) return false;
     if (nameQ && !String(v.name||'').toLowerCase().includes(nameQ)) return false;
     if (sizeQ) { const s = `${v.cpus??'?'}/${v.ram??'?'}`.toLowerCase(); if (!s.includes(sizeQ)) return false; }
     if (f.os && String(v.os||'') !== f.os) return false;
@@ -7101,6 +7181,9 @@ function skurPopulateFilterOptions() {
   }
   const cb = document.getElementById('skurFilterClear');
   if (cb) cb.disabled = !Object.values(skurFilters).some(x => x);
+  document.querySelectorAll('input[name="skurInventoryPower"]').forEach(el => {
+    el.checked = el.value === skurFilters.powerState;
+  });
 }
 function renderSkurVmGrid() {
   const tb = document.getElementById('skurRows'); if (!tb) return;
@@ -7185,7 +7268,10 @@ function renderSkurVmGrid() {
     }).join('');
   }
   const pill = document.getElementById('skurVmCountPill');
-  if (pill) pill.textContent = rows.length !== total ? `${rows.length} / ${total}` : `${total}`;
+  if (pill) {
+    pill.style.setProperty('--skur-count-ch', String(String(total).length * 2 + 3));
+    pill.textContent = rows.length !== total ? `${rows.length} / ${total}` : `${total}`;
+  }
   document.querySelectorAll('#skurTable thead th.skur-sortable').forEach(th => {
     if (!th.dataset.label) th.dataset.label = th.textContent.replace(/\s*[↕↑↓]\s*$/,'').trim();
     const arrow = (skurSortState.key === th.dataset.key) ? (skurSortState.dir === 1 ? '↑' : '↓') : '↕';
@@ -7220,10 +7306,26 @@ function skurOnFilter() {
   _skurInvPage = 1;
   renderSkurVmGrid();
 }
+function skurSetPowerFilter(state) {
+  if (!skurIsPowerState(state)) {
+    showToast('Invalid power filter. Choose All, Powered on, or Powered off.', true);
+    return;
+  }
+  if (state === skurFilters.powerState) return;
+  skurFilters.powerState = state;
+  const visibleKeys = new Set(skurFilteredVms().map(skurVmKey));
+  for (const key of skurSelectedKeys) {
+    if (!visibleKeys.has(key)) skurSelectedKeys.delete(key);
+  }
+  _skurLastCheckIdx = -1;
+  _skurInvPage = 1;
+  renderSkurVmGrid();
+}
 function skurClearFilters() {
   Object.keys(skurFilters).forEach(k => skurFilters[k]='');
   document.querySelectorAll('.skur-filter[data-f]').forEach(el => { el.value=''; });
   _skurInvPage = 1;
+  _skurLastCheckIdx = -1;
   renderSkurVmGrid();
 }
 function skurSort(key) {

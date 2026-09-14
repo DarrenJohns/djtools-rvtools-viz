@@ -10,7 +10,7 @@
 
 [![Deploy](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml/badge.svg)](https://github.com/DarrenJohns/djtools-rvtools-viz/actions/workflows/deploy.yml)
 ![Azure](https://img.shields.io/badge/Azure-SWA-0078D4)
-![Version](https://img.shields.io/badge/version-1.1.3-blue)
+![Version](https://img.shields.io/badge/version-1.1.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Built with](https://img.shields.io/badge/built_with-Copilot_CLI-8957e5)
 ![Hosted on](https://img.shields.io/badge/hosted_on-Azure_SWA-0078D4)
@@ -112,7 +112,8 @@ A second-tier "what would this look like in Azure?" layer. Driven by **live Azur
 | **Live SKU catalog** | 945+ B/D/E/F-family SKUs per region, refreshed monthly from the Azure CLI + Retail Prices API. Restricted SKUs filtered out, processor family inferred from the name (Intel/AMD/ARM). |
 | **Per-VM recommendation** | Each in-scope VM gets a recommended SKU, two alternates, monthly cost, CPU/RAM headroom %, and a confidence rating (High / Medium / Low). |
 | **Plan controls** | Region, currency (17 options, all sourced natively from the Azure Retail Prices API), term (PAYG / 1-yr / 3-yr RI / Spot), OS pricing model with **Azure Hybrid Benefit (AHUB)** toggle for Windows VMs, and headroom targets — change anywhere and every group + VM re-evaluates. |
-| **Tag rules + auto-grouping** | Build rules over RVTools annotations / folders / clusters; auto-cluster VMs into sizing groups by any tag value. |
+| **Tag rules + auto-grouping** | Match VM name, OS, cluster, or datacenter, with an optional **AND power state** condition. Both tag and workload rules support All / Powered on / Powered off. Use **Auto-group by tag** afterwards to create sizing groups. |
+| **Pricing inventory power filter** | Joined **All / Powered on / Powered off** pill with icons and a filled active segment, defaulting to Powered on. Reserved count-badge space keeps it steady as counts change. No extra table column; filters the inventory only, not existing groups, prices, or export scopes. |
 | **Out-of-scope handling** | Mark VMs as Decommission / Retain on-prem / Already migrated / Other (with note). Excluded from cost roll-ups + recommendations; restorable in bulk. |
 | **Bulk actions** | Multi-select VMs in the inventory and add to group, create new group, remove from all groups, or mark out-of-scope (with destructive-action confirmation > 5 VMs). Selection breakdown shows grouped / ungrouped / OOS counts. |
 | **Duplicate VM handling** | RVTools exports with duplicate vInfo rows (same UUID, or same name+cluster+DC) are collapsed to first occurrence. Dropped count shown on file load and in the Excel Summary. |
@@ -121,6 +122,12 @@ A second-tier "what would this look like in Azure?" layer. Driven by **live Azur
 | **Group rail or board view** | Choose vertical rail + active-group panel, or 4-column responsive board overview of compact group cards. View choice persisted in `localStorage`. |
 
 > Recommendations are indicative — Azure Migrate remains the authoritative tool for production cutover sizing.
+
+**Build a powered-on pricing group:** choose **Powered on** above the VM Inventory, add a tag or workload rule, and review its combined match count. New rules copy the current power filter; change **And power state** in the dialog if needed. Save the rule, then use **Auto-group by tag** to create the group. Saving a rule alone does not create a group, and auto-grouping uses tags across the dataset, not just visible rows.
+
+The power control combines with the existing inventory filters. **Clear filters** selects All; a fresh page or newly loaded dataset starts on Powered on. Switching tabs preserves the selection, but workspace files do not save it. Changing power deselects VMs hidden by the resulting filters, while select-all remains page-scoped. Suspended or unknown power states appear under All only.
+
+**Saved-rule compatibility:** the rule's own power condition survives editing, duplication, autosave, workspace JSON, rules templates, and `.rvz` round-trips. Older rules without this condition retain All. New workspaces use **schema 2**; older app versions reject them rather than silently ignore the condition. Update the receiving app before sharing new workspaces.
 
 ### 🔍 Explore, filter, and export
 

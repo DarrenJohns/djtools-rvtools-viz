@@ -45,13 +45,39 @@ jobs:
       - name: Check open/close tag balance
         run: |
           python - <<'PY'
-          import re, sys
-          content = open('index.html', encoding='utf-8').read()
-          opens = len(re.findall(r'<(?!meta|link|br|hr|img|input|!)[a-zA-Z]+[\s>]', content))
-          closes = len(re.findall(r'</[a-zA-Z]+>', content))
-          print(f'Open tags: {opens}, Close tags: {closes}')
-          # Threshold accounts for tags inside JS template strings (false positives).
-          sys.exit(0 if abs(opens - closes) < 20 else 1)
+          import html.parser, sys
+          from collections import Counter
+
+          class TagBalance(html.parser.HTMLParser):
+              void_tags = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img',
+                           'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'}
+
+              def __init__(self):
+                  super().__init__()
+                  self.opens = Counter()
+                  self.closes = Counter()
+
+              def handle_starttag(self, tag, attrs):
+                  if tag not in self.void_tags:
+                      self.opens[tag] += 1
+
+              def handle_endtag(self, tag):
+                  self.closes[tag] += 1
+
+              def handle_startendtag(self, tag, attrs):
+                  pass
+
+          p = TagBalance()
+          with open('index.html', encoding='utf-8') as f:
+              p.feed(f.read())
+          p.close()
+          mismatches = {tag: p.opens[tag] - p.closes[tag]
+                        for tag in sorted(p.opens.keys() | p.closes.keys())
+                        if p.opens[tag] != p.closes[tag]}
+          print(f'Open tags: {sum(p.opens.values())}, Close tags: {sum(p.closes.values())}')
+          for tag, delta in mismatches.items():
+              print(f'FAIL: <{tag}> has {delta:+d} unmatched opening/closing tags')
+          sys.exit(1 if mismatches else 0)
           PY
 
       - name: Verify essential elements
