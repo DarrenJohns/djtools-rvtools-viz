@@ -33,6 +33,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
 
       - name: Stage deployment payload
         run: |
@@ -43,6 +45,17 @@ jobs:
           # the data/ folder (SKU pricing + region catalog) explicitly.
           if [ -f config.json ]; then cp config.json staging/; fi
           if [ -d data ]; then cp -r data staging/data; fi
+          # Preserve the prerelease build so production deploys don't wipe
+          # /index-prerelease.html. Pull it from the active prerelease branch
+          # (skipped silently if the branch doesn't exist).
+          PRERELEASE_BRANCH="feature/skur-rebuild"
+          if git fetch origin "$PRERELEASE_BRANCH" --depth=1 2>/dev/null; then
+            git show "origin/$PRERELEASE_BRANCH:index.html" > staging/index-prerelease.html \
+              && echo "Staged index-prerelease.html from $PRERELEASE_BRANCH" \
+              || rm -f staging/index-prerelease.html
+          else
+            echo "Prerelease branch $PRERELEASE_BRANCH not found — skipping."
+          fi
 
       - name: Deploy to Azure Static Web Apps
         env:
